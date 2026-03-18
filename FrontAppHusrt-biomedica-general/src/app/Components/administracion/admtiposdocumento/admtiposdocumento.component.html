@@ -1,0 +1,79 @@
+<p-toast></p-toast>
+
+<div class="flex justify-content-center">
+    <div class="card md:w-8 w-full px-4 py-4 m-4 shadow-2 border-round-xl surface-card">
+        <p-toolbar styleClass="mb-4 gap-2 border-none surface-ground">
+            <ng-template pTemplate="left">
+                <div class="flex align-items-center gap-2">
+                    <i class="pi pi-file text-2xl text-primary"></i>
+                    <h2 class="m-0 font-bold text-900">Tipos de Documento</h2>
+                </div>
+            </ng-template>
+            <ng-template pTemplate="right">
+                <button pButton pRipple label="Nuevo" icon="pi pi-plus" class="p-button-success mr-2"
+                    (click)="openNew()"></button>
+            </ng-template>
+        </p-toolbar>
+
+        <p-table #dt [value]="tiposDocumento" [rows]="10" [paginator]="true" [globalFilterFields]="['nombres']"
+            [rowHover]="true" dataKey="id"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+            [showCurrentPageReport]="true" styleClass="p-datatable-striped p-datatable-sm">
+            <ng-template pTemplate="caption">
+                <div class="flex align-items-center justify-content-between">
+                    <h5 class="m-0">Listado de Tipos de Documento</h5>
+                    <p-iconfield position="left">
+                        <p-inputicon styleClass="pi pi-search" />
+                        <input pInputText type="text" (input)="onGlobalFilter($event)" placeholder="Buscar..." />
+                    </p-iconfield>
+                </div>
+            </ng-template>
+            <ng-template pTemplate="header">
+                <tr>
+                    <th pSortableColumn="nombres" style="min-width: 20rem">Nombre <p-sortIcon
+                            field="nombres"></p-sortIcon></th>
+                    <th class="text-center" style="width: 10rem">Acciones</th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-tipo>
+                <tr>
+                    <td class="font-bold">{{tipo.nombres}}</td>
+                    <td class="text-center">
+                        <button pButton pRipple icon="pi pi-pencil"
+                            class="p-button-rounded p-button-text p-button-warning mr-2"
+                            (click)="editTipoDocumento(tipo)" pTooltip="Editar"></button>
+                        <button pButton pRipple icon="pi pi-trash"
+                            class="p-button-rounded p-button-text p-button-danger" (click)="deleteTipoDocumento(tipo)"
+                            pTooltip="Eliminar"></button>
+                    </td>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="summary">
+                <div class="flex align-items-center justify-content-between">
+                    En total hay {{tiposDocumento ? tiposDocumento.length : 0 }} tipos de documento.
+                </div>
+            </ng-template>
+        </p-table>
+    </div>
+</div>
+
+<p-dialog [(visible)]="tipoDocumentoDialog" [style]="{width: '450px'}" header="Detalles Tipo Documento" [modal]="true"
+    styleClass="p-fluid">
+    <ng-template pTemplate="content">
+        <div class="field">
+            <label for="nombres">Nombre</label>
+            <input type="text" pInputText id="nombres" [(ngModel)]="tipoDocumento.nombres" required autofocus
+                appUppercase />
+            <small class="p-error" *ngIf="submitted && !tipoDocumento.nombres">El nombre es requerido.</small>
+        </div>
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+        <button pButton pRipple label="Cancelar" icon="pi pi-times" class="p-button-text"
+            (click)="hideDialog()"></button>
+        <button pButton pRipple label="Guardar" icon="pi pi-check" class="p-button-text"
+            (click)="saveTipoDocumento()"></button>
+    </ng-template>
+</p-dialog>
+
+<p-confirmDialog [style]="{width: '450px'}"></p-confirmDialog>

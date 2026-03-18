@@ -1,0 +1,282 @@
+<div class="p-4 md:p-6 lg:p-8 min-h-screen bg-app transition-colors duration-500">
+
+    <div class="flex align-items-center mb-5 gap-3">
+        <button pButton icon="pi pi-arrow-left" class="p-button-text p-button-rounded" (click)="goBack()"></button>
+        <h1 class="m-0 text-3xl font-bold">Personalización del Aplicativo</h1>
+    </div>
+
+    <div class="grid">
+        <!-- Panel de Configuración -->
+        <div class="col-12 lg:col-4">
+            <p-card header="Paleta de Colores" subheader="Ajuste los colores principales"
+                styleClass="shadow-3 border-round-xl">
+                <div class="flex flex-column gap-4">
+
+                    <div class="field">
+                        <label class="font-bold block mb-2">Color Primario</label>
+                        <div class="flex gap-2 align-items-center">
+                            <input type="color" [(ngModel)]="config.primaryColor" (change)="applyPreview()"
+                                class="w-full h-3rem cursor-pointer border-round border-1 border-300">
+                            <input pInputText type="text" [(ngModel)]="config.primaryColor" (input)="applyPreview()"
+                                class="w-7rem text-center uppercase">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="font-bold block mb-2">Color Primario Oscuro (Hover)</label>
+                        <div class="flex gap-2 align-items-center">
+                            <input type="color" [(ngModel)]="config.primaryDark" (change)="applyPreview()"
+                                class="w-full h-3rem cursor-pointer border-round border-1 border-300">
+                            <input pInputText type="text" [(ngModel)]="config.primaryDark" (input)="applyPreview()"
+                                class="w-7rem text-center uppercase">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="font-bold block mb-2">Color de Fondo General</label>
+                        <div class="flex gap-2 align-items-center">
+                            <input type="color" [(ngModel)]="config.bgApp" (change)="applyPreview()"
+                                class="w-full h-3rem cursor-pointer border-round border-1 border-300">
+                            <input pInputText type="text" [(ngModel)]="config.bgApp" (input)="applyPreview()"
+                                class="w-7rem text-center uppercase">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="font-bold block mb-2">Color de Superficie (Tarjetas/Tablas)</label>
+                        <div class="flex gap-2 align-items-center">
+                            <input type="color" [(ngModel)]="config.bgSurface" (change)="applyPreview()"
+                                class="w-full h-3rem cursor-pointer border-round border-1 border-300">
+                            <input pInputText type="text" [(ngModel)]="config.bgSurface" (input)="applyPreview()"
+                                class="w-7rem text-center uppercase">
+                        </div>
+                    </div>
+
+                </div>
+            </p-card>
+        </div>
+
+        <!-- Tipografía y Bordes -->
+        <div class="col-12 lg:col-4">
+            <p-card header="Estilos y Tipografía" subheader="Fuentes y bordes"
+                styleClass="shadow-3 border-round-xl h-full">
+                <div class="flex flex-column gap-4">
+
+                    <div class="field">
+                        <label class="font-bold block mb-2">Fuente del Aplicativo</label>
+                        <p-select [options]="fonts" [(ngModel)]="config.fontFamily" optionLabel="label"
+                            optionValue="value" (onChange)="applyPreview()" styleClass="w-full"></p-select>
+                    </div>
+
+                    <div class="field">
+                        <label class="font-bold block mb-2">Redondeo de Bordes (px/rem)</label>
+                        <input pInputText type="text" [(ngModel)]="config.borderRadius" (input)="applyPreview()"
+                            placeholder="Ej: 0.5rem" class="w-full">
+                    </div>
+
+                    <p-divider></p-divider>
+
+                    <div class="field">
+                        <label class="font-bold block mb-2">Color de Texto Principal</label>
+                        <div class="flex gap-2 align-items-center">
+                            <input type="color" [(ngModel)]="config.textColor" (change)="applyPreview()"
+                                class="w-full h-3rem cursor-pointer border-round border-1 border-300">
+                            <input pInputText type="text" [(ngModel)]="config.textColor" (input)="applyPreview()"
+                                class="w-7rem text-center uppercase">
+                        </div>
+                    </div>
+
+                </div>
+            </p-card>
+        </div>
+
+        <!-- Previsualización -->
+        <div class="col-12 lg:col-4">
+            <p-card header="Previsualización General" subheader="Muestra de componentes"
+                styleClass="shadow-3 border-round-xl h-full border-1 border-primary">
+
+                <div class="flex flex-column gap-4">
+
+                    <div class="p-4 border-round surface-card shadow-1" [style.border-radius]="config.borderRadius">
+                        <h4 class="mt-0 mb-3" [style.color]="config.primaryColor">Ejemplo de Título</h4>
+                        <p class="text-sm line-height-3 mb-4" [style.color]="config.textColor">
+                            Este es un párrafo de ejemplo para visualizar cómo se lee el texto con la combinación de
+                            colores y fuente seleccionada.
+                        </p>
+                        <div class="flex gap-2">
+                            <button pButton label="Botón Primario" class="p-button-sm"></button>
+                            <button pButton label="Secundario" class="p-button-outlined p-button-sm"></button>
+                        </div>
+                    </div>
+
+                    <div class="grid">
+                        <div class="col-6">
+                            <div class="p-3 text-center border-round shadow-sm"
+                                [style.background-color]="config.primaryColor" style="color: white">
+                                Primario
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 text-center border-round shadow-sm border-1 border-400"
+                                [style.background-color]="config.bgSurface" [style.color]="config.textColor">
+                                Superficie
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-auto pt-4 flex flex-column gap-2">
+                        <button pButton label="Guardar Configuración" icon="pi pi-check" class="w-full"
+                            (click)="saveTheme()"></button>
+                        <button pButton label="Restablecer Valores Originales" icon="pi pi-refresh"
+                            class="w-full p-button-outlined p-button-secondary" (click)="resetDefaults()"></button>
+                    </div>
+
+                </div>
+
+            </p-card>
+        </div>
+
+    </div>
+
+    <!-- Nueva Fila: Colores Semánticos y Estado -->
+    <div class="grid mt-4">
+        <div class="col-12 lg:col-12">
+            <p-card header="Colores Semánticos y de Estado"
+                subheader="Ajuste los colores para alertas, mensajes y botones de acción"
+                styleClass="shadow-3 border-round-xl">
+                <div class="grid text-center">
+                    <!-- &Eacute;xito -->
+                    <div class="col-12 md:col-3">
+                        <label class="font-bold block mb-2">&Eacute;xito (Activo)</label>
+                        <div class="flex flex-column gap-2 align-items-center">
+                            <input type="color" [(ngModel)]="config.successColor" (change)="applyPreview()"
+                                class="w-full h-3rem cursor-pointer border-round">
+                            <button pButton label="Efecto &Eacute;xito" icon="pi pi-check"
+                                class="p-button-success p-button-sm w-full"></button>
+                        </div>
+                    </div>
+                    <!-- Advertencia -->
+                    <div class="col-12 md:col-3">
+                        <label class="font-bold block mb-2">Advertencia</label>
+                        <div class="flex flex-column gap-2 align-items-center">
+                            <input type="color" [(ngModel)]="config.warningColor" (change)="applyPreview()"
+                                class="w-full h-3rem cursor-pointer border-round">
+                            <button pButton label="Efecto Alerta" icon="pi pi-exclamation-triangle"
+                                class="p-button-warning p-button-sm w-full"></button>
+                        </div>
+                    </div>
+                    <!-- Peligro -->
+                    <div class="col-12 md:col-3">
+                        <label class="font-bold block mb-2">Peligro (Inactivo)</label>
+                        <div class="flex flex-column gap-2 align-items-center">
+                            <input type="color" [(ngModel)]="config.dangerColor" (change)="applyPreview()"
+                                class="w-full h-3rem cursor-pointer border-round">
+                            <button pButton label="Efecto Peligro" icon="pi pi-times"
+                                class="p-button-danger p-button-sm w-full"></button>
+                        </div>
+                    </div>
+                    <!-- Info -->
+                    <div class="col-12 md:col-3">
+                        <label class="font-bold block mb-2">Informaci&oacute;n</label>
+                        <div class="flex flex-column gap-2 align-items-center">
+                            <input type="color" [(ngModel)]="config.infoColor" (change)="applyPreview()"
+                                class="w-full h-3rem cursor-pointer border-round">
+                            <button pButton label="Efecto Info" icon="pi pi-info-circle"
+                                class="p-button-info p-button-sm w-full"></button>
+                        </div>
+                    </div>
+                </div>
+            </p-card>
+        </div>
+    </div>
+
+    <!-- Nueva Fila: Navegación y Tablas -->
+    <div class="grid mt-4">
+
+        <!-- Navegación -->
+        <div class="col-12 lg:col-6">
+            <p-card header="Navegación" subheader="Estilo de barra superior"
+                styleClass="shadow-3 border-round-xl h-full">
+                <div class="flex flex-column gap-4">
+                    <div class="field">
+                        <label class="font-bold block mb-2">Fondo Navbar</label>
+                        <input type="color" [(ngModel)]="config.navbarBg" (change)="applyPreview()"
+                            class="w-full h-3rem cursor-pointer border-round">
+                    </div>
+                    <div class="field">
+                        <label class="font-bold block mb-2">Texto Navbar</label>
+                        <input type="color" [(ngModel)]="config.navbarTextColor" (change)="applyPreview()"
+                            class="w-full h-3rem cursor-pointer border-round">
+                    </div>
+                    <div class="mt-2 text-center p-3 border-round shadow-1" [style.background-color]="config.navbarBg"
+                        [style.color]="config.navbarTextColor">
+                        <i class="pi pi-home mr-2"></i> Inicio
+                    </div>
+                </div>
+            </p-card>
+        </div>
+
+        <!-- Tablas -->
+        <div class="col-12 lg:col-6">
+            <p-card header="Tablas de Datos" subheader="Encabezados y visualización"
+                styleClass="shadow-3 border-round-xl h-full">
+                <div class="flex flex-column gap-4">
+                    <div class="field">
+                        <label class="font-bold block mb-2">Fondo Encabezado Tabla</label>
+                        <input type="color" [(ngModel)]="config.tableHeaderBg" (change)="applyPreview()"
+                            class="w-full h-3rem cursor-pointer border-round">
+                    </div>
+                    <div class="field">
+                        <label class="font-bold block mb-2">Texto Encabezado Tabla</label>
+                        <input type="color" [(ngModel)]="config.tableHeaderTextColor" (change)="applyPreview()"
+                            class="w-full h-3rem cursor-pointer border-round">
+                    </div>
+                    <div class="mt-2">
+                        <table class="w-full text-xs" style="border-collapse: collapse;">
+                            <thead>
+                                <tr [style.background-color]="config.tableHeaderBg"
+                                    [style.color]="config.tableHeaderTextColor">
+                                    <th class="p-2 border-1 border-300">ID</th>
+                                    <th class="p-2 border-1 border-300">Nombre</th>
+                                </tr>
+                            </thead>
+                            <tbody [style.background-color]="config.bgSurface" [style.color]="config.textColor">
+                                <tr>
+                                    <td class="p-2 border-1 border-300">001</td>
+                                    <td class="p-2 border-1 border-300">Ejemplo</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </p-card>
+        </div>
+    </div>
+
+    <!-- Nueva Fila: Identidad -->
+    <div class="grid mt-4 mb-6">
+        <div class="col-12">
+            <p-card header="Identidad del Sistema" subheader="Nombres y marcas globales"
+                styleClass="shadow-3 border-round-xl">
+                <div class="grid">
+                    <div class="col-12 md:col-6">
+                        <div class="field">
+                            <label class="font-bold block mb-2">Nombre del Aplicativo (Logo/Navbar)</label>
+                            <input pInputText type="text" [(ngModel)]="config.appName" (input)="applyPreview()"
+                                class="w-full">
+                        </div>
+                    </div>
+                    <div class="col-12 md:col-6">
+                        <div class="field">
+                            <label class="font-bold block mb-2">Nombre de la Institución (Pie de
+                                página/Reportes)</label>
+                            <input pInputText type="text" [(ngModel)]="config.hospitalName" (input)="applyPreview()"
+                                class="w-full">
+                        </div>
+                    </div>
+                </div>
+            </p-card>
+        </div>
+    </div>
+
+</div>

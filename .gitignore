@@ -1,0 +1,42 @@
+# ─── Node ─────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ─── Environment / Secrets ───────────────────────
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# ─── Databases & Backups ─────────────────────────
+*.sql
+*.dump
+*.bak
+
+# ─── Angular Build Output ─────────────────────────
+/FrontAppHusrt-biomedica-general/dist/
+/FrontAppHusrt-biomedica-general/.angular/cache/
+/FrontAppHusrt-biomedica-general/coverage/
+
+# ─── Logs ─────────────────────────────────────────
+logs/
+*.log
+
+# ─── OS ───────────────────────────────────────────
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ─── IDEs ─────────────────────────────────────────
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.sublime-workspace
+
+# ─── Misc ─────────────────────────────────────────
+.history/
+*.tmp
+*.cache

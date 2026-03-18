@@ -1,0 +1,763 @@
+<div style="margin-top: 3%; margin-left: 5%; margin-right: 5%; background-color: white;">
+</div>
+
+<div style="margin-bottom: 2%;">
+  <h1 style="text-align: center;">MANTENIMIENTOS DE EQUIPOS BIOM&Eacute;DICOS</h1>
+</div>
+
+<div class="filtromes flex flex-wrap align-items-center justify-content-center gap-3" style="margin-bottom: 2%;">
+
+  <div class="flex align-items-center gap-2">
+    <label class="font-bold">A&ntilde;o:</label>
+    <input pInputText type="number" [(ngModel)]="anio" placeholder="YYYY" class="w-8rem" />
+  </div>
+
+  <div class="flex align-items-center gap-2">
+    <label class="font-bold">Inicio:</label>
+    <p-select [options]="meses" [(ngModel)]="mesInicio" optionLabel="label" optionValue="value" placeholder="Mes Inicio"
+      [style]="{'width':'10rem'}"></p-select>
+  </div>
+
+  <div class="flex align-items-center gap-2">
+    <label class="font-bold">Fin:</label>
+    <p-select [options]="meses" [(ngModel)]="mesFin" optionLabel="label" optionValue="value" placeholder="Mes Fin"
+      [style]="{'width':'10rem'}"></p-select>
+  </div>
+
+  <button type="button" class="btn btn-dark" (click)="setDate()">
+    Buscar
+  </button>
+</div>
+
+<div>
+  <h6 style="text-align: center;" *ngIf="mesInicio === mesFin">
+    Mantenimientos del mes de {{obtenerNombreMes(mesInicio)}} del a&ntilde;o {{anio}}
+  </h6>
+  <h6 style="text-align: center;" *ngIf="mesInicio !== mesFin">
+    Mantenimientos de {{obtenerNombreMes(mesInicio)}} a {{obtenerNombreMes(mesFin)}} del a&ntilde;o {{anio}}
+  </h6>
+</div>
+
+<div class="btn-group botonesMenu" role="group" aria-label="Basic example">
+  <button type="button" class="btn" [ngClass]="panelPreventivos ? 'btn-warning' : 'btn-dark'"
+    (click)="viewPreventivos()">
+    Preventivos
+  </button>
+
+  <button type="button" class="btn" [ngClass]="panelMetas ? 'btn-warning' : 'btn-dark'" (click)="viewMetas()">
+    Metas
+  </button>
+
+  <button type="button" class="btn" [ngClass]="panelCorrectivos ? 'btn-warning' : 'btn-dark'"
+    (click)="viewCorrectivos()">
+    Correctivos
+  </button>
+</div>
+
+<div style="margin-top: 1%;">
+  <div class="panelMantenimientos" *ngIf="panelPreventivos">
+
+    <div class="card">
+      <p-table #dt2 [value]="preventivos" dataKey="id" [rows]="10" [rowsPerPageOptions]="[10, 25, 50, 100]"
+        [loading]="loading" [paginator]="true" [scrollable]="true" [tableStyle]="{ 'min-width': '100rem' }"
+        [globalFilterFields]="['equipo.nombres', 'usuario.nombres', 'equipo.serie', 'equipo.placa', 'servicio.nombres']"
+        [showCurrentPageReport]="true"
+        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros">
+
+        <ng-template pTemplate="caption">
+          <div class="flex">
+            <p-iconfield iconPosition="left" class="ml-auto">
+              <p-inputicon>
+                <i class="pi pi-search"></i>
+              </p-inputicon>
+              <input pInputText type="text" (input)="onGlobalFilter($event)" placeholder="B&uacute;squeda General" />
+            </p-iconfield>
+          </div>
+        </ng-template>
+
+        <ng-template pTemplate="header">
+          <tr>
+            <th pSortableColumn="equipo.nombres" style="width:10%; align-items: center; text-align: center">Nombre
+              <p-sortIcon field="equipo.nombres"></p-sortIcon>
+            </th>
+            <th pSortableColumn="equipo.marca" style="width:10%; align-items: center; text-align: center">Marca
+              <p-sortIcon field="equipo.marca"></p-sortIcon>
+            </th>
+            <th pSortableColumn="equipo.modelo" style="width:10%; align-items: center; text-align: center">Modelo
+              <p-sortIcon field="equipo.modelo"></p-sortIcon>
+            </th>
+            <th pSortableColumn="equipo.serie" style="width:10%; align-items: center; text-align: center">Serie
+              <p-sortIcon field="equipo.serie"></p-sortIcon>
+            </th>
+            <th pSortableColumn="equipo.placa" style="width:10%; align-items: center; text-align: center">Placa
+              <p-sortIcon field="equipo.placa"></p-sortIcon>
+            </th>
+            <th pSortableColumn="servicio.nombres" style="width:15%; align-items: center; text-align: center">Servicio
+              <p-sortIcon field="servicio.nombres"></p-sortIcon>
+            </th>
+            <th pSortableColumn="servicio.sede.nombres" style="width:15%; align-items: center; text-align: center">Sede
+              <p-sortIcon field="servicio.sede.nombres"></p-sortIcon>
+            </th>
+            <th pSortableColumn="equipo.ubicacionEspecifica" style="width:15%; align-items: center; text-align: center">
+              Ubicaci&oacute;n Espec&iacute;fica <p-sortIcon field="equipo.ubicacionEspecifica"></p-sortIcon></th>
+            <th pSortableColumn="usuario.nombres" style="width:15%; align-items: center; text-align: center">Asignado
+              <p-sortIcon field="usuario.nombres"></p-sortIcon>
+            </th>
+            <th pSortableColumn="mesProgramado" style="width:10%; align-items: center; text-align: center">Mes
+              <p-sortIcon field="mesProgramado"></p-sortIcon>
+            </th>
+            <th style="width:10%; align-items: center; text-align: center">Estado</th>
+            <th style="width:10%; align-items: center; text-align: center">Opciones</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-reporte>
+          <tr>
+            <td style="text-align: center; align-items: center; text-align: center">
+              <span class="ml-1 vertical-align-middle">
+                <a href="/biomedica/reportesequipo/{{reporte.equipo.id}}" role="button"
+                  style="color: black;">{{reporte.equipo.nombres}}</a>
+              </span>
+            </td>
+            <td style="text-align: center; align-items: center; text-align: center">
+              <span class="ml-1 vertical-align-middle">
+                {{ reporte.equipo.marca }}
+              </span>
+            </td>
+            <td style="text-align: center; align-items: center; text-align: center">
+              <span class="ml-1 vertical-align-middle">
+                {{ reporte.equipo.modelo }}
+              </span>
+            </td>
+            <td style="text-align: center; align-items: center; text-align: center">
+              <span class="ml-1 vertical-align-middle">
+                {{ reporte.equipo.serie }}
+              </span>
+            </td>
+            <td style="text-align: center; align-items: center; text-align: center">
+              <span class="ml-1 vertical-align-middle">
+                {{ reporte.equipo.placa }}
+              </span>
+            </td>
+            <td style="text-align: center; align-items: center; text-align: center">
+              <span class="ml-1 vertical-align-middle">
+                {{ reporte.servicio.nombres}}
+              </span>
+            </td>
+            <td style="text-align: center; align-items: center; text-align: center">
+              <span class="ml-1 vertical-align-middle">
+                {{ reporte.servicio.sede?.nombres || 'Sin Sede' }}
+              </span>
+            </td>
+            <td style="text-align: center; align-items: center; text-align: center">
+              <span class="ml-1 vertical-align-middle">
+                {{ reporte.equipo.ubicacionEspecifica}}
+              </span>
+            </td>
+            <td style="text-align: center; align-items: center; text-align: center">
+              <span class="ml-1 vertical-align-middle">
+                -{{ reporte.usuario?.nombres}} {{reporte.usuario?.apellidos}}
+              </span>
+            </td>
+            <td style="text-align: center; align-items: center; text-align: center">
+              <span class="ml-1 vertical-align-middle">
+                {{ obtenerNombreMes(reporte.mesProgramado) }}
+              </span>
+            </td>
+            <td style="text-align: center; align-items: center; text-align: center">
+              <button type="button" class="btn btn-secondary" *ngIf="reporte.realizado && reporte.rutaPdf == null"
+                (click)="viewModalReport(reporte.id)">REALIZADO</button>
+              <button type="button" class="btn btn-success" *ngIf="reporte.realizado && reporte.rutaPdf != null"
+                (click)="viewModalReport(reporte.id)">COMPLETADO</button>
+              <button type="button" class="btn btn-warning" (click)="nuevoReporte(reporte.equipo.id, reporte.id)"
+                *ngIf="!reporte.realizado && verificarVencimiento(reporte.mesProgramado, reporte['añoProgramado'])">PROGRAMADO</button>
+              <button type="button" class="btn btn-danger" (click)="nuevoReporte(reporte.equipo.id, reporte.id)"
+                *ngIf="!reporte.realizado && !verificarVencimiento(reporte.mesProgramado, reporte['añoProgramado'])">PENDIENTE</button>
+            </td>
+            <td style="text-align: center; align-items: center; text-align: center">
+              <button type="button" class="btn btn-info ml-1" *ngIf="isAdmin && !reporte.realizado"
+                (click)="openAdminEdit(reporte)" pTooltip="Editar Admin">
+                <i class="pi pi-pencil"></i>
+              </button>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="5">No hay Reportes.</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+
+  <div class="panelMantenimientos" *ngIf="panelMetas">
+
+    <div class="contenedor">
+      <div class="izquierda">
+
+        <button type="button" class="btn btn-sm" [ngClass]="panelRealizados ? 'btn-warning' : 'btn-dark'"
+          style="width: 100%; margin-bottom: 2%;" (click)="panelRealizadosView()">
+          Realizados
+        </button>
+        <button type="button" class="btn btn-sm" [ngClass]="panelPendientes ? 'btn-warning' : 'btn-dark'"
+          style="width: 100%;" (click)="panelPendientesView()">
+          Pendientes
+        </button>
+
+      </div>
+      <div class="derecha" *ngIf="panelRealizados">
+
+
+        <div class="card">
+          <p-table #dt2 [value]="preventivosRealizados" dataKey="id" [rows]="10"
+            [rowsPerPageOptions]="[10, 25, 50, 100]" [loading]="loading" [paginator]="true" [scrollable]="true"
+            [tableStyle]="{ 'min-width': '100rem' }"
+            [globalFilterFields]="['equipo.nombres', 'usuario.nombres', 'equipo.serie', 'equipo.placa', 'servicio.nombres']"
+            [showCurrentPageReport]="true"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros">
+
+            <ng-template pTemplate="caption">
+              <div class="flex">
+                <p-iconfield iconPosition="left" class="ml-auto">
+                  <p-inputicon>
+                    <i class="pi pi-search"></i>
+                  </p-inputicon>
+                  <input pInputText type="text" (input)="onGlobalFilter($event)"
+                    placeholder="B&uacute;squeda General" />
+                </p-iconfield>
+              </div>
+            </ng-template>
+
+            <ng-template pTemplate="header">
+              <tr>
+                <th pSortableColumn="equipo.nombres" style="width:10%; align-items: center; text-align: center">Nombre
+                  <p-sortIcon field="equipo.nombres"></p-sortIcon>
+                </th>
+                <th pSortableColumn="equipo.marca" style="width:10%; align-items: center; text-align: center">Marca
+                  <p-sortIcon field="equipo.marca"></p-sortIcon>
+                </th>
+                <th pSortableColumn="equipo.modelo" style="width:10%; align-items: center; text-align: center">Modelo
+                  <p-sortIcon field="equipo.modelo"></p-sortIcon>
+                </th>
+                <th pSortableColumn="equipo.serie" style="width:10%; align-items: center; text-align: center">Serie
+                  <p-sortIcon field="equipo.serie"></p-sortIcon>
+                </th>
+                <th pSortableColumn="equipo.placa" style="width:10%; align-items: center; text-align: center">Placa
+                  <p-sortIcon field="equipo.placa"></p-sortIcon>
+                </th>
+                <th pSortableColumn="servicio.nombres" style="width:15%; align-items: center; text-align: center">
+                  Servicio <p-sortIcon field="servicio.nombres"></p-sortIcon></th>
+                <th pSortableColumn="equipo.ubicacionEspecifica"
+                  style="width:15%; align-items: center; text-align: center">
+                  Ubicaci&oacute;n Espec&iacute;fica <p-sortIcon field="equipo.ubicacionEspecifica"></p-sortIcon></th>
+                <th pSortableColumn="usuario.nombres" style="width:15%; align-items: center; text-align: center">
+                  Asignado <p-sortIcon field="usuario.nombres"></p-sortIcon></th>
+                <th pSortableColumn="mesProgramado" style="width:10%; align-items: center; text-align: center">Mes
+                  <p-sortIcon field="mesProgramado"></p-sortIcon>
+                </th>
+                <th style="width:10%; align-items: center; text-align: center">Estado</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-reporte>
+              <tr>
+                <td style="text-align: center; align-items: center; text-align: center">
+                  <span class="ml-1 vertical-align-middle">
+                    <a href="/biomedica/reportesequipo/{{reporte.equipo.id}}" role="button"
+                      style="color: black;">{{reporte.equipo.nombres}}</a>
+                  </span>
+                </td>
+                <td style="text-align: center; align-items: center; text-align: center">
+                  <span class="ml-1 vertical-align-middle">
+                    {{ reporte.equipo.marca }}
+                  </span>
+                </td>
+                <td style="text-align: center; align-items: center; text-align: center">
+                  <span class="ml-1 vertical-align-middle">
+                    {{ reporte.equipo.modelo }}
+                  </span>
+                </td>
+                <td style="text-align: center; align-items: center; text-align: center">
+                  <span class="ml-1 vertical-align-middle">
+                    {{ reporte.equipo.serie }}
+                  </span>
+                </td>
+                <td style="text-align: center; align-items: center; text-align: center">
+                  <span class="ml-1 vertical-align-middle">
+                    {{ reporte.equipo.placa }}
+                  </span>
+                </td>
+                <td style="text-align: center; align-items: center; text-align: center">
+                  <span class="ml-1 vertical-align-middle">
+                    {{ reporte.servicio.nombres}}
+                  </span>
+                </td>
+                <td style="text-align: center; align-items: center; text-align: center">
+                  <span class="ml-1 vertical-align-middle">
+                    {{ reporte.equipo.ubicacionEspecifica}}
+                  </span>
+                </td>
+                <td style="text-align: center; align-items: center; text-align: center">
+                  <span class="ml-1 vertical-align-middle">
+                    -{{ reporte.usuario?.nombres}} {{reporte.usuario?.apellidos}}
+                  </span>
+                </td>
+                <td style="text-align: center; align-items: center; text-align: center">
+                  <span class="ml-1 vertical-align-middle">
+                    {{ obtenerNombreMes(reporte.mesProgramado) }}
+                  </span>
+                </td>
+                <td style="text-align: center; align-items: center; text-align: center">
+                  <button type="button" class="btn btn-secondary" (click)="viewModalReport(reporte.id)"
+                    *ngIf="reporte.rutaPdf == null">REALIZADO</button>
+                  <button type="button" class="btn btn-success" *ngIf="reporte.rutaPdf != null"
+                    (click)="viewModalReport(reporte.id)">COMPLETADO</button>
+
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="5">No hay Reportes.</td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+
+
+      </div>
+      <div class="derecha" *ngIf="panelPendientes">
+
+        <div class="card">
+          <p-table #dt2 [value]="preventivosPendientes" dataKey="id" [rows]="10"
+            [rowsPerPageOptions]="[10, 25, 50, 100]" [loading]="loading" [paginator]="true" [scrollable]="true"
+            [tableStyle]="{ 'min-width': '100rem' }"
+            [globalFilterFields]="['equipo.nombres', 'usuario.nombres', 'equipo.serie', 'equipo.placa', 'servicio.nombres']"
+            [showCurrentPageReport]="true"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros">
+
+            <ng-template pTemplate="caption">
+              <div class="flex">
+                <p-iconfield iconPosition="left" class="ml-auto">
+                  <p-inputicon>
+                    <i class="pi pi-search"></i>
+                  </p-inputicon>
+                  <input pInputText type="text" (input)="onGlobalFilter($event)"
+                    placeholder="B&uacute;squeda General" />
+                </p-iconfield>
+              </div>
+            </ng-template>
+
+            <ng-template pTemplate="header">
+              <tr>
+                <th pSortableColumn="equipo.nombres" style="width:10%; align-items: center; text-align: center">Nombre
+                  <p-sortIcon field="equipo.nombres"></p-sortIcon>
+                </th>
+                <th pSortableColumn="equipo.marca" style="width:10%; align-items: center; text-align: center">Marca
+                  <p-sortIcon field="equipo.marca"></p-sortIcon>
+                </th>
+                <th pSortableColumn="equipo.modelo" style="width:10%; align-items: center; text-align: center">Modelo
+                  <p-sortIcon field="equipo.modelo"></p-sortIcon>
+                </th>
+                <th pSortableColumn="equipo.serie" style="width:10%; align-items: center; text-align: center">Serie
+                  <p-sortIcon field="equipo.serie"></p-sortIcon>
+                </th>
+                <th pSortableColumn="equipo.placa" style="width:10%; align-items: center; text-align: center">Placa
+                  <p-sortIcon field="equipo.placa"></p-sortIcon>
+                </th>
+                <th pSortableColumn="servicio.nombres" style="width:15%; align-items: center; text-align: center">
+                  Servicio <p-sortIcon field="servicio.nombres"></p-sortIcon></th>
+                <th pSortableColumn="equipo.ubicacionEspecifica"
+                  style="width:15%; align-items: center; text-align: center">
+                  Ubicaci&oacute;n Espec&iacute;fica <p-sortIcon field="equipo.ubicacionEspecifica"></p-sortIcon></th>
+                <th pSortableColumn="usuario.nombres" style="width:15%; align-items: center; text-align: center">
+                  Asignado <p-sortIcon field="usuario.nombres"></p-sortIcon></th>
+                <th pSortableColumn="mesProgramado" style="width:10%; align-items: center; text-align: center">Mes
+                  <p-sortIcon field="mesProgramado"></p-sortIcon>
+                </th>
+                <th style="width:10%; align-items: center; text-align: center">Estado</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-reporte>
+              <tr>
+                <td style="text-align: center; align-items: center; text-align: center">
+                  <span class="ml-1 vertical-align-middle">
+                    <a href="/biomedica/reportesequipo/{{reporte.equipo.id}}" role="button"
+                      style="color: black;">{{reporte.equipo.nombres}}</a>
+                  </span>
+                </td>
+                <td style="text-align: center; align-items: center; text-align: center">
+                  <span class="ml-1 vertical-align-middle">
+                    {{ reporte.equipo.marca }}
+                  </span>
+                </td>
+                <td style="text-align: center; align-items: center; text-align: center">
+                  <span class="ml-1 vertical-align-middle">
+                    {{ reporte.equipo.modelo }}
+                  </span>
+                </td>
+                <td style="text-align: center; align-items: center; text-align: center">
+                  <span class="ml-1 vertical-align-middle">
+                    {{ reporte.equipo.serie }}
+                  </span>
+                </td>
+                <td style="text-align: center; align-items: center; text-align: center">
+                  <span class="ml-1 vertical-align-middle">
+                    {{ reporte.equipo.placa }}
+                  </span>
+                </td>
+                <td style="text-align: center; align-items: center; text-align: center">
+                  <span class="ml-1 vertical-align-middle">
+                    {{ reporte.servicio.nombres}}
+                  </span>
+                </td>
+                <td style="text-align: center; align-items: center; text-align: center">
+                  <span class="ml-1 vertical-align-middle">
+                    {{ reporte.equipo.ubicacionEspecifica}}
+                  </span>
+                </td>
+                <td style="text-align: center; align-items: center; text-align: center">
+                  <span class="ml-1 vertical-align-middle">
+                    -{{ reporte.usuario?.nombres}} {{reporte.usuario?.apellidos}}
+                  </span>
+                </td>
+                <td style="text-align: center; align-items: center; text-align: center">
+                  <span class="ml-1 vertical-align-middle">
+                    {{ obtenerNombreMes(reporte.mesProgramado) }}
+                  </span>
+                </td>
+                <td style="text-align: center; align-items: center; text-align: center">
+                  <button type="button" class="btn btn-danger"
+                    (click)="nuevoReporte(reporte.equipo.id, reporte.id)">PENDIENTE</button>
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+              <tr>
+                <td colspan="5">No hay Reportes.</td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+
+
+      </div>
+    </div>
+
+  </div>
+
+
+  <div class="panelMantenimientos" style="background-color: white;" *ngIf="panelCorrectivos">
+
+
+    <div class="card">
+      <p-table #dt2 [value]="correctivos" dataKey="id" [rows]="10" [rowsPerPageOptions]="[10, 25, 50, 100]"
+        [loading]="loading" [paginator]="true" [scrollable]="true" [tableStyle]="{ 'min-width': '100rem' }"
+        [globalFilterFields]="['equipo.nombres', 'usuario.nombres', 'equipo.serie', 'equipo.placa', 'servicio.nombres']"
+        [showCurrentPageReport]="true"
+        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros">
+
+
+        <ng-template pTemplate="caption">
+          <div class="flex">
+            <p-iconfield iconPosition="left" class="ml-auto">
+              <p-inputicon>
+                <i class="pi pi-search"></i>
+              </p-inputicon>
+              <input pInputText type="text" (input)="onGlobalFilter($event)" placeholder="B&uacute;squeda General" />
+            </p-iconfield>
+          </div>
+        </ng-template>
+
+
+        <ng-template pTemplate="header">
+          <tr>
+            <th pSortableColumn="equipo.nombres" style="width:10%; align-items: center; text-align: center">Nombre
+              <p-sortIcon field="equipo.nombres"></p-sortIcon>
+            </th>
+            <th pSortableColumn="equipo.marca" style="width:10%; align-items: center; text-align: center">Marca
+              <p-sortIcon field="equipo.marca"></p-sortIcon>
+            </th>
+            <th pSortableColumn="equipo.modelo" style="width:10%; align-items: center; text-align: center">Modelo
+              <p-sortIcon field="equipo.modelo"></p-sortIcon>
+            </th>
+            <th pSortableColumn="equipo.serie" style="width:10%; align-items: center; text-align: center">Serie
+              <p-sortIcon field="equipo.serie"></p-sortIcon>
+            </th>
+            <th pSortableColumn="equipo.placa" style="width:10%; align-items: center; text-align: center">Placa
+              <p-sortIcon field="equipo.placa"></p-sortIcon>
+            </th>
+            <th pSortableColumn="servicio.nombres" style="width:15%; align-items: center; text-align: center">Servicio
+              <p-sortIcon field="servicio.nombres"></p-sortIcon>
+            </th>
+            <th pSortableColumn="servicio.sede.nombres" style="width:15%; align-items: center; text-align: center">Sede
+              <p-sortIcon field="servicio.sede.nombres"></p-sortIcon>
+            </th>
+            <th pSortableColumn="equipo.ubicacionEspecifica" style="width:15%; align-items: center; text-align: center">
+              Ubicaci&oacute;n Espec&iacute;fica <p-sortIcon field="equipo.ubicacionEspecifica"></p-sortIcon></th>
+            <th pSortableColumn="usuario.nombres" style="width:15%; align-items: center; text-align: center">Asignado
+              <p-sortIcon field="usuario.nombres"></p-sortIcon>
+            </th>
+            <th pSortableColumn="fechaRealizado" style="width:10%; align-items: center; text-align: center">Fecha
+              <p-sortIcon field="fechaRealizado"></p-sortIcon>
+            </th>
+            <th style="width:10%; align-items: center; text-align: center">Realizado</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-reporte>
+          <tr>
+            <td style="text-align: center; align-items: center; text-align: center">
+              <span class="ml-1 vertical-align-middle">
+                <a href="/biomedica/reportesequipo/{{reporte.equipo.id}}" role="button"
+                  style="color: black;">{{reporte.equipo.nombres}}</a>
+              </span>
+            </td>
+            <td style="text-align: center; align-items: center; text-align: center">
+              <span class="ml-1 vertical-align-middle">
+                {{ reporte.equipo.marca }}
+              </span>
+            </td>
+            <td style="text-align: center; align-items: center; text-align: center">
+              <span class="ml-1 vertical-align-middle">
+                {{ reporte.equipo.modelo }}
+              </span>
+            </td>
+            <td style="text-align: center; align-items: center; text-align: center">
+              <span class="ml-1 vertical-align-middle">
+                {{ reporte.equipo.serie }}
+              </span>
+            </td>
+            <td style="text-align: center; align-items: center; text-align: center">
+              <span class="ml-1 vertical-align-middle">
+                {{ reporte.equipo.placa }}
+              </span>
+            </td>
+            <td style="text-align: center; align-items: center; text-align: center">
+              <span class="ml-1 vertical-align-middle">
+                {{ reporte.servicio.nombres}}
+              </span>
+            </td>
+            <td style="text-align: center; align-items: center; text-align: center">
+              <span class="ml-1 vertical-align-middle">
+                {{ reporte.servicio.sede?.nombres || 'Sin Sede' }}
+              </span>
+            </td>
+            <td style="text-align: center; align-items: center; text-align: center">
+              <span class="ml-1 vertical-align-middle">
+                {{ reporte.equipo.ubicacionEspecifica}}
+              </span>
+            </td>
+            <td style="text-align: center; align-items: center; text-align: center">
+              <span class="ml-1 vertical-align-middle" *ngIf="reporte.usuario">
+                -{{ reporte.usuario?.nombres}} {{reporte.usuario?.apellidos}}
+              </span>
+              <span class="ml-1 vertical-align-middle" *ngIf="!reporte.usuario">x
+              </span>
+            </td>
+            <td style="text-align: center; align-items: center; text-align: center">
+              <span class="ml-1 vertical-align-middle">
+                {{ reporte.fechaRealizado }}
+              </span>
+            </td>
+            <td style="text-align: center; align-items: center; text-align: center">
+              <button type="button" class="btn btn-secondary" (click)="viewModalReport(reporte.id)"
+                *ngIf="!reporte.rutaPdf">REALIZADO</button>
+              <button type="button" class="btn btn-success" (click)="viewModalReport(reporte.id)"
+                *ngIf="reporte.rutaPdf">COMPLETADO</button>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="5">No hay Reportes.</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+
+
+  </div>
+
+</div>
+
+
+<p-dialog header="Reporte N. {{ reportSelected?.id }}" [(visible)]="modalReport" [modal]="true" [responsive]="true"
+  [style]="{ width: '90vw', maxWidth: '95%' }" [baseZIndex]="10000"
+  [breakpoints]="{ '960px': '90vw', '640px': '95vw' }">
+  <div class="p-fluid p-3">
+
+    <!-- 1. Línea: Informaci&oacute;n del Equipo -->
+    <div class="grid">
+      <div class="col-12">
+        <p-card header="Informaci&oacute;n del Equipo">
+          <div class="p-text-sm grid">
+            <div class="col-12 md:col-4">
+              <p><strong>Nombre:</strong> {{ reportSelected?.equipo.nombres }}</p>
+              <p><strong>Marca:</strong> {{ reportSelected?.equipo.marca }}</p>
+              <p><strong>Modelo:</strong> {{ reportSelected?.equipo.modelo }}</p>
+            </div>
+            <div class="col-12 md:col-4">
+              <p><strong>Serie:</strong> {{ reportSelected?.equipo.serie }}</p>
+              <p><strong>Placa:</strong> {{ reportSelected?.equipo.placa }}</p>
+              <p><strong>Activo:</strong> {{ reportSelected?.equipo.activo ? 'S&iacute;' : 'No' }}</p>
+            </div>
+            <div class="col-12 md:col-4">
+              <p><strong>Servicio:</strong> {{ reportSelected?.servicio.nombres }}</p>
+              <p><strong>Ubicaci&oacute;n:</strong> {{ reportSelected?.equipo.ubicacion }}</p>
+              <p><strong>Ubicaci&oacute;n Espec&iacute;fica:</strong> {{ reportSelected?.equipo.ubicacionEspecifica }}
+              </p>
+            </div>
+          </div>
+        </p-card>
+      </div>
+    </div>
+
+    <!-- 2. Línea: Detalles del Reporte -->
+    <div class="grid">
+      <div class="col-12">
+        <p-card header="Detalle del Reporte">
+          <div class="p-text-sm grid">
+            <div class="col-12 md:col-4">
+              <p><strong>Mes Programado:</strong> {{ reportSelected?.mesProgramado + 1 }}</p>
+              <p><strong>Fecha Realizado:</strong> {{ reportSelected?.fechaRealizado }}</p>
+              <p><strong>Hora Inicio:</strong> {{ reportSelected?.horaInicio }}</p>
+              <p><strong>Fecha Fin:</strong> {{ reportSelected?.fechaFin }}</p>
+              <p><strong>Trabajo Realizado:</strong> {{ reportSelected?.trabajoRealizado }}</p>
+            </div>
+            <div class="col-12 md:col-4">
+              <p><strong>Hora Terminación:</strong> {{ reportSelected?.horaTerminacion }}</p>
+              <p><strong>Hora Total:</strong> {{ reportSelected?.horaTotal }}</p>
+              <p><strong>Tipo Mantenimiento:</strong> {{ reportSelected?.tipoMantenimiento }}</p>
+              <p><strong>Tipo Falla:</strong> {{ reportSelected?.tipoFalla }}</p>
+              <p><strong>Observaciones:</strong> {{ reportSelected?.observaciones }}</p>
+            </div>
+            <div class="col-12 md:col-4">
+              <p><strong>Motivo:</strong> {{ reportSelected?.motivo }}</p>
+              <p><strong>Calificaci&oacute;n:</strong> {{ reportSelected?.calificacion }}</p>
+              <p><strong>Mantenimiento Propio:</strong> {{ reportSelected?.mantenimientoPropio ? 'S&iacute;' : 'No' }}</p>
+              <p><strong>Realizado:</strong> {{ reportSelected?.realizado ? 'S&iacute;' : 'No' }}</p>
+
+            </div>
+          </div>
+        </p-card>
+      </div>
+    </div>
+
+    <div class="grid" *ngIf="reportSelected?.valoresMediciones?.length > 0">
+      <div class="col-12">
+        <p-card header="Mediciones Espec&iacute;ficas">
+          <div class="p-text-sm grid">
+            <div class="col-12">
+              <table class="table table-striped table-bordered">
+                <thead>
+                  <tr>
+                    <th>Medición</th>
+                    <th>Valor</th>
+                    <th>Unidad</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let val of reportSelected.valoresMediciones">
+                    <td>{{ val.medicion?.nombre }}</td>
+                    <td>{{ val.valor }}</td>
+                    <td>{{ val.medicion?.unidad }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </p-card>
+      </div>
+    </div>
+
+    <div *ngIf="reportSelected?.tipoMantenimiento === 'Preventivo'">
+      <p-card header="Rutina de Mantenimiento">
+        <div class="p-text-sm grid">
+          <div class="col-12">
+            <table class="table table-striped table-bordered">
+              <thead>
+                <tr>
+                  <th>Descripci&oacute;n</th>
+                  <th>Cumplimiento</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of rutina">
+                  <td>{{ item.protocolo.paso }}</td>
+                  <td>{{ item.cumple ? 'S&iacute;' : 'No' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </p-card>
+    </div>
+
+    <div style="margin-top: 1%;"></div>
+
+    <div class="grid">
+      <div class="col-12">
+        <p-card header="Realizado Por:">
+          <div class="p-text-sm grid">
+            <div class="col-12 md:col-4">
+              <p><strong>Nombre:</strong> {{ reportSelected?.usuario.nombres }} {{ reportSelected?.usuario.apellidos}}
+              </p>
+              <p><strong>Email:</strong> {{ reportSelected?.usuario.email }}</p>
+              <p><strong>Registro Invima:</strong> {{ reportSelected?.usuario.registroInvima }}</p>
+            </div>
+            <div class="col-12 md:col-4">
+              <button type="button" class="btn btn-dark" (click)="viewPdf(reportSelected?.rutaPdf)"
+                *ngIf="reportSelected?.rutaPdf">Ver Reporte</button>
+              <button type="button" class="btn btn-dark" (click)="descargarFormato()"
+                *ngIf="!reportSelected?.rutaPdf">Generar Formato</button>
+
+              <button type="button" class="btn btn-warning ml-2" (click)="editarReporte()"
+                *ngIf="!reportSelected?.rutaPdf">
+                <i class="pi pi-pencil"></i> Editar Reporte
+              </button>
+
+              <div *ngIf="!reportSelected?.rutaPdf" class="mt-3">
+                <hr>
+                <p><strong>Subir PDF de Reporte:</strong></p>
+                <div class="flex gap-2 align-items-center">
+                  <input type="file" (change)="onFileSelected($event)" accept=".pdf" class="form-control mb-2">
+                  <button type="button" class="btn btn-primary" (click)="subirPdf()" [disabled]="!selectedFile">
+                    <i class="pi pi-upload"></i> Subir PDF
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </p-card>
+      </div>
+    </div>
+  </div>
+</p-dialog>
+
+<p-dialog header="Edición Administrativa" [(visible)]="showAdminModal" [modal]="true" [style]="{width: '400px'}"
+  styleClass="p-fluid">
+  <ng-template pTemplate="content">
+    <form [formGroup]="adminForm">
+      <div class="field mb-3">
+        <label class="block font-bold mb-2">Responsable</label>
+        <p-select [options]="users" formControlName="usuarioIdFk" optionLabel="nombres" optionValue="id"
+          placeholder="Seleccione un usuario" [filter]="true" filterBy="nombres" appendTo="body"
+          styleClass="w-full"></p-select>
+      </div>
+      <div class="field mb-3">
+        <label class="block font-bold mb-2">Mes Programado</label>
+        <p-select [options]="meses" formControlName="mesProgramado" optionLabel="label" optionValue="value"
+          placeholder="Seleccione mes" appendTo="body" styleClass="w-full"></p-select>
+      </div>
+      <div class="field mb-3">
+        <label class="block font-bold mb-2">A&ntilde;o Programado</label>
+        <input pInputText type="number" formControlName="añoProgramado" class="w-full p-inputtext p-component">
+      </div>
+    </form>
+  </ng-template>
+
+  <ng-template pTemplate="footer">
+    <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text" (click)="showAdminModal=false"></button>
+    <button pButton label="Guardar" icon="pi pi-check" class="p-button-text" (click)="saveAdminEdit()"
+      [disabled]="adminForm.invalid"></button>
+  </ng-template>
+</p-dialog>

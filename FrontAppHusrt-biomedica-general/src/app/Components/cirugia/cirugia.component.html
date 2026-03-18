@@ -1,0 +1,84 @@
+<div style="margin-top: 2%; text-align: center;">
+  <h4>PACIENTES SALAS DE CIRUGIA</h4>
+</div>
+
+<div *ngIf="!vistaPacientes" style="width: 96%; margin-left: 2%; margin-top: 2%; text-align: center;">
+  <button type="button" class="btn btn-dark" (click)="inicierPacientes()">Ver Pacientes</button>
+</div>
+
+<div *ngIf="vistaPacientes" style="width: 98%; margin-left: 1%; margin-top: 1%; align-content: center;">
+  <div class="grid-container">
+    <div class="grid-item" *ngFor="let paciente of pacientes">
+      <div class="card" style="height: 100%;">
+        <div class="card-body" style="margin: 0;">
+          <div style="height: 40%;">
+            <p style="font-size: 14px;"><strong>{{paciente.datosPaciente.nombre }}
+                {{paciente.datosPaciente.primerApellido}} {{paciente.datosPaciente.segundoApellido}}</strong></p>
+          </div>
+          <div style="height: 30%;">
+            <p *ngIf="paciente.datosCirugia && paciente.datosPaciente.CodigoUbicacion != 'P206' && paciente.datosPaciente.CodigoUbicacion != 'P2CA'"
+              style="font-size: 8px;">Cirujano: {{paciente.datosCirugia.Cirujano}}
+              <br>Anestesiologo: {{paciente.datosCirugia.Anestesiologo}}
+            </p>
+            <p *ngIf="paciente.datosPaciente.CodigoUbicacion == 'P206' || paciente.datosPaciente.CodigoUbicacion == 'P2CA'"
+              style="font-size: 8px;">-</p>
+          </div>
+
+          <div style="height: 30%;" *ngIf="paciente.datosPaciente.CodigoUbicacion == 'P206'">
+            <button type="button" class="btn btn-outline-primary">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                class="bi bi-person-fill-check" viewBox="0 0 16 16">
+                <path
+                  d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7m1.679-4.493-1.335 2.226a.75.75 0 0 1-1.174.144l-.774-.773a.5.5 0 0 1 .708-.708l.547.548 1.17-1.951a.5.5 0 1 1 .858.514M11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0" />
+                <path
+                  d="M2 13c0 1 1 1 1 1h5.256A4.5 4.5 0 0 1 8 12.5a4.5 4.5 0 0 1 1.544-3.393Q8.844 9.002 8 9c-5 0-6 3-6 4" />
+              </svg>
+              Recuperación</button>
+          </div>
+          <div style="height: 30%;" *ngIf="paciente.datosPaciente.CodigoUbicacion == 'P2CA'">
+            <button
+              *ngIf="paciente.datosCirugia != null && paciente.datosCirugia.Entrada != null && paciente.datosCirugia.Salida == null"
+              type="button" class="btn btn-outline-warning">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                class="bi bi-person-workspace" viewBox="0 0 16 16">
+                <path d="M4 16s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-5.95a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5" />
+                <path
+                  d="M2 1a2 2 0 0 0-2 2v9.5A1.5 1.5 0 0 0 1.5 14h.653a5.4 5.4 0 0 1 1.066-2H1V3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v9h-2.219c.554.654.89 1.373 1.066 2h.653a1.5 1.5 0 0 0 1.5-1.5V3a2 2 0 0 0-2-2z" />
+              </svg>
+              Quirofano
+            </button>
+            <button
+              *ngIf="paciente.datosCirugia != null && paciente.datosCirugia.Entrada != null && paciente.datosCirugia.Salida != null"
+              type="button" class="btn btn-outline-info ">Fin Recuperación</button>
+            <button
+              *ngIf="paciente.datosCirugia == null || (paciente.datosCirugia.Entrada == null && paciente.datosCirugia.Salida == null)"
+              type="button" class="btn btn-outline-success">Preparación</button>
+          </div>
+          <div style="height: 30%;"
+            *ngIf="paciente.datosPaciente.CodigoUbicacion == 'QX01' || paciente.datosPaciente.CodigoUbicacion == 'QX02' || paciente.datosPaciente.CodigoUbicacion == 'QX03' || paciente.datosPaciente.CodigoUbicacion == 'QX04' || paciente.datosPaciente.CodigoUbicacion == 'QX05' || paciente.datosPaciente.CodigoUbicacion == 'QX06'">
+            <button type="button" class="btn btn-outline-warning">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                class="bi bi-person-workspace" viewBox="0 0 16 16">
+                <path d="M4 16s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-5.95a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5" />
+                <path
+                  d="M2 1a2 2 0 0 0-2 2v9.5A1.5 1.5 0 0 0 1.5 14h.653a5.4 5.4 0 0 1 1.066-2H1V3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v9h-2.219c.554.654.89 1.373 1.066 2h.653a1.5 1.5 0 0 0 1.5-1.5V3a2 2 0 0 0-2-2z" />
+              </svg>
+              {{paciente.datosPaciente.nombreUbicacion}}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p-dialog [(visible)]="visibleSearch">
+  <ng-template pTemplate="headless">
+    <div class="flex flex-column px-8 py-5 gap-4" style="align-items: center; background-color: white;">
+      <h3>CARGANDO DATOS DE PACIENTES</h3>
+      <div class="spinner-border text-primary" style="width: 5rem; height: 5rem;" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+  </ng-template>
+</p-dialog>

@@ -1,0 +1,108 @@
+<div class="card px-4 py-4 m-4 shadow-2 border-round-xl surface-card">
+    <p-toast></p-toast>
+    <p-confirmdialog header="Confirmación" icon="pi pi-exclamation-triangle"></p-confirmdialog>
+
+    <div class="flex align-items-center gap-2 mb-4">
+        <i class="pi pi-users text-2xl text-primary"></i>
+        <h2 class="text-xl font-bold m-0">Gesti&oacute;n de Roles y Usuarios por Servicio</h2>
+    </div>
+
+    <div class="field mb-4">
+        <label for="servicio" class="block font-bold mb-2">Seleccione Servicio</label>
+        <p-select [options]="servicios" [(ngModel)]="selectedServicio" optionLabel="nombres" [filter]="true"
+            filterBy="nombres" placeholder="Seleccione un Servicio" (onChange)="onServicioChange()"
+            styleClass="w-full md:w-30rem" [showClear]="true">
+        </p-select>
+    </div>
+
+    <div *ngIf="selectedServicio">
+
+        <p-table [value]="assignedUsers" [tableStyle]="{'min-width': '60rem'}" styleClass="p-datatable-striped"
+            [rowHover]="true" [paginator]="assignedUsers.length > 5" [rows]="5" [showCurrentPageReport]="true"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros">
+            <ng-template pTemplate="header">
+                <tr>
+                    <th>Usuario</th>
+                    <th>Identificaci&oacute;n</th>
+                    <th>Email</th>
+                    <th>Cargo</th>
+                    <th>Rol en el Servicio</th>
+                    <th style="width: 100px; text-align: center">Acciones</th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-user>
+                <tr>
+                    <td>
+                        <div class="font-bold">{{ user.nombres }} {{ user.apellidos }}</div>
+                        <div class="text-500 text-sm">{{ user.nombreUsuario }}</div>
+                    </td>
+                    <td>{{ user.numeroId }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.cargo?.nombre || 'Sin Cargo' }}</td>
+                    <td>
+                        <p-tag [value]="user.mesaServicioRol?.nombre"
+                            [severity]="getSeverity(user.mesaServicioRol?.codigo)"></p-tag>
+                    </td>
+                    <td style="text-align: center">
+                        <button pButton icon="pi pi-user-edit" class="p-button-rounded p-button-text p-button-info"
+                            (click)="openEditRole(user)" pTooltip="Cambiar Rol" tooltipPosition="left"></button>
+                    </td>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="6" class="text-center p-4">No hay usuarios asignados a este servicio.</td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+</div>
+
+<!-- Dialog Assign/Edit Role -->
+<p-dialog [(visible)]="displayAssignDialog" [style]="{width: '500px'}" header="Gesti&oacute;n de Rol" [modal]="true"
+    styleClass="p-fluid" [draggable]="false" [resizable]="false">
+    <ng-template pTemplate="content">
+        <div class="flex flex-column gap-3 pt-3">
+
+            <!-- User Info Block -->
+            <div class="surface-ground p-3 border-round-lg flex align-items-center gap-3">
+                <div class="border-circle bg-primary-100 flex align-items-center justify-content-center"
+                    style="width: 3rem; height: 3rem">
+                    <i class="pi pi-user text-primary text-xl"></i>
+                </div>
+                <div class="flex flex-column">
+                    <span class="text-900 font-bold text-lg">{{ selectedUser?.nombres }} {{ selectedUser?.apellidos
+                        }}</span>
+                    <span class="text-500 text-sm">{{ selectedUser?.cargo?.nombre || 'Sin Cargo' }}</span>
+                </div>
+            </div>
+
+            <!-- Role Selection -->
+            <div class="field mt-2">
+                <label for="role" class="font-medium text-900 mb-2 block">Rol Asignado en Mesa de Servicios</label>
+                <p-select [options]="roles" [(ngModel)]="selectedRole" optionLabel="nombre"
+                    placeholder="Seleccione un Rol" appendTo="body" styleClass="w-full p-inputtext-lg"
+                    [showClear]="false">
+                    <ng-template pTemplate="selectedItem" let-selectedOption>
+                        <div class="flex align-items-center gap-2" *ngIf="selectedOption">
+                            <p-tag [value]="selectedOption.nombre"
+                                [severity]="getSeverity(selectedOption.codigo)"></p-tag>
+                        </div>
+                    </ng-template>
+                    <ng-template let-role pTemplate="item">
+                        <div class="flex align-items-center gap-2">
+                            <p-tag [value]="role.nombre" [severity]="getSeverity(role.codigo)"></p-tag>
+                        </div>
+                    </ng-template>
+                </p-select>
+            </div>
+        </div>
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+        <button pButton pRipple label="Cancelar" icon="pi pi-times" class="p-button-text p-button-secondary"
+            (click)="displayAssignDialog = false"></button>
+        <button pButton pRipple label="Guardar Cambio" icon="pi pi-check" class="p-button-primary"
+            (click)="assignRole()"></button>
+    </ng-template>
+</p-dialog>

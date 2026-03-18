@@ -1,0 +1,20 @@
+<div class="menubar-wrapper">
+    <p-menubar [model]="items" styleClass="glass-navbar border-none border-round-xl">
+        <ng-template pTemplate="start">
+            <div class="flex align-items-center gap-2 mr-4 logo-container">
+                <img src="LogoAgora.png" height="40" alt="Logo" />
+                <a class="text-xl font-bold text-color no-underline" routerLink="/mesauser/home"
+                    style="cursor: pointer;">{{ themeService.getThemeConfig().appName }}</a>
+            </div>
+        </ng-template>
+
+        <ng-template pTemplate="end">
+            <div class="flex align-items-center gap-3 actions-container">
+                <p-avatar icon="pi pi-user" styleClass="bg-primary-50 text-primary cursor-pointer" shape="circle"
+                    (click)="viewUser()" pTooltip="Perfil"></p-avatar>
+                <p-button icon="pi pi-sign-out" [rounded]="true" [text]="true" severity="secondary"
+                    (onClick)="navigateToAbout()" pTooltip="Cerrar Sesión"></p-button>
+            </div>
+        </ng-template>
+    </p-menubar>
+</div>

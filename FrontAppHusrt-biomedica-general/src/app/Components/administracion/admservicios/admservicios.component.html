@@ -1,0 +1,109 @@
+<div class="card px-4 py-4 m-4 shadow-2 border-round-xl surface-card">
+
+  <p-toolbar styleClass="mb-4 gap-2 border-none surface-ground">
+    <ng-template pTemplate="left">
+      <div class="flex align-items-center gap-2">
+        <i class="pi pi-briefcase text-2xl text-primary"></i>
+        <h2 class="m-0 font-bold text-900">Gesti&oacute;n de Servicios</h2>
+      </div>
+    </ng-template>
+
+    <ng-template pTemplate="right">
+      <button pButton pRipple label="Nuevo Servicio" icon="pi pi-plus" class="p-button-success mr-2"
+        (click)="openCreateModal()"></button>
+    </ng-template>
+  </p-toolbar>
+
+  <p-table #dt2 [value]="servicios" dataKey="id" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 25, 50, 100]"
+    [loading]="loading" [globalFilterFields]="['nombres', 'sede.nombres', 'ubicacion', 'requiereMesaServicios']"
+    [tableStyle]="{ 'min-width': '50rem' }" styleClass="p-datatable-striped p-datatable-sm" [rowHover]="true"
+    [showCurrentPageReport]="true" currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros">
+
+    <ng-template pTemplate="caption">
+      <div class="flex justify-content-between flex-column sm:flex-row align-items-center">
+        <div class="mb-2 sm:mb-0">
+          <button pButton label="Limpiar" class="p-button-outlined" icon="pi pi-filter-slash"
+            (click)="dt2.clear()"></button>
+        </div>
+        <p-iconfield position="left">
+          <p-inputicon styleClass="pi pi-search" />
+          <input pInputText type="text" (input)="onGlobalFilter($event)" placeholder="Buscar servicio..." />
+        </p-iconfield>
+      </div>
+    </ng-template>
+
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="nombres" style="width:30%">Nombre <p-sortIcon field="nombres"></p-sortIcon></th>
+        <th pSortableColumn="sede.nombres" style="width:30%">Sede <p-sortIcon field="sede.nombres"></p-sortIcon></th>
+        <th pSortableColumn="ubicacion" style="width:30%">Ubicaci&oacute;n <p-sortIcon field="ubicacion"></p-sortIcon></th>
+        <th pSortableColumn="requiereMesaServicios" style="width:20%">Gestiona casos en mesa de servicios <p-sortIcon
+            field="requiereMesaServicios"></p-sortIcon></th>
+        <th style="width:10%" class="text-center">Acciones</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-servicio>
+      <tr>
+        <td class="font-bold">{{ servicio.nombres }}</td>
+        <td>{{ servicio.sede?.nombres }}</td>
+        <td>{{ servicio.ubicacion }}</td>
+        <td>
+          <p-tag [value]="servicio.requiereMesaServicios ? 'Si' : 'No'"
+            [severity]="servicio.requiereMesaServicios ? 'success' : 'warning'"></p-tag>
+        </td>
+        <td class="text-center">
+          <div class="flex justify-content-center gap-2">
+            <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="warn"
+              (onClick)="openEditModal(servicio)" pTooltip="Editar"></p-button>
+            <p-button *ngIf="servicio.activo" icon="pi pi-ban" [rounded]="true" [text]="true" severity="danger"
+              (onClick)="estadoServicio(servicio.id, 'D')" pTooltip="Desactivar"></p-button>
+            <p-button *ngIf="!servicio.activo" icon="pi pi-check-circle" [rounded]="true" [text]="true"
+              severity="success" (onClick)="estadoServicio(servicio.id, 'A')" pTooltip="Activar"></p-button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="5" class="text-center p-4">No se encontraron servicios.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Edit Modal -->
+<p-dialog header="Editar Servicio" [(visible)]="visibleEditModal" [modal]="true" [style]="{ width: '600px' }"
+  styleClass="p-fluid">
+  <form [formGroup]="formGroup" (ngSubmit)="saveServicio()" class="flex flex-column gap-3 pt-2">
+
+    <div class="flex flex-column gap-2">
+      <label for="nombres" class="font-bold">Nombre</label>
+      <input id="nombres" type="text" pInputText formControlName="nombres" appUppercase />
+    </div>
+
+    <div class="flex flex-column gap-2">
+      <label for="sede" class="font-bold">Sede</label>
+      <p-select id="sede" [options]="sedes" formControlName="sedeIdFk" optionLabel="nombres" optionValue="id"
+        placeholder="Seleccione una sede"></p-select>
+    </div>
+
+    <div class="flex flex-column gap-2">
+      <label for="ubicacion" class="font-bold">Ubicaci&oacute;n</label>
+      <input id="ubicacion" type="text" pInputText formControlName="ubicacion" appUppercase />
+    </div>
+
+    <div class="flex align-items-center gap-2">
+      <p-checkbox id="requiereMesa" formControlName="requiereMesaServicios" [binary]="true"
+        inputId="binary"></p-checkbox>
+      <label for="requiereMesa" class="font-bold">Requiere Mesa de Servicios</label>
+    </div>
+
+    <div class="flex justify-content-end gap-2 mt-4">
+      <p-button label="Cancelar" icon="pi pi-times" [text]="true" (onClick)="visibleEditModal = false"
+        severity="secondary"></p-button>
+      <p-button label="Guardar" icon="pi pi-check" type="submit" [disabled]="formGroup.invalid"></p-button>
+    </div>
+  </form>
+</p-dialog>

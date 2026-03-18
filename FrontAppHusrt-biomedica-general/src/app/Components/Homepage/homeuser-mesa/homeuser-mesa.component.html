@@ -1,0 +1,45 @@
+<div class="dashboard-container">
+    <div class="hero-section">
+        <div class="hero-content">
+            <h1>Bienvenido, {{userName}}</h1>
+            <p>Mesa de Servicios - {{roleName}}</p>
+        </div>
+    </div>
+
+    <div class="cards-grid">
+        <!-- Mis Casos -->
+        <div class="dashboard-card" (click)="goToCasos()">
+            <div class="card-icon-container gradient-blue">
+                <i class="pi pi-ticket"></i>
+            </div>
+            <div class="card-content">
+                <h3>Mis Casos</h3>
+                <p>Consulte el estado de sus solicitudes y requerimientos reportados.</p>
+                <span class="card-action">Ver Mis Casos <i class="pi pi-arrow-right"></i></span>
+            </div>
+        </div>
+
+        <!-- Crear Caso -->
+        <div class="dashboard-card" (click)="goToCreate()">
+            <div class="card-icon-container gradient-blue">
+                <i class="pi pi-plus-circle"></i>
+            </div>
+            <div class="card-content">
+                <h3>Crear Caso</h3>
+                <p>Reporte una nueva incidencia o realice un requerimiento de servicio.</p>
+                <span class="card-action">Nueva Solicitud <i class="pi pi-arrow-right"></i></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Ensure cards grid handles only 2 items nicely if possible, or keep responsive */
+    @media (min-width: 992px) {
+        .cards-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+    }
+</style>

@@ -1,0 +1,28 @@
+# ─── Node ─────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# ─── Environment / Secrets ───────────────────────
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# ─── Databases & Backups ─────────────────────────
+*.sql
+*.dump
+*.bak
+
+# ─── Logs ─────────────────────────────────────────
+logs/
+*.log
+
+# ─── OS ───────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ─── Misc ─────────────────────────────────────────
+*.tmp
+*.cache
+uploads/

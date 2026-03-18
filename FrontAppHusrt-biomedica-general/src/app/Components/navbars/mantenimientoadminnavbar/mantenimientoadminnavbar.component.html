@@ -1,0 +1,21 @@
+<div class="card border-0 shadow-sm rounded-0 mb-4">
+    <p-menubar [model]="items" styleClass="border-none bg-surface-0 border-round-xl">
+        <ng-template #start>
+            <div class="flex align-items-center gap-2 mr-4">
+                <i class="pi pi-wrench text-primary text-2xl"></i>
+                <a class="text-xl font-bold text-color no-underline" href="/adminmantenimiento">{{
+                    themeService.getThemeConfig().appName }} -
+                    Mantenimiento</a>
+            </div>
+        </ng-template>
+
+        <ng-template #end>
+            <div class="flex align-items-center gap-3">
+                <p-avatar icon="pi pi-user" styleClass="bg-primary-50 text-primary" shape="circle"
+                    pTooltip="Admin Mantenimiento"></p-avatar>
+                <p-button icon="pi pi-sign-out" [rounded]="true" [text]="true" severity="secondary"
+                    (onClick)="navigateToAbout()" pTooltip="Cerrar Sesión"></p-button>
+            </div>
+        </ng-template>
+    </p-menubar>
+</div>

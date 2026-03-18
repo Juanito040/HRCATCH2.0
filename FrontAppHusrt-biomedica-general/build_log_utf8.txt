@@ -1,0 +1,2000 @@
+﻿[33mÔØ»[39m Building...
+[32mÔ£ö[39m Building...
+[35mPrerendered 0 static routes.[39m
+Application bundle generation failed. [7.866 seconds]
+
+node.exe : 
+[1m[31m[31mX [41;3
+1m[[41;97mERROR[41;3
+1m][0m [1mTS1005: 
+'}' expected.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+En C:\Users\DCTPATICS0
+7\AppData\Roaming\npm\
+ng.ps1: 24 Carácter: 5
++     & "node$exe"  "$
+basedir/node_modules/@
+angular/cli/bin/ng.js"
+ $arg ...
++     ~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~
+    + CategoryInfo    
+          : NotSpeci  
+  fied: ([1m[31m   
+ [31mX...r-compile    
+r][0m:String) []    
+, RemoteException
+    + FullyQualifiedE 
+   rrorId : NativeCo  
+  mmandError
+ 
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-servici
+o/equipos-servicio.com
+ponent.ts:448:0:
+[37m      448 Ôöé 
+[32m[37m
+          ÔòÁ 
+[32m^[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mNG9: Property 'dis
+playPlanMetrologiaDial
+og' does not exist on 
+type 'EquiposTipoCompo
+nent'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.h
+tml:114:72:
+[37m      114 Ôöé 
+...├│gicas" [(visible)
+]=[32m"displayPlanMet
+rologiaDialo[37mg" 
+[modal]="true"
+          ÔòÁ         
+               [32m~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~[0m
+
+  Error occurs in the 
+template of component 
+EquiposTipoComponent.
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:37:15:
+[37m      37 Ôöé   
+templateUrl: [32m'./e
+quipos-tipo.component.
+html'[37m,
+         ÔòÁ          
+      [32m~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~[
+0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mNG9: Property 'dis
+playPlanMetrologiaDial
+og' does not exist on 
+type 'EquiposTipoCompo
+nent'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.h
+tml:114:72:
+[37m      114 Ôöé 
+...├│gicas" [(visible)
+]=[32m"displayPlanMet
+rologiaDialo[37mg" 
+[modal]="true"
+          ÔòÁ         
+               [32m~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~[0m
+
+  Error occurs in the 
+template of component 
+EquiposTipoComponent.
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:37:15:
+[37m      37 Ôöé   
+templateUrl: [32m'./e
+quipos-tipo.component.
+html'[37m,
+         ÔòÁ          
+      [32m~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~[
+0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mNG9: Property 
+'fechasCalibracion' 
+does not exist on 
+type 'EquiposTipoCompo
+nent'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.h
+tml:116:27:
+[37m      116 Ôöé 
+...iv *ngFor="let 
+item of [32mfechasCal
+ibracion[37m; let i 
+= index; track...
+          ÔòÁ         
+                  [32
+m~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the 
+template of component 
+EquiposTipoComponent.
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:37:15:
+[37m      37 Ôöé   
+templateUrl: [32m'./e
+quipos-tipo.component.
+html'[37m,
+         ÔòÁ          
+      [32m~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~[
+0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mNG9: Property 
+'trackByIndex' does 
+not exist on type 'Equ
+iposTipoComponent'.[0
+m [1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.h
+tml:116:70:
+[37m      116 Ôöé 
+...sCalibracion; let 
+i = index; trackBy: [
+32mtrackByIndex[37m" 
+class="mb-4">
+          ÔòÁ         
+                      
+           
+[32m~~~~~~~~~~~~[0m
+
+  Error occurs in the 
+template of component 
+EquiposTipoComponent.
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:37:15:
+[37m      37 Ôöé   
+templateUrl: [32m'./e
+quipos-tipo.component.
+html'[37m,
+         ÔòÁ          
+      [32m~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~[
+0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mNG9: Property 
+'fechasCalibracion' 
+does not exist on 
+type 'EquiposTipoCompo
+nent'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.h
+tml:120:33:
+[37m      120 Ôöé 
+...atepicker [(ngModel
+)]="[32mfechasCalibra
+cion[37m[i].fecha" 
+inputId="{{...
+          ÔòÁ         
+                  [32
+m~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the 
+template of component 
+EquiposTipoComponent.
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:37:15:
+[37m      37 Ôöé   
+templateUrl: [32m'./e
+quipos-tipo.component.
+html'[37m,
+         ÔòÁ          
+      [32m~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~[
+0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mNG9: Property 
+'fechasCalibracion' 
+does not exist on 
+type 'EquiposTipoCompo
+nent'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.h
+tml:120:33:
+[37m      120 Ôöé 
+...atepicker [(ngModel
+)]="[32mfechasCalibra
+cion[37m[i].fecha" 
+inputId="{{...
+          ÔòÁ         
+                  [32
+m~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the 
+template of component 
+EquiposTipoComponent.
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:37:15:
+[37m      37 Ôöé   
+templateUrl: [32m'./e
+quipos-tipo.component.
+html'[37m,
+         ÔòÁ          
+      [32m~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~[
+0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mNG9: Property 'tip
+oActividadOptions' 
+does not exist on 
+type 'EquiposTipoCompo
+nent'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.h
+tml:126:29:
+[37m      126 Ôöé 
+...-dropdown [options]
+="[32mtipoActividadOp
+tions[37m" 
+[(ngModel)]="fechas...
+          ÔòÁ         
+                [32m~
+~~~~~~~~~~~~~~~~~~~[0
+m
+
+  Error occurs in the 
+template of component 
+EquiposTipoComponent.
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:37:15:
+[37m      37 Ôöé   
+templateUrl: [32m'./e
+quipos-tipo.component.
+html'[37m,
+         ÔòÁ          
+      [32m~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~[
+0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mNG9: Property 
+'fechasCalibracion' 
+does not exist on 
+type 'EquiposTipoCompo
+nent'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.h
+tml:126:64:
+[37m      126 Ôöé 
+...dOptions" [(ngModel
+)]="[32mfechasCalibra
+cion[37m[i].tipoActiv
+idad" opt...
+          ÔòÁ         
+                  [32
+m~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the 
+template of component 
+EquiposTipoComponent.
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:37:15:
+[37m      37 Ôöé   
+templateUrl: [32m'./e
+quipos-tipo.component.
+html'[37m,
+         ÔòÁ          
+      [32m~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~[
+0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mNG9: Property 
+'fechasCalibracion' 
+does not exist on 
+type 'EquiposTipoCompo
+nent'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.h
+tml:126:64:
+[37m      126 Ôöé 
+...dOptions" [(ngModel
+)]="[32mfechasCalibra
+cion[37m[i].tipoActiv
+idad" opt...
+          ÔòÁ         
+                  [32
+m~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the 
+template of component 
+EquiposTipoComponent.
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:37:15:
+[37m      37 Ôöé   
+templateUrl: [32m'./e
+quipos-tipo.component.
+html'[37m,
+         ÔòÁ          
+      [32m~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~[
+0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mNG9: Property 
+'fechasCalibracion' 
+does not exist on 
+type 'EquiposTipoCompo
+nent'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.h
+tml:130:19:
+[37m      130 Ôöé    
+ <hr *ngIf="i < [32mf
+echasCalibracion[37m.
+length - 1" 
+class="my-3 bord...
+          ÔòÁ         
+           [32m~~~~~~
+~~~~~~~~~~~[0m
+
+  Error occurs in the 
+template of component 
+EquiposTipoComponent.
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:37:15:
+[37m      37 Ôöé   
+templateUrl: [32m'./e
+quipos-tipo.component.
+html'[37m,
+         ÔòÁ          
+      [32m~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~[
+0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mNG9: Property 'dis
+playPlanMetrologiaDial
+og' does not exist on 
+type 'EquiposTipoCompo
+nent'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.h
+tml:133:42:
+[37m      133 Ôöé 
+...i-times" (click)="
+[32mdisplayPlanMetrolo
+giaDialog[37m=false" 
+label="Ca...
+          ÔòÁ         
+             [32m~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~[0m
+
+  Error occurs in the 
+template of component 
+EquiposTipoComponent.
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:37:15:
+[37m      37 Ôöé   
+templateUrl: [32m'./e
+quipos-tipo.component.
+html'[37m,
+         ÔòÁ          
+      [32m~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~[
+0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mNG9: Property 
+'savePlanMetrologia' 
+does not exist on 
+type 'EquiposTipoCompo
+nent'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.h
+tml:135:42:
+[37m      135 Ôöé 
+...pi pi-check" (click
+)="[32msavePlanMetrol
+ogia[37m()" 
+label="Guardar"></...
+          ÔòÁ         
+                 [32m
+~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the 
+template of component 
+EquiposTipoComponent.
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:37:15:
+[37m      37 Ôöé   
+templateUrl: [32m'./e
+quipos-tipo.component.
+html'[37m,
+         ÔòÁ          
+      [32m~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~[
+0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2339: Property '
+openPlanMetrologiaDial
+og' does not exist on 
+type 'EquiposTipoCompo
+nent'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:121:30:
+[37m      121 Ôöé    
+       command: () => 
+this.[32mopenPlanMetr
+ologiaDialog[37m(equi
+po),
+          ÔòÁ         
+                      
+[32m~~~~~~~~~~~~~~~~~
+~~~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2693: 'boolean' 
+only refers to a 
+type, but is being 
+used as a value 
+here.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:426:33:
+[37m      426 Ôöé    
+ displayPlanMetrologia
+Dialog: 
+[32mboolean[37m = 
+false;
+          ÔòÁ         
+                      
+   [32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2693: 'any' 
+only refers to a 
+type, but is being 
+used as a value 
+here.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:427:23:
+[37m      427 Ôöé    
+ fechasCalibracion: 
+[32many[37m[] = [];
+          ÔòÁ         
+               
+[32m~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS1011: An 
+element access 
+expression should 
+take an argument.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:427:27:
+[37m      427 Ôöé    
+ fechasCalibracion: 
+any[[32m[37m] = [];
+          ÔòÁ         
+                   
+[32m^[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2693: 'number' 
+only refers to a 
+type, but is being 
+used as a value 
+here.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:428:25:
+[37m      428 Ôöé    
+ mesInicioMetrologia: 
+[32mnumber[37m = 1;
+          ÔòÁ         
+                 
+[32m~~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2693: 'number' 
+only refers to a 
+type, but is being 
+used as a value 
+here.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:429:30:
+[37m      429 Ôöé    
+ selectedMonthsMetrolo
+gia: 
+[32mnumber[37m[] = 
+[];
+          ÔòÁ         
+                      
+[32m~~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS1011: An 
+element access 
+expression should 
+take an argument.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:429:37:
+[37m      429 Ôöé    
+ selectedMonthsMetrolo
+gia: 
+number[[32m[37m] = 
+[];
+          ÔòÁ         
+                      
+       [32m^[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2693: 'string' 
+only refers to a 
+type, but is being 
+used as a value 
+here.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:430:36:
+[37m      430 Ôöé    
+ calculatedMonthsMetro
+logiaText: 
+[32mstring[37m = '';
+          ÔòÁ         
+                      
+      [32m~~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2693: 'string' 
+only refers to a 
+type, but is being 
+used as a value 
+here.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:431:27:
+[37m      431 Ôöé    
+ selectedTipoActividad
+: [32mstring[37m = 
+'Calibraci├│n'; // 
+Default
+          ÔòÁ         
+                   
+[32m~~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2693: 'any' 
+only refers to a 
+type, but is being 
+used as a value 
+here.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:433:26:
+[37m      433 Ôöé    
+ 
+tipoActividadOptions: 
+[32many[37m[] = [
+          ÔòÁ         
+                  
+[32m~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS1011: An 
+element access 
+expression should 
+take an argument.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:433:30:
+[37m      433 Ôöé    
+ 
+tipoActividadOptions: 
+any[[32m[37m] = [
+          ÔòÁ         
+                      
+[32m^[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2304: Cannot 
+find name 'openPlanMet
+rologiaDialog'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:440:4:
+[37m      440 Ôöé    
+ [32mopenPlanMetrolog
+iaDialog[37m(equipo: 
+any) {
+          ÔòÁ     [32
+m~~~~~~~~~~~~~~~~~~~~~
+~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2304: Cannot 
+find name 
+'equipo'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:440:29:
+[37m      440 Ôöé    
+ openPlanMetrologiaDia
+log([32mequipo[37m: 
+any) {
+          ÔòÁ         
+                     
+[32m~~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS1005: ',' 
+expected.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:440:35:
+[37m      440 Ôöé    
+ openPlanMetrologiaDia
+log(equipo[32m:[37m 
+any) {
+          ÔòÁ         
+                      
+     [32m^[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2693: 'any' 
+only refers to a 
+type, but is being 
+used as a value 
+here.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:440:37:
+[37m      440 Ôöé    
+ openPlanMetrologiaDia
+log(equipo: 
+[32many[37m) {
+          ÔòÁ         
+                      
+       [32m~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS1005: ';' 
+expected.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:440:42:
+[37m      440 Ôöé    
+ openPlanMetrologiaDia
+log(equipo: any) 
+[32m{[37m
+          ÔòÁ         
+                      
+            [32m^[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2304: Cannot 
+find name 
+'equipo'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:441:27:
+[37m      441 Ôöé    
+   this.currentEquipo 
+= [32mequipo[37m;
+          ÔòÁ         
+                   
+[32m~~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2339: Property '
+displayPlanMetrologiaD
+ialog' does not exist 
+on type 'EquiposTipoCo
+mponent'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:442:11:
+[37m      442 Ôöé    
+   this.[32mdisplayPl
+anMetrologiaDialog[37
+m = true;
+          ÔòÁ         
+   [32m~~~~~~~~~~~~~~
+~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2339: Property 
+'fechasCalibracion' 
+does not exist on 
+type 'EquiposTipoCompo
+nent'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:443:11:
+[37m      443 Ôöé    
+   this.[32mfechasCal
+ibracion[37m = []; 
+// Reset
+          ÔòÁ         
+   [32m~~~~~~~~~~~~~~
+~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2304: Cannot 
+find name 
+'equipo'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:446:10:
+[37m      446 Ôöé    
+   if ([32mequipo[37
+m.planesActividadMetro
+logica && 
+equipo.planesActiv...
+          ÔòÁ         
+  [32m~~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2304: Cannot 
+find name 
+'equipo'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:446:47:
+[37m      446 Ôöé ...
+anesActividadMetrologi
+ca && [32mequipo[37m
+.planesActividadMetrol
+ogica....
+          ÔòÁ         
+                      
+ [32m~~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2339: Property 
+'fechasCalibracion' 
+does not exist on 
+type 'EquiposTipoCompo
+nent'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:449:13:
+[37m      449 Ôöé    
+     this.[32mfechasC
+alibracion[37m = equi
+po.planesActividadMetr
+ologic...
+          ÔòÁ         
+     [32m~~~~~~~~~~~~
+~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2304: Cannot 
+find name 
+'equipo'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:449:33:
+[37m      449 Ôöé 
+...   this.fechasCalib
+racion = [32mequipo[
+37m.planesActividadMet
+rologica....
+          ÔòÁ         
+                      
+ [32m~~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2339: Property '
+selectedMonthsMetrolog
+ia' does not exist on 
+type 'EquiposTipoCompo
+nent'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:455:13:
+[37m      455 Ôöé    
+     this.[32mselecte
+dMonthsMetrologia[37m
+ = equipo.planesActivi
+dadMet...
+          ÔòÁ         
+     [32m~~~~~~~~~~~~
+~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2304: Cannot 
+find name 
+'equipo'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:455:40:
+[37m      455 Ôöé ...
+.selectedMonthsMetrolo
+gia = [32mequipo[37m
+.planesActividadMetrol
+ogica....
+          ÔòÁ         
+                      
+ [32m~~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2339: Property 
+'mesInicioMetrologia' 
+does not exist on 
+type 'EquiposTipoCompo
+nent'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:458:13:
+[37m      458 Ôöé    
+     this.[32mmesInic
+ioMetrologia[37m = 1;
+          ÔòÁ         
+     [32m~~~~~~~~~~~~
+~~~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2339: Property '
+selectedMonthsMetrolog
+ia' does not exist on 
+type 'EquiposTipoCompo
+nent'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:459:13:
+[37m      459 Ôöé    
+     this.[32mselecte
+dMonthsMetrologia[37m
+ = [];
+          ÔòÁ         
+     [32m~~~~~~~~~~~~
+~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2339: Property '
+calcularFechasMetrolog
+ia' does not exist on 
+type 'EquiposTipoCompo
+nent'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:461:13:
+[37m      461 Ôöé    
+     this.[32mcalcula
+rFechasMetrologia[37m
+(true); // Auto-calc 
+new
+          ÔòÁ         
+     [32m~~~~~~~~~~~~
+~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2304: Cannot 
+find name 'calcularFec
+hasMetrologia'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:465:4:
+[37m      465 Ôöé    
+ [32mcalcularFechasMe
+trologia[37m(forceNew
+: boolean = false) {
+          ÔòÁ     [32
+m~~~~~~~~~~~~~~~~~~~~~
+~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2304: Cannot 
+find name 
+'forceNew'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:465:29:
+[37m      465 Ôöé    
+ calcularFechasMetrolo
+gia([32mforceNew[37m
+: boolean = false) {
+          ÔòÁ         
+                     
+[32m~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS1005: ',' 
+expected.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:465:37:
+[37m      465 Ôöé    
+ calcularFechasMetrolo
+gia(forceNew[32m:[37
+m boolean = false) {
+          ÔòÁ         
+                      
+       [32m^[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2693: 'boolean' 
+only refers to a 
+type, but is being 
+used as a value 
+here.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:465:39:
+[37m      465 Ôöé    
+ calcularFechasMetrolo
+gia(forceNew: 
+[32mboolean[37m = 
+false) {
+          ÔòÁ         
+                      
+         
+[32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS1005: ';' 
+expected.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:465:56:
+[37m      465 Ôöé    
+ calcularFechasMetrolo
+gia(forceNew: boolean 
+= false) [32m{[37m
+          ÔòÁ         
+                      
+                      
+    [32m^[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2304: Cannot 
+find name 
+'forceNew'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:484:12:
+[37m      484 Ôöé    
+     if 
+([32mforceNew[37m) t
+his.fechasCalibracion 
+= [];
+          ÔòÁ         
+    [32m~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2339: Property 
+'fechasCalibracion' 
+does not exist on 
+type 'EquiposTipoCompo
+nent'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:484:27:
+[37m      484 Ôöé    
+     if (forceNew) thi
+s.[32mfechasCalibraci
+on[37m = [];
+          ÔòÁ         
+                   [3
+2m~~~~~~~~~~~~~~~~~[0
+m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2304: Cannot 
+find name 
+'forceNew'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:489:10:
+[37m      489 Ôöé    
+   if 
+([32mforceNew[37m 
+|| this.fechasCalibrac
+ion.length === 0) {
+          ÔòÁ         
+  [32m~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2339: Property 
+'fechasCalibracion' 
+does not exist on 
+type 'EquiposTipoCompo
+nent'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:489:27:
+[37m      489 Ôöé    
+   if (forceNew || thi
+s.[32mfechasCalibraci
+on[37m.length === 0) 
+{
+          ÔòÁ         
+                   [3
+2m~~~~~~~~~~~~~~~~~[0
+m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2339: Property 
+'fechasCalibracion' 
+does not exist on 
+type 'EquiposTipoCompo
+nent'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:492:13:
+[37m      492 Ôöé    
+     this.[32mfechasC
+alibracion[37m = [];
+          ÔòÁ         
+     [32m~~~~~~~~~~~~
+~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2339: Property 
+'mesInicioMetrologia' 
+does not exist on 
+type 'EquiposTipoCompo
+nent'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:494:29:
+[37m      494 Ôöé    
+     let mesActual = t
+his.[32mmesInicioMetr
+ologia[37m;
+          ÔòÁ         
+                     
+[32m~~~~~~~~~~~~~~~~~~
+~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2339: Property 
+'fechasCalibracion' 
+does not exist on 
+type 'EquiposTipoCompo
+nent'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:500:15:
+[37m      500 Ôöé    
+       this.[32mfecha
+sCalibracion[37m.push
+({
+          ÔòÁ         
+       [32m~~~~~~~~~~
+~~~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2339: Property '
+selectedMonthsMetrolog
+ia' does not exist on 
+type 'EquiposTipoCompo
+nent'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:506:13:
+[37m      506 Ôöé    
+     this.[32mselecte
+dMonthsMetrologia[37m
+ = nuevosMeses;
+          ÔòÁ         
+     [32m~~~~~~~~~~~~
+~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS1434: 
+Unexpected keyword or 
+identifier.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:510:2:
+[37m      510 Ôöé   
+[32masync[37m 
+savePlanMetrologia() {
+          ÔòÁ   
+[32m~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2304: Cannot 
+find name 
+'async'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:510:2:
+[37m      510 Ôöé   
+[32masync[37m 
+savePlanMetrologia() {
+          ÔòÁ   
+[32m~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2304: Cannot 
+find name 'savePlanMet
+rologia'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:510:8:
+[37m      510 Ôöé   
+async [32msavePlanMet
+rologia[37m() {
+          ÔòÁ         
+[32m~~~~~~~~~~~~~~~~~
+~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS1005: ';' 
+expected.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:510:29:
+[37m      510 Ôöé   
+async 
+savePlanMetrologia() 
+[32m{[37m
+          ÔòÁ         
+                     
+[32m^[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2339: Property 
+'fechasCalibracion' 
+does not exist on 
+type 'EquiposTipoCompo
+nent'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:514:48:
+[37m      514 Ôöé    
+     const planesActiv
+idadMetrologica = this
+.[32mfechasCalibracio
+n[37m
+          ÔòÁ         
+                      
+                  [32
+m~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS7006: Parameter 
+'item' implicitly has 
+an 'any' type.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:515:15:
+[37m      515 Ôöé    
+       
+.map([32mitem[37m 
+=> {
+          ÔòÁ         
+       [32m~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS7006: Parameter 
+'p' implicitly has an 
+'any' type.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:525:18:
+[37m      525 Ôöé    
+       
+.filter([32mp[37m 
+=> p.mes > 0);
+          ÔòÁ         
+          [32m^[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2339: Property '
+displayPlanMetrologiaD
+ialog' does not exist 
+on type 'EquiposTipoCo
+mponent'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:541:13:
+[37m      541 Ôöé    
+     this.[32mdisplay
+PlanMetrologiaDialog[
+37m = false;
+          ÔòÁ         
+     [32m~~~~~~~~~~~~
+~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2304: Cannot 
+find name 
+'trackByIndex'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:554:4:
+[37m      554 Ôöé    
+ [32mtrackByIndex[37
+m(index: number, 
+item: any): number {
+          ÔòÁ     
+[32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2304: Cannot 
+find name 
+'index'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:554:17:
+[37m      554 Ôöé    
+ trackByIndex([32mind
+ex[37m: number, 
+item: any): number {
+          ÔòÁ         
+         
+[32m~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS1005: ',' 
+expected.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:554:22:
+[37m      554 Ôöé    
+ trackByIndex(index[3
+2m:[37m number, 
+item: any): number {
+          ÔòÁ         
+              
+[32m^[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2693: 'number' 
+only refers to a 
+type, but is being 
+used as a value 
+here.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:554:24:
+[37m      554 Ôöé    
+ trackByIndex(index: 
+[32mnumber[37m, 
+item: any): number {
+          ÔòÁ         
+                
+[32m~~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2304: Cannot 
+find name 'item'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:554:32:
+[37m      554 Ôöé    
+ trackByIndex(index: 
+number, 
+[32mitem[37m: any): 
+number {
+          ÔòÁ         
+                      
+  [32m~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS1005: ',' 
+expected.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:554:36:
+[37m      554 Ôöé    
+ trackByIndex(index: 
+number, 
+item[32m:[37m any): 
+number {
+          ÔòÁ         
+                      
+      [32m^[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2693: 'any' 
+only refers to a 
+type, but is being 
+used as a value 
+here.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:554:38:
+[37m      554 Ôöé    
+ trackByIndex(index: 
+number, item: 
+[32many[37m): 
+number {
+          ÔòÁ         
+                      
+        [32m~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS1005: ';' 
+expected.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:554:42:
+[37m      554 Ôöé    
+ trackByIndex(index: 
+number, item: 
+any)[32m:[37m 
+number {
+          ÔòÁ         
+                      
+            [32m^[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS1434: 
+Unexpected keyword or 
+identifier.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:554:44:
+[37m      554 Ôöé    
+ trackByIndex(index: 
+number, item: any): 
+[32mnumber[37m {
+          ÔòÁ         
+                      
+              
+[32m~~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2693: 'number' 
+only refers to a 
+type, but is being 
+used as a value 
+here.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:554:44:
+[37m      554 Ôöé    
+ trackByIndex(index: 
+number, item: any): 
+[32mnumber[37m {
+          ÔòÁ         
+                      
+              
+[32m~~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS2304: Cannot 
+find name 
+'index'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:555:13:
+[37m      555 Ôöé    
+   return 
+[32mindex[37m;
+          ÔòÁ         
+     [32m~~~~~[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mTS1005: '}' 
+expected.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:558:0:
+[37m      558 Ôöé 
+[32m[37m
+          ÔòÁ 
+[32m^[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mUnexpected "]"[0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:691:31:
+[37m      691 Ôöé    
+     
+fechasCalibracion: 
+any[[32m][37m = [];
+          ÔòÁ         
+                      
+ [32m^[0m
+
+
+[31mX [41;31m[[41;9
+7mERROR[41;31m][0m 
+[1mUnexpected "]"[0m
+
+    src/app/Components
+/userBiomedica/vista-E
+quipos/equipos-tipo/eq
+uipos-tipo.component.t
+s:691:31:
+[37m      691 Ôöé    
+     
+fechasCalibracion: 
+any[[32m][37m = [];
+          ÔòÁ         
+                      
+ [32m^[0m
+
+[39m[22m

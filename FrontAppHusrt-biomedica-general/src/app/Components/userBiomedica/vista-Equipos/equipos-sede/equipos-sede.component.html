@@ -1,0 +1,125 @@
+<div style="margin-top: 3%; margin-left: 5%; margin-right: 5%; background-color: white;">
+</div>
+
+<div style="margin-top: 2%; margin-bottom: 2%;">
+    <h1 style="text-align: center;">EQUIPOS BIOMEDICOS DE LA SEDE: {{sede?.nombres}}</h1>
+    <h6 style="text-align: center;"> Todos los equipos relacionados en la sede de {{sede?.nombres}}</h6>
+</div>
+
+<div class="card" style="margin-top: 3%; width: 100%;">
+    <p-table #dt2 [value]="equipos" dataKey="id" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 25, 50, 100]"
+        [loading]="loading"
+        [globalFilterFields]="['nombres', 'marca', 'modelo', 'serie', 'placa', 'servicios.sede.nombres', 'servicios.nombres', 'ubicacionEspecifica', 'periodicidadM', 'registroInvima', 'riesgo']"
+        [scrollable]="true" [tableStyle]="{ 'min-width': '70rem' }" [showCurrentPageReport]="true"
+        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros">
+
+        <!-- Filtro -->
+        <ng-template pTemplate="caption">
+            <div class="flex justify-content-end">
+                <p-iconfield iconPosition="left">
+                    <p-inputicon>
+                        <i class="pi pi-search"></i>
+                    </p-inputicon>
+                    <input pInputText type="text" (input)="onGlobalFilter($event)" placeholder="B&uacute;squeda General" />
+                </p-iconfield>
+            </div>
+        </ng-template>
+
+        <!-- Cabecera -->
+        <ng-template pTemplate="header">
+            <tr>
+                <th pSortableColumn="nombres">Nombre <p-sortIcon field="nombres"></p-sortIcon></th>
+                <th pSortableColumn="marca">Marca <p-sortIcon field="marca"></p-sortIcon></th>
+                <th pSortableColumn="modelo">Modelo <p-sortIcon field="modelo"></p-sortIcon></th>
+                <th pSortableColumn="serie">Serie <p-sortIcon field="serie"></p-sortIcon></th>
+                <th pSortableColumn="placa">Placa <p-sortIcon field="placa"></p-sortIcon></th>
+                <th pSortableColumn="servicios.sede.nombres">Sede <p-sortIcon
+                        field="servicios.sede.nombres"></p-sortIcon></th>
+                <th pSortableColumn="servicios.nombres">Servicio <p-sortIcon field="servicios.nombres"></p-sortIcon>
+                </th>
+                <th pSortableColumn="ubicacionEspecifica">Ubicaci&oacute;n Específica <p-sortIcon
+                        field="ubicacionEspecifica"></p-sortIcon></th>
+                <th pSortableColumn="periodicidadM">Meses Mtto <p-sortIcon field="periodicidadM"></p-sortIcon></th>
+                <th pSortableColumn="registroInvima">Registro Invima <p-sortIcon field="registroInvima"></p-sortIcon>
+                </th>
+                <th pSortableColumn="riesgo">Riesgo <p-sortIcon field="riesgo"></p-sortIcon></th>
+                <th>Opciones</th>
+            </tr>
+        </ng-template>
+
+        <!-- Cuerpo -->
+        <ng-template pTemplate="body" let-equipo>
+            <tr>
+                <td>{{ equipo.nombres }}</td>
+                <td>{{ equipo.marca }}</td>
+                <td>{{ equipo.modelo }}</td>
+                <td>{{ equipo.serie }}</td>
+                <td>{{ equipo.placa }}</td>
+                <td>{{ equipo.servicios?.sede?.nombres }}</td>
+                <td>{{ equipo.servicios?.nombres }}</td>
+                <td>{{ equipo.ubicacionEspecifica }}</td>
+                <td>
+                    <span *ngFor="let m of obtenerMesesConCumplimiento(equipo); let last = last" [style.color]="m.color"
+                        [style.font-weight]="'bold'">
+                        {{ m.mes }}{{ last ? '' : ', ' }}
+                    </span>
+                    <span *ngIf="!equipo.planesMantenimiento || equipo.planesMantenimiento.length === 0">Sin
+                        programación</span>
+                </td>
+                <td>{{ equipo.registroInvima }}</td>
+                <td
+                    [ngStyle]="{'background-color': obtenerColorRiesgo(equipo.riesgo), 'color': 'black', 'font-weight': 'bold', 'text-align': 'center'}">
+                    {{ equipo.riesgo }}
+                </td>
+                <td>
+                    <p-splitbutton label="HV" icon="pi pi-check" dropdownIcon="pi pi-cog" [model]="equipo.opcionesHV"
+                        severity="secondary" (onClick)="equipo.opcionesHV[1].command(equipo)">
+                    </p-splitbutton>
+                </td>
+            </tr>
+        </ng-template>
+
+        <!-- Mensaje vacío -->
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="10" class="text-center">No hay Equipos.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+
+<p-dialog header="Editar Plan de Mantenimiento" [(visible)]="displayPlanDialog" [modal]="true"
+    styleClass="standard-modal modal-md" [draggable]="false" [resizable]="false">
+    <div class="p-fluid">
+        <div class="field">
+            <label for="intervenciones">Intervenciones por año</label>
+            <p-select [options]="intervencionOptions" [(ngModel)]="intervencionesAnuales" optionLabel="name"
+                optionValue="value" (onChange)="calcularFechas()"></p-select>
+            <small class="block">Seleccione cuántas veces al año se realizará el mantenimiento.</small>
+        </div>
+        <div class="field">
+            <label for="mesInicio">Mes de Inicio</label>
+            <p-select [options]="monthOptions" [(ngModel)]="mesInicio" optionLabel="name" optionValue="value"
+                (onChange)="calcularFechas()"></p-select>
+            <small class="block">Seleccione el mes en que inicia el primer mantenimiento.</small>
+        </div>
+        <div class="field">
+            <label for="anioInicio">A&ntilde;o de Inicio</label>
+            <p-select [options]="anioOptions" [(ngModel)]="anioInicio" optionLabel="name" optionValue="value"
+                (onChange)="calcularFechas()"></p-select>
+            <small class="block">Seleccione el año de inicio.</small>
+        </div>
+        <div class="field">
+            <label for="meses">Ciclo de Mantenimiento Calculado</label>
+            <p class="font-bold mt-2"
+                [ngClass]="{'text-green-500': selectedPlans.length > 0, 'text-red-500': selectedPlans.length === 0}">
+                {{calculatedMonthsText}}
+            </p>
+        </div>
+    </div>
+    <ng-template pTemplate="footer">
+        <p-button icon="pi pi-times" (click)="displayPlanDialog=false" label="Cancelar"
+            styleClass="p-button-text p-button-secondary"></p-button>
+        <p-button icon="pi pi-check" (click)="savePlan()" label="Guardar"></p-button>
+    </ng-template>
+</p-dialog>

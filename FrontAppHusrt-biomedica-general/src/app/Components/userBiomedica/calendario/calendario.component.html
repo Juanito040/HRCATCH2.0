@@ -1,0 +1,857 @@
+<div style="margin-top: 3%; margin-left: 5%; margin-right: 5%; background-color: white;">
+</div>
+
+<div style="margin-bottom: 2%;">
+  <h3 style="text-align: center;">PROGRAMACION DE MANTENIMIENTOS Y ACTIVIDADES METROLOGICAS</h3>
+</div>
+
+
+<div class="btn-group botonesMenu" role="group" aria-label="Basic example">
+  <button type="button" class="btn" [ngClass]="panelActivo === 'seguimiento' ? 'btn-primary' : 'btn-light'"
+    (click)="setPanel('seguimiento')">
+    Seguimiento Actividades
+  </button>
+
+  <button type="button" class="btn" [ngClass]="panelActivo === 'mantenimientos' ? 'btn-primary' : 'btn-light'"
+    (click)="setPanel('mantenimientos')">
+    Programación Mantenimientos
+  </button>
+
+  <button type="button" class="btn" [ngClass]="panelActivo === 'metrologia' ? 'btn-primary' : 'btn-light'"
+    (click)="setPanel('metrologia')">
+    Programación Metrología
+  </button>
+
+  <button type="button" class="btn" [ngClass]="panelActivo === 'mensuales' ? 'btn-primary' : 'btn-light'"
+    (click)="setPanel('mensuales')">
+    Plan de Actividades
+  </button>
+</div>
+
+<div style="margin-top: 1%;">
+
+</div>
+
+<p-dialog header="Meses Programados (Preventivos)" [(visible)]="showScheduledPreventiveModal" [modal]="true"
+  [style]="{width: '30vw'}">
+  <p-table [value]="scheduledPreventiveMonths" [tableStyle]="{ 'min-width': '20rem' }">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>A&ntilde;o</th>
+        <th>Mes</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-item>
+      <tr>
+        <td>{{ item.anio }}</td>
+        <td>{{ getNombreMes(item.mes) }}</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-dialog>
+
+<p-dialog header="Meses Programados (Metrología)" [(visible)]="showScheduledMetrologyModal" [modal]="true"
+  [style]="{width: '30vw'}">
+  <p-table [value]="scheduledMetrologyMonths" [tableStyle]="{ 'min-width': '20rem' }">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>A&ntilde;o</th>
+        <th>Mes</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-item>
+      <tr>
+        <td>{{ item.anio }}</td>
+        <td>{{ getNombreMes(item.mes) }}</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-dialog>
+
+<div class="panelMantenimientos" *ngIf="panelActivo === 'seguimiento'">Contenido del panel Seguimiento</div>
+<div class="panelMantenimientos" *ngIf="panelActivo === 'mantenimientos'">
+
+  <div class="filtromes flex flex-column md:flex-row align-items-center gap-3" style="margin-bottom: 2%;">
+    <h6 class="m-0">Seleccione un mes para visualizar:</h6>
+
+    <p-datepicker [(ngModel)]="date" view="month" dateFormat="mm/yy" [readonlyInput]="true"
+      inputStyleClass="w-full md:w-10rem"></p-datepicker>
+
+    <button type="button" class="btn btn-dark" (click)="setDate()">
+      Buscar
+    </button>
+  </div>
+
+  <div style="text-align: center;">
+    <h6>Plan de mantenimiento del mes: {{nombreMes()}} </h6>
+  </div>
+  <div style="text-align: right; margin-right: 5%;">
+    <button *ngIf="canProgram" type="button" class="btn btn-success" style="width: 250px;"
+      (click)="programarMantenimiento()">Programar
+      Mantenimientos</button>
+    <h1> </h1>
+  </div>
+
+  <div class="card" style="width: 90%; align-items: center; margin-left: 5%; margin-right: 5%;">
+    <p-table #dt2 [value]="equiposPlanPreventivoMes" dataKey="id" [rows]="10" [rowsPerPageOptions]="[10, 25, 50, 100]"
+      [loading]="loading" [paginator]="true" [tableStyle]="{ 'min-width': '10rem' }"
+      [globalFilterFields]="['equipo.nombres', 'equipo.marca', 'equipo.modelo', 'equipo.serie', 'equipo.placa', 'equipo.servicios.nombres', 'equipo.ubicacionEspecifica', 'equipo.id']">
+      <ng-template pTemplate="caption">
+        <div class="flex">
+          <button type="button" class="btn btn-info mr-3" (click)="viewScheduledPreventiveMonths()">
+            Ver Meses Programados
+          </button>
+          <p-iconfield iconPosition="left" class="ml-auto">
+            <p-inputicon>
+              <i class="pi pi-search"></i>
+            </p-inputicon>
+            <input pInputText type="text" (input)="onGlobalFilter($event)" placeholder="B&uacute;squeda General" />
+          </p-iconfield>
+        </div>
+      </ng-template>
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width:10%; align-items: center; text-align: center">Nombre</th>
+          <th style="width:10%; align-items: center; text-align: center">Marca</th>
+          <th style="width:10%; align-items: center; text-align: center">Modelo</th>
+          <th style="width:10%; align-items: center; text-align: center">Serie</th>
+          <th style="width:10%; align-items: center; text-align: center">Placa</th>
+          <th style="width:10%; align-items: center; text-align: center">Servicio</th>
+          <th style="width:10%; align-items: center; text-align: center">Ubicaci&oacute;n</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-registro>
+        <tr>
+          <td style="text-align: center; align-items: center; text-align: center">
+            <span class="ml-1 vertical-align-middle">
+              {{registro.equipo.nombres}}
+            </span>
+          </td>
+          <td style="text-align: center; align-items: center; text-align: center">
+            <span class="ml-1 vertical-align-middle">
+              {{ registro.equipo.marca }}
+            </span>
+          </td>
+          <td style="text-align: center; align-items: center; text-align: center">
+            <span class="ml-1 vertical-align-middle">
+              {{ registro.equipo.modelo }}
+            </span>
+          </td>
+          <td style="text-align: center; align-items: center; text-align: center">
+            <span class="ml-1 vertical-align-middle">
+              {{ registro.equipo.serie }}
+            </span>
+          </td>
+          <td style="text-align: center; align-items: center; text-align: center">
+            <span class="ml-1 vertical-align-middle">
+              {{ registro.equipo.placa }}
+            </span>
+          </td>
+          <td style="text-align: center; align-items: center; text-align: center">
+            <span class="ml-1 vertical-align-middle">
+              {{ registro.equipo.servicios.nombres }}
+            </span>
+          </td>
+          <td style="text-align: center; align-items: center; text-align: center">
+            <span class="ml-1 vertical-align-middle">
+              {{ registro.equipo.ubicacionEspecifica }}
+            </span>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="5">No hay Reportes.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
+<div class="panelMantenimientos" *ngIf="panelActivo === 'metrologia'">
+  <div class="filtromes flex flex-column md:flex-row align-items-center gap-3" style="margin-bottom: 2%;">
+    <h6 class="m-0">Seleccione un mes para visualizar:</h6>
+    <p-datepicker [(ngModel)]="date" view="month" dateFormat="mm/yy" [readonlyInput]="true"
+      inputStyleClass="w-full md:w-10rem"></p-datepicker>
+    <button type="button" class="btn btn-dark" (click)="setDate()">
+      Buscar
+    </button>
+  </div>
+  <div style="text-align: center;">
+    <h6>Plan de actividades metrologicas del mes: {{nombreMes()}} </h6>
+  </div>
+  <div style="text-align: right; margin-right: 5%;">
+    <button *ngIf="canProgram" type="button" class="btn btn-success" style="width: 250px;"
+      (click)="programarActividadesMetrologicas   ()">Programar A. Metrologicas</button>
+    <h1> </h1>
+  </div>
+  <div class="card" style="width: 90%; align-items: center; margin-left: 5%; margin-right: 5%;">
+    <p-table #dt2 [value]="equiposPlanMetrologiaMes" dataKey="id" [rows]="10" [rowsPerPageOptions]="[10, 25, 50, 100]"
+      [loading]="loading" [paginator]="true" [tableStyle]="{ 'min-width': '10rem' }"
+      [globalFilterFields]="['equipo.nombres', 'equipo.marca', 'equipo.serie', 'equipo.placa', 'registro.tipoActividad', 'equipo.servicios.nombres', 'equipo.ubicacionEspecifica']">
+      <ng-template pTemplate="caption">
+        <div class="flex">
+          <button type="button" class="btn btn-info mr-3" (click)="viewScheduledMetrologyMonths()">
+            Ver Meses Programados
+          </button>
+          <p-iconfield iconPosition="left" class="ml-auto">
+            <p-inputicon>
+              <i class="pi pi-search"></i>
+            </p-inputicon>
+            <input pInputText type="text" (input)="onGlobalFilter($event)" placeholder="B&uacute;squeda General" />
+          </p-iconfield>
+        </div>
+      </ng-template>
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="width:10%; align-items: center; text-align: center">Nombre</th>
+          <th style="width:10%; align-items: center; text-align: center">Marca</th>
+          <th style="width:10%; align-items: center; text-align: center">Modelo</th>
+          <th style="width:10%; align-items: center; text-align: center">Serie</th>
+          <th style="width:10%; align-items: center; text-align: center">Placa</th>
+          <th style="width:10%; align-items: center; text-align: center">Actividad</th>
+          <th style="width:10%; align-items: center; text-align: center">Servicio</th>
+          <th style="width:10%; align-items: center; text-align: center">Ubicaci&oacute;n</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-registro>
+        <tr>
+          <td style="text-align: center; align-items: center; text-align: center">
+            <span class="ml-1 vertical-align-middle">
+              {{registro.equipo.nombres}}
+            </span>
+          </td>
+          <td style="text-align: center; align-items: center; text-align: center">
+            <span class="ml-1 vertical-align-middle">
+              {{ registro.equipo.marca }}
+            </span>
+          </td>
+          <td style="text-align: center; align-items: center; text-align: center">
+            <span class="ml-1 vertical-align-middle">
+              {{ registro.equipo.modelo }}
+            </span>
+          </td>
+          <td style="text-align: center; align-items: center; text-align: center">
+            <span class="ml-1 vertical-align-middle">
+              {{ registro.equipo.serie }}
+            </span>
+          </td>
+          <td style="text-align: center; align-items: center; text-align: center">
+            <span class="ml-1 vertical-align-middle">
+              {{ registro.equipo.placa }}
+            </span>
+          </td>
+          <td style="text-align: center; align-items: center; text-align: center">
+            <span class="ml-1 vertical-align-middle">
+              {{ registro.tipoActividad }}
+            </span>
+          </td>
+          <td style="text-align: center; align-items: center; text-align: center">
+            <span class="ml-1 vertical-align-middle">
+              {{ registro.equipo.servicios.nombres }}
+            </span>
+          </td>
+          <td style="text-align: center; align-items: center; text-align: center">
+            <span class="ml-1 vertical-align-middle">
+              {{ registro.equipo.ubicacionEspecifica }}
+            </span>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="5">No hay Reportes.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
+
+<div class="panelMantenimientos" *ngIf="panelActivo === 'mensuales'">
+  <div class="contenedor" style="width: 98%; margin-left: 1%; ">
+    <div class="izquierda" style="background-color: white; align-items: center;">
+      <button type="button" class="btn" style="width: 60%; margin-top: 1%;" (click)="viewPanelMes()"
+        [ngClass]="viewPlanMes === true ? 'btn-primary' : 'btn-light'">Plan Mensual</button>
+      <button type="button" class="btn" style="width: 60%; margin-top: 1%;" (click)="viewPanelTipoEquipo()"
+        [ngClass]="viewPlanTipoEquipo === true ? 'btn-primary' : 'btn-light'">Plan Tipo Equipo</button>
+      <button type="button" class="btn" style="width: 60%; margin-top: 1%;" (click)="viewPanelServicio()"
+        [ngClass]="viewPlanServicio === true ? 'btn-primary' : 'btn-light'">Plan Servicio</button>
+    </div>
+    <div class="derecha" style="background-color: white;">
+      <div *ngIf="viewPlanMes">
+        <div class="filtromes flex flex-column md:flex-row align-items-center gap-3" style="margin-bottom: 2%;">
+          <h6 class="m-0">Seleccione un mes para visualizar:</h6>
+          <p-datepicker [(ngModel)]="date" view="month" dateFormat="mm/yy" [readonlyInput]="true"
+            inputStyleClass="w-full md:w-10rem"></p-datepicker>
+          <button type="button" class="btn btn-dark" (click)="setDate()">
+            Buscar
+          </button>
+        </div>
+        <div class="btn-group botonesMenu" role="group" aria-label="Basic example">
+          <button type="button" class="btn" [ngClass]="viewPlanMesMantenimiento === true ? 'btn-primary' : 'btn-light'"
+            (click)="viewPanelMesMantenimiento()">
+            Mantenimiento
+          </button>
+          <button type="button" class="btn" [ngClass]="viewPlanMesMetrologia === true ? 'btn-primary' : 'btn-light'"
+            (click)="viewPanelMesMetrologia()">
+            Metrologia
+          </button>
+        </div>
+        <div *ngIf="viewPlanMesMantenimiento">
+          <h6>Mantenimientos Mes: {{nombreMes()}} </h6>
+          <div class="card">
+            <p-table #dt2 [value]="equiposPlanPreventivoMes" dataKey="id" [rows]="10"
+              [rowsPerPageOptions]="[10, 25, 50, 100]" [loading]="loading" [paginator]="true"
+              [tableStyle]="{ 'min-width': '10rem' }"
+              [globalFilterFields]="['equipo.nombres', 'equipo.marca', 'equipo.modelo', 'equipo.serie', 'equipo.placa', 'mesesStr', 'servicio.nombres', 'equipo.ubicacionEspecifica', 'equipo.id']">
+              <ng-template pTemplate="caption">
+                <div class="flex">
+                  <p-iconfield iconPosition="left" class="ml-auto">
+                    <p-inputicon>
+                      <i class="pi pi-search"></i>
+                    </p-inputicon>
+                    <input pInputText type="text" (input)="onGlobalFilter($event)" placeholder="B&uacute;squeda General" />
+                  </p-iconfield>
+                </div>
+              </ng-template>
+              <ng-template pTemplate="header">
+                <tr>
+                  <th style="width:10%; align-items: center; text-align: center">Nombre</th>
+                  <th style="width:10%; align-items: center; text-align: center">Marca</th>
+                  <th style="width:10%; align-items: center; text-align: center">Modelo</th>
+                  <th style="width:10%; align-items: center; text-align: center">Serie</th>
+                  <th style="width:10%; align-items: center; text-align: center">Placa</th>
+                  <th style="width:10%; align-items: center; text-align: center">Servicio</th>
+                  <th style="width:10%; align-items: center; text-align: center">Ubicaci&oacute;n</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-registro>
+                <tr>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{registro.equipo.nombres}}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.equipo.marca }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.equipo.modelo }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.equipo.serie }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.equipo.placa }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.equipo.servicios.nombres }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.equipo.ubicacionEspecifica }}
+                    </span>
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="5">No hay Reportes.</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </div>
+        <div *ngIf="viewPlanMesMetrologia">
+          <h6>Actividades Metrologicas Mes: {{nombreMes()}} </h6>
+          <div class="card">
+            <p-table #dt2 [value]="equiposPlanMetrologiaMes" dataKey="id" [rows]="10"
+              [rowsPerPageOptions]="[10, 25, 50, 100]" [loading]="loading" [paginator]="true"
+              [tableStyle]="{ 'min-width': '10rem' }"
+              [globalFilterFields]="['equipo.nombres', 'equipo.marca', 'equipo.modelo', 'equipo.serie', 'equipo.placa', 'registro.tipoActividad', 'equipo.servicios.nombres', 'equipo.ubicacionEspecifica', 'equipo.id']">
+              <ng-template pTemplate="caption">
+                <div class="flex">
+                  <p-iconfield iconPosition="left" class="ml-auto">
+                    <p-inputicon>
+                      <i class="pi pi-search"></i>
+                    </p-inputicon>
+                    <input pInputText type="text" (input)="onGlobalFilter($event)" placeholder="B&uacute;squeda General" />
+                  </p-iconfield>
+                </div>
+              </ng-template>
+              <ng-template pTemplate="header">
+                <tr>
+                  <th style="width:10%; align-items: center; text-align: center">Nombre</th>
+                  <th style="width:10%; align-items: center; text-align: center">Marca</th>
+                  <th style="width:10%; align-items: center; text-align: center">Modelo</th>
+                  <th style="width:10%; align-items: center; text-align: center">Serie</th>
+                  <th style="width:10%; align-items: center; text-align: center">Placa</th>
+                  <th style="width:10%; align-items: center; text-align: center">Actividad</th>
+                  <th style="width:10%; align-items: center; text-align: center">Servicio</th>
+                  <th style="width:10%; align-items: center; text-align: center">Ubicaci&oacute;n</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-registro>
+                <tr>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{registro.equipo.nombres}}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.equipo.marca }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.equipo.modelo }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.equipo.serie }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.equipo.placa }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.tipoActividad }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.equipo.servicios.nombres }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.equipo.ubicacionEspecifica }}
+                    </span>
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="5">No hay Reportes.</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="viewPlanTipoEquipo">
+        <div class="filtromes flex flex-column md:flex-row align-items-center gap-3" style="margin-bottom: 2%;">
+          <h6 class="m-0">Seleccione un Tipo de Equipo para visualizar:</h6>
+          <p-select [options]="tiposEquipo" [(ngModel)]="selectedTipoEquipo" optionLabel="nombres" [filter]="true"
+            filterBy="nombres" [showClear]="true" placeholder="Seleccione un Tipo de Equipo" class="w-full md:w-56">
+            <ng-template #selectedItem let-selectedOption>
+              <div class="flex items-center gap-2">
+                <div>{{ selectedOption.nombres }}</div>
+              </div>
+            </ng-template>
+            <ng-template let-tipoEquipo #item>
+              <div class="flex items-center gap-2">
+                <div>{{ tipoEquipo.nombres }}</div>
+              </div>
+            </ng-template>
+          </p-select>
+          <button type="button" class="btn btn-dark" (click)="setTipoEquipo()">
+            Buscar
+          </button>
+        </div>
+        <div class="btn-group botonesMenu" role="group" aria-label="Basic example">
+          <button type="button" class="btn"
+            [ngClass]="viewPlanTipoEquipoMantenimiento === true ? 'btn-primary' : 'btn-light'"
+            (click)="viewPanelTipoEquipoMantenimiento()">
+            Mantenimiento
+          </button>
+          <button type="button" class="btn"
+            [ngClass]="viewPlanTipoEquipoMetrologia === true ? 'btn-primary' : 'btn-light'"
+            (click)="viewPanelTipoEquipoMetrologia()">
+            Metrologia
+          </button>
+        </div>
+        <div *ngIf="viewPlanTipoEquipoMantenimiento">
+          <div *ngIf="selectedTipoEquipo">
+            <h6>Plan de Mantenimientos de {{selectedTipoEquipo.nombres}} </h6>
+          </div>
+          <div class="card">
+            <p-table #dt2 [value]="equiposPlanMantenimientoTipoEquipo" dataKey="id" [rows]="10"
+              [rowsPerPageOptions]="[10, 25, 50, 100]" [loading]="loading" [paginator]="true"
+              [tableStyle]="{ 'min-width': '10rem' }"
+              [globalFilterFields]="['equipo.nombres', 'equipo.marca', 'equipo.modelo', 'equipo.serie', 'mesesStr', 'equipo.placa', 'equipo.servicio.nombres', 'equipo.ubicacionEspecifica', 'equipo.id']">
+              <ng-template pTemplate="caption">
+                <div class="flex">
+                  <p-iconfield iconPosition="left" class="ml-auto">
+                    <p-inputicon>
+                      <i class="pi pi-search"></i>
+                    </p-inputicon>
+                    <input pInputText type="text" (input)="onGlobalFilter($event)" placeholder="B&uacute;squeda General" />
+                  </p-iconfield>
+                </div>
+              </ng-template>
+              <ng-template pTemplate="header">
+                <tr>
+                  <th style="width:10%; align-items: center; text-align: center">Nombre</th>
+                  <th style="width:10%; align-items: center; text-align: center">Marca</th>
+                  <th style="width:10%; align-items: center; text-align: center">Modelo</th>
+                  <th style="width:10%; align-items: center; text-align: center">Serie</th>
+                  <th style="width:10%; align-items: center; text-align: center">Placa</th>
+                  <th style="width:10%; align-items: center; text-align: center">Mes</th>
+                  <th style="width:10%; align-items: center; text-align: center">Servicio</th>
+                  <th style="width:10%; align-items: center; text-align: center">Ubicaci&oacute;n</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-registro>
+                <tr>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{registro.equipo.nombres}}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.equipo.marca }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.equipo.modelo }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.equipo.serie }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.equipo.placa }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.mesesStr }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.equipo.servicios.nombres }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.equipo.ubicacionEspecifica }}
+                    </span>
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="5">No hay Reportes.</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </div>
+        <div *ngIf="viewPlanTipoEquipoMetrologia">
+          <div *ngIf="selectedTipoEquipo">
+            <h6>Plan de Metrologia de {{selectedTipoEquipo.nombres}} </h6>
+          </div>
+          <div class="card">
+            <p-table #dt2 [value]="equiposPlanAMetrologicasTipoEquipo" dataKey="id" [rows]="10"
+              [rowsPerPageOptions]="[10, 25, 50, 100]" [loading]="loading" [paginator]="true"
+              [tableStyle]="{ 'min-width': '10rem' }"
+              [globalFilterFields]="['equipo.nombres', 'equipo.marca', 'equipo.modelo', 'equipo.serie', 'registro.tipoActividad', 'equipo.placa', 'equipo.servicio.nombres', 'equipo.ubicacionEspecifica', 'equipo.id']">
+              <ng-template pTemplate="caption">
+                <div class="flex">
+                  <p-iconfield iconPosition="left" class="ml-auto">
+                    <p-inputicon>
+                      <i class="pi pi-search"></i>
+                    </p-inputicon>
+                    <input pInputText type="text" (input)="onGlobalFilter($event)" placeholder="B&uacute;squeda General" />
+                  </p-iconfield>
+                </div>
+              </ng-template>
+              <ng-template pTemplate="header">
+                <tr>
+                  <th style="width:10%; align-items: center; text-align: center">Nombre</th>
+                  <th style="width:10%; align-items: center; text-align: center">Marca</th>
+                  <th style="width:10%; align-items: center; text-align: center">Modelo</th>
+                  <th style="width:10%; align-items: center; text-align: center">Serie</th>
+                  <th style="width:10%; align-items: center; text-align: center">Placa</th>
+                  <th style="width:10%; align-items: center; text-align: center">Mes</th>
+                  <th style="width:10%; align-items: center; text-align: center">Actividad</th>
+                  <th style="width:10%; align-items: center; text-align: center">Servicio</th>
+                  <th style="width:10%; align-items: center; text-align: center">Ubicaci&oacute;n</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-registro>
+                <tr>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{registro.equipo.nombres}}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.equipo.marca }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.equipo.modelo }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.equipo.serie }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.equipo.placa }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.mesesStr }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.tipoActividad }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.equipo.servicios.nombres }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.equipo.ubicacionEspecifica }}
+                    </span>
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="5">No hay Reportes.</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="viewPlanServicio">
+        <div class="filtromes flex flex-column md:flex-row align-items-center gap-3" style="margin-bottom: 2%;">
+          <h6 class="m-0">Seleccione un Servicio para visualizar:</h6>
+          <p-select [options]="servicios" [(ngModel)]="selectedServicio" optionLabel="nombres" [filter]="true"
+            filterBy="nombres" [showClear]="true" placeholder="Seleccione un Servicio" class="w-full md:w-56">
+            <ng-template #selectedItem let-selectedOption>
+              <div class="flex items-center gap-2">
+                <div>{{ selectedOption.nombres }}</div>
+              </div>
+            </ng-template>
+            <ng-template let-servicio #item>
+              <div class="flex items-center gap-2">
+                <div>{{ servicio.nombres }}</div>
+              </div>
+            </ng-template>
+          </p-select>
+          <button type="button" class="btn btn-dark" (click)="setServicio()">
+            Buscar
+          </button>
+        </div>
+        <div class="btn-group botonesMenu" role="group" aria-label="Basic example">
+          <button type="button" class="btn"
+            [ngClass]="viewPlanServicioMantenimiento === true ? 'btn-primary' : 'btn-light'"
+            (click)="viewPanelServicioMantenimiento()">
+            Mantenimiento
+          </button>
+          <button type="button" class="btn"
+            [ngClass]="viewPlanServicioMetrologia === true ? 'btn-primary' : 'btn-light'"
+            (click)="viewPanelServicioMetrologia()">
+            Metrologia
+          </button>
+        </div>
+        <div *ngIf="viewPlanServicioMantenimiento">
+          <div *ngIf="selectedServicio">
+            <h6>Plan de Mantenimientos de {{selectedServicio.nombres}} </h6>
+          </div>
+          <div class="card">
+            <p-table #dt2 [value]="equiposPlanMantenimientoServicio" dataKey="id" [rows]="10"
+              [rowsPerPageOptions]="[10, 25, 50, 100]" [loading]="loading" [paginator]="true"
+              [tableStyle]="{ 'min-width': '10rem' }"
+              [globalFilterFields]="['equipo.nombres', 'equipo.marca', 'equipo.modelo', 'equipo.serie', 'equipo.placa', 'mesesStr', 'servicio.nombres', 'equipo.ubicacionEspecifica', 'equipo.id']">
+              <ng-template pTemplate="caption">
+                <div class="flex">
+                  <p-iconfield iconPosition="left" class="ml-auto">
+                    <p-inputicon>
+                      <i class="pi pi-search"></i>
+                    </p-inputicon>
+                    <input pInputText type="text" (input)="onGlobalFilter($event)" placeholder="B&uacute;squeda General" />
+                  </p-iconfield>
+                </div>
+              </ng-template>
+              <ng-template pTemplate="header">
+                <tr>
+                  <th style="width:10%; align-items: center; text-align: center">Nombre</th>
+                  <th style="width:10%; align-items: center; text-align: center">Marca</th>
+                  <th style="width:10%; align-items: center; text-align: center">Modelo</th>
+                  <th style="width:10%; align-items: center; text-align: center">Serie</th>
+                  <th style="width:10%; align-items: center; text-align: center">Placa</th>
+                  <th style="width:10%; align-items: center; text-align: center">Mes</th>
+                  <th style="width:10%; align-items: center; text-align: center">Ubicaci&oacute;n</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-registro>
+                <tr>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{registro.equipo.nombres}}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.equipo.marca }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.equipo.modelo }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.equipo.serie }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.equipo.placa }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.mesesStr }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.equipo.ubicacionEspecifica }}
+                    </span>
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="5">No hay Reportes.</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </div>
+
+        <div *ngIf="viewPlanServicioMetrologia">
+          <div *ngIf="selectedServicio">
+            <h6>Plan de MEtrologia de {{selectedServicio.nombres}} </h6>
+          </div>
+          <div class="card">
+            <p-table #dt2 [value]="equiposPlanAMetrologicasServicio" dataKey="id" [rows]="10"
+              [rowsPerPageOptions]="[10, 25, 50, 100]" [loading]="loading" [paginator]="true"
+              [tableStyle]="{ 'min-width': '10rem' }"
+              [globalFilterFields]="['equipo.nombres', 'equipo.marca', 'equipo.modelo', 'equipo.serie', 'equipo.placa', 'servicio.nombres', 'equipo.ubicacionEspecifica', 'equipo.id']">
+              <ng-template pTemplate="caption">
+                <div class="flex">
+                  <p-iconfield iconPosition="left" class="ml-auto">
+                    <p-inputicon>
+                      <i class="pi pi-search"></i>
+                    </p-inputicon>
+                    <input pInputText type="text" (input)="onGlobalFilter($event)" placeholder="B&uacute;squeda General" />
+                  </p-iconfield>
+                </div>
+              </ng-template>
+              <ng-template pTemplate="header">
+                <tr>
+                  <th style="width:10%; align-items: center; text-align: center">Nombre</th>
+                  <th style="width:10%; align-items: center; text-align: center">Marca</th>
+                  <th style="width:10%; align-items: center; text-align: center">Modelo</th>
+                  <th style="width:10%; align-items: center; text-align: center">Serie</th>
+                  <th style="width:10%; align-items: center; text-align: center">Placa</th>
+                  <th style="width:10%; align-items: center; text-align: center">Actividad</th>
+                  <th style="width:10%; align-items: center; text-align: center">Mes</th>
+                  <th style="width:10%; align-items: center; text-align: center">Ubicaci&oacute;n</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-registro>
+                <tr>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{registro.equipo.nombres}}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.equipo.marca }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.equipo.modelo }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.equipo.serie }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.equipo.placa }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.tipoActividad }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.mesesStr }}
+                    </span>
+                  </td>
+                  <td style="text-align: center; align-items: center; text-align: center">
+                    <span class="ml-1 vertical-align-middle">
+                      {{ registro.equipo.ubicacionEspecifica }}
+                    </span>
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="5">No hay Reportes.</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

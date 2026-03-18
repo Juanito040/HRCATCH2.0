@@ -1,0 +1,198 @@
+<div class="dashboard-container">
+
+    <div class="text-center mb-5">
+        <h1 class="text-3xl font-bold mb-2">Mantenimientos Pendientes</h1>
+        <p class="text-secondary text-lg">Preventivos asignados por realizar o completar</p>
+    </div>
+
+    <div class="card border-0 shadow-sm border-round-xl surface-card p-4 mb-4">
+        <div class="flex flex-column sm:flex-row justify-content-center align-items-center gap-3">
+            <label class="font-bold text-lg text-700">Filtrar por Mes:</label>
+            <div class="flex gap-2">
+                <p-datepicker [(ngModel)]="dateFilter" view="month" dateFormat="mm/yy" [readonlyInput]="true"
+                    (onSelect)="filtrarPendientes()" placeholder="Seleccione Mes/A&ntilde;o" [showIcon]="true"
+                    inputStyleClass="p-inputtext-sm"></p-datepicker>
+                <button pButton icon="pi pi-times" (click)="dateFilter = undefined; filtrarPendientes()"
+                    class="p-button-outlined p-button-danger" pTooltip="Limpiar Filtro"></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm border-round-xl surface-card p-4">
+        <p-table #dtPendientes [value]="pendientes" dataKey="id" [paginator]="true" [rows]="10"
+            [rowsPerPageOptions]="[10, 25, 50]" [loading]="loading"
+            [globalFilterFields]="['equipo.nombres', 'equipo.placa', 'equipo.ubicacionEspecifica', 'mesProgramado', 'equipo.marca', 'equipo.modelo', 'equipo.serie', 'servicio.nombres']"
+            styleClass="p-datatable-striped p-datatable-sm" [rowHover]="true" [scrollable]="true" scrollHeight="600px"
+            [showCurrentPageReport]="true"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros">
+
+            <ng-template pTemplate="caption">
+                <div class="flex justify-content-end">
+                    <p-iconfield position="left">
+                        <p-inputicon styleClass="pi pi-search" />
+                        <input pInputText type="text" (input)="onGlobalFilter($event)"
+                            placeholder="Buscar en el listado..." />
+                    </p-iconfield>
+                </div>
+            </ng-template>
+
+            <ng-template pTemplate="header">
+                <tr>
+                    <th style="min-width:200px">Equipo</th>
+                    <th style="min-width:120px">Placa</th>
+                    <th style="min-width:200px">Ubicaci&oacute;n</th>
+                    <th style="min-width:150px">Fecha Programada</th>
+                    <th style="min-width:150px">Estado</th>
+                    <th style="min-width:120px" class="text-center">Acci&oacute;n</th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-report>
+                <tr>
+                    <td><span class="font-bold">{{ report.equipo?.nombres || 'N/A' }}</span></td>
+                    <td><p-tag [value]="report.equipo?.placa || 'N/A'" severity="secondary"></p-tag></td>
+                    <td>{{ report.equipo?.ubicacionEspecifica || 'N/A' }}</td>
+                    <td>{{ report.mesProgramado + 1 }}/{{ report['añoProgramado'] }}</td>
+                    <td class="text-center">
+                        <p-tag [value]="getStatus(report).label" [severity]="getStatus(report).severity"></p-tag>
+                    </td>
+                    <td class="text-center">
+                        <button *ngIf="!report.realizado" pButton icon="pi pi-play"
+                            class="p-button-success p-button-rounded p-button-sm" pTooltip="Realizar Mantenimiento"
+                            tooltipPosition="left" (click)="realizarReporte(report.equipo.id, report.id)"></button>
+
+                        <!-- If realized but no PDF, allow viewing details or re-entering if possible? 
+                              For now, maybe just view details to see what's missing or allow 'realizar' again to update/attach pdf? -->
+                        <button *ngIf="report.realizado && !report.rutaPdf" pButton icon="pi pi-file-edit"
+                            class="p-button-warning p-button-rounded p-button-sm" pTooltip="Completar / Adjuntar"
+                            tooltipPosition="left" (click)="realizarReporte(report.equipo.id, report.id)"></button>
+                    </td>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="6" class="text-center p-4">
+                        <div class="flex flex-column align-items-center">
+                            <i class="pi pi-check-circle text-green-500 text-6xl mb-3"></i>
+                            <span class="text-xl text-500">¡Excelente! No tienes mantenimientos pendientes en el mes
+                                seleccionado.</span>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+
+</div>
+
+<!-- Reuse Detailed Modal Structure -->
+<p-dialog header="Reporte N. {{ reportSelected?.id }}" [(visible)]="modalReport" [modal]="true" [responsive]="true"
+    [style]="{ width: '90vw', maxWidth: '95%' }" [baseZIndex]="10000"
+    [breakpoints]="{ '960px': '90vw', '640px': '95vw' }">
+    <div class="p-fluid p-3">
+
+        <!-- 1. Línea: Informaci&oacute;n del Equipo -->
+        <div class="grid">
+            <div class="col-12">
+                <p-card header="Informaci&oacute;n del Equipo">
+                    <div class="p-text-sm grid">
+                        <div class="col-12 md:col-4">
+                            <p><strong>Nombre:</strong> {{ reportSelected?.equipo.nombres }}</p>
+                            <p><strong>Marca:</strong> {{ reportSelected?.equipo.marca }}</p>
+                            <p><strong>Modelo:</strong> {{ reportSelected?.equipo.modelo }}</p>
+                        </div>
+                        <div class="col-12 md:col-4">
+                            <p><strong>Serie:</strong> {{ reportSelected?.equipo.serie }}</p>
+                            <p><strong>Placa:</strong> {{ reportSelected?.equipo.placa }}</p>
+                            <p><strong>Activo:</strong> {{ reportSelected?.equipo.activo ? 'S&iacute;' : 'No' }}</p>
+                        </div>
+                        <div class="col-12 md:col-4">
+                            <p><strong>Servicio:</strong> {{ reportSelected?.servicio.nombres }}</p>
+                            <p><strong>Ubicaci&oacute;n:</strong> {{ reportSelected?.equipo.ubicacion }}</p>
+                            <p><strong>Ubicaci&oacute;n Específica:</strong> {{ reportSelected?.equipo.ubicacionEspecifica }}
+                            </p>
+                        </div>
+                    </div>
+                </p-card>
+            </div>
+        </div>
+
+        <!-- 2. Línea: Detalles del Reporte -->
+        <div class="grid">
+            <div class="col-12">
+                <p-card header="Detalle del Reporte">
+                    <div class="p-text-sm grid">
+                        <div class="col-12 md:col-4">
+                            <p><strong>Mes Programado:</strong> {{ reportSelected?.mesProgramado + 1 }}</p>
+                            <p><strong>Fecha Realizado:</strong> {{ reportSelected?.fechaRealizado }}</p>
+                            <p><strong>Hora Inicio:</strong> {{ reportSelected?.horaInicio }}</p>
+                            <p><strong>Fecha Fin:</strong> {{ reportSelected?.fechaFin }}</p>
+                            <p><strong>Trabajo Realizado:</strong> {{ reportSelected?.trabajoRealizado }}</p>
+                        </div>
+                        <div class="col-12 md:col-4">
+                            <p><strong>Hora Terminación:</strong> {{ reportSelected?.horaTerminacion }}</p>
+                            <p><strong>Hora Total:</strong> {{ reportSelected?.horaTotal }}</p>
+                            <p><strong>Tipo Mantenimiento:</strong> {{ reportSelected?.tipoMantenimiento }}</p>
+                            <p><strong>Tipo Falla:</strong> {{ reportSelected?.tipoFalla }}</p>
+                            <p><strong>Observaciones:</strong> {{ reportSelected?.observaciones }}</p>
+                        </div>
+                        <div class="col-12 md:col-4">
+                            <p><strong>Motivo:</strong> {{ reportSelected?.motivo }}</p>
+                            <p><strong>Calificaci&oacute;n:</strong> {{ reportSelected?.calificacion }}</p>
+                            <p><strong>Mantenimiento Propio:</strong> {{ reportSelected?.mantenimientoPropio ? 'S&iacute;' :
+                                'No' }}</p>
+                            <p><strong>Realizado:</strong> {{ reportSelected?.realizado ? 'S&iacute;' : 'No' }}</p>
+
+                        </div>
+                    </div>
+                </p-card>
+            </div>
+        </div>
+
+        <div>
+            <p-card header="Rutina de Mantenimiento">
+                <div class="p-text-sm grid">
+                    <div class="col-12">
+                        <table class="table table-striped table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Descripci&oacute;n</th>
+                                    <th>Cumplimiento</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let item of rutina">
+                                    <td>{{ item.protocolo.paso }}</td>
+                                    <td>{{ item.cumple ? 'S&iacute;' : 'No' }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </p-card>
+        </div>
+
+        <div style="margin-top: 1%;"></div>
+
+        <div class="grid">
+            <div class="col-12">
+                <p-card header="Realizado Por:">
+                    <div class="p-text-sm grid">
+                        <div class="col-12 md:col-4">
+                            <p><strong>Nombre:</strong> {{ reportSelected?.usuario.nombres }} {{
+                                reportSelected?.usuario.apellidos}}
+                            </p>
+                            <p><strong>Email:</strong> {{ reportSelected?.usuario.email }}</p>
+                            <p><strong>Registro Invima:</strong> {{ reportSelected?.usuario.registroInvima }}</p>
+                        </div>
+                        <div class="col-12 md:col-4">
+                            <button type="button" class="btn btn-dark" (click)="viewPdf(reportSelected?.rutaPdf)"
+                                *ngIf="reportSelected?.rutaPdf">Ver Reporte</button>
+                            <button type="button" class="btn btn-dark" (click)="viewPdf(reportSelected?.rutaPdf)"
+                                *ngIf="!reportSelected?.rutaPdf">Generar Formato</button>
+                        </div>
+                    </div>
+                </p-card>
+            </div>
+        </div>
+    </div>
+</p-dialog>

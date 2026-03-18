@@ -1,0 +1,271 @@
+<div class="card px-4 py-4 m-4 shadow-2 border-round-xl surface-card">
+
+  <p-toolbar styleClass="mb-4 gap-2 border-none bg-white">
+    <ng-template pTemplate="left">
+      <div class="flex align-items-center gap-2">
+        <i class="pi pi-users text-2xl text-primary"></i>
+        <h2 class="m-0 font-bold text-900">Gesti&oacute;n de Usuarios</h2>
+      </div>
+    </ng-template>
+
+    <ng-template pTemplate="right">
+      <p-button label="Nuevo Usuario" icon="pi pi-plus" (onClick)="showRegisterForm()" severity="primary"
+        [raised]="true"></p-button>
+    </ng-template>
+  </p-toolbar>
+
+  <p-table #dt2 [value]="usuarios" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]" [loading]="loading"
+    [paginator]="true"
+    [globalFilterFields]="['nombres', 'apellidos', 'email', 'telefono', 'nombreUsuario', 'cargo.nombre', 'servicio.nombres', 'mesaServicioRol.nombre', 'rol.nombre', 'registroInvima']"
+    [tableStyle]="{ 'min-width': '75rem' }" styleClass="p-datatable-striped p-datatable-sm" [rowHover]="true"
+    [showCurrentPageReport]="true" currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+    dataKey="id">
+
+    <ng-template pTemplate="caption">
+      <div class="flex justify-content-between flex-column sm:flex-row align-items-center">
+        <div class="mb-2 sm:mb-0">
+          <button pButton label="Limpiar" class="p-button-outlined" icon="pi pi-filter-slash"
+            (click)="dt2.clear()"></button>
+        </div>
+        <p-iconfield position="left">
+          <p-inputicon styleClass="pi pi-search" />
+          <input pInputText type="text" (input)="dt2.filterGlobal($any($event.target).value, 'contains')"
+            placeholder="Buscar palabra clave..." appUppercase />
+        </p-iconfield>
+      </div>
+    </ng-template>
+
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="nombres" style="width:18%">Nombres <p-sortIcon field="nombres"></p-sortIcon></th>
+        <th pSortableColumn="apellidos" style="width:18%">Apellidos <p-sortIcon field="apellidos"></p-sortIcon></th>
+        <th pSortableColumn="nombreUsuario" style="width:15%">Usuario <p-sortIcon field="nombreUsuario"></p-sortIcon>
+        </th>
+        <th style="width:15%">Tel&eacute;fono</th>
+        <th style="width:18%">Email</th>
+        <th style="width:15%">Cargo</th>
+        <th style="width:15%">Servicio</th>
+        <th style="width:15%">Rol Mesa</th>
+        <th style="width:15%">Rol General</th>
+        <th pSortableColumn="estado" style="width:8%">Estado <p-sortIcon field="estado"></p-sortIcon></th>
+        <th style="width:8%">Acciones</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-usuario>
+      <tr (click)="openViewModal(usuario)" class="clickable-row">
+        <td>{{ usuario.nombres }}</td>
+        <td>{{ usuario.apellidos }}</td>
+        <td>{{ usuario.nombreUsuario }}</td>
+        <td>{{ usuario.telefono }}</td>
+        <td>{{ usuario.email }}</td>
+        <td>{{ usuario.cargo?.nombre || 'Sin Cargo' }}</td>
+        <td>{{ usuario.servicio?.nombres || 'Sin Servicio' }}</td>
+        <td>{{ usuario.mesaServicioRol?.nombre || 'Sin Rol' }}</td>
+        <td>{{ usuario.rol?.nombre || 'Sin Rol' }}</td>
+        <td>
+          <p-tag [value]="usuario.estado ? 'ACTIVO' : 'INACTIVO'"
+            [severity]="usuario.estado ? 'success' : 'danger'"></p-tag>
+        </td>
+        <td>
+          <div class="flex gap-2">
+            <button pButton icon="pi pi-eye" class="p-button-rounded p-button-secondary p-button-text"
+              (click)="$event.stopPropagation(); openViewModal(usuario)" pTooltip="Ver Detalles"
+              tooltipPosition="top"></button>
+            <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-info p-button-text"
+              (click)="$event.stopPropagation(); openEditModal(usuario)" pTooltip="Editar"
+              tooltipPosition="top"></button>
+            <button pButton icon="pi pi-ellipsis-v" class="p-button-rounded p-button-secondary p-button-text"
+              (click)="$event.stopPropagation(); showActions($event, usuario); menu.toggle($event)"
+              pTooltip="Más Opciones" tooltipPosition="top"></button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="11" class="text-center p-4">No se encontraron usuarios.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+  <p-menu #menu [model]="items" [popup]="true" appendTo="body"></p-menu>
+</div>
+
+<!-- Edit Modal -->
+<p-dialog header="Editar Usuario" [(visible)]="visibleEditModal" [modal]="true" [style]="{ width: '900px' }"
+  styleClass="p-fluid">
+  <form [formGroup]="formGroup" (ngSubmit)="saveUser()" class="pt-2">
+
+    <div class="form-grid">
+      <div class="field">
+        <label for="tipoId" class="font-bold">Tipo de Identificaci&oacute;n</label>
+        <p-select id="tipoId" [options]="tipoIdOptions" formControlName="tipoId" optionLabel="label" optionValue="value"
+          placeholder="Seleccione"></p-select>
+      </div>
+
+      <div class="field">
+        <label for="numeroId" class="font-bold">Número de Identificaci&oacute;n</label>
+        <input id="numeroId" type="text" pInputText formControlName="numeroId" appUppercase />
+      </div>
+
+      <div class="field">
+        <label for="nombres" class="font-bold">Nombres</label>
+        <input id="nombres" type="text" pInputText formControlName="nombres" appUppercase />
+      </div>
+
+      <div class="field">
+        <label for="apellidos" class="font-bold">Apellidos</label>
+        <input id="apellidos" type="text" pInputText formControlName="apellidos" appUppercase />
+      </div>
+
+      <div class="field">
+        <label for="nombreUsuario" class="font-bold">Usuario</label>
+        <input id="nombreUsuario" type="text" pInputText formControlName="nombreUsuario" appUppercase />
+      </div>
+
+      <div class="field">
+        <label for="telefono" class="font-bold">Tel&eacute;fono</label>
+        <input id="telefono" type="text" pInputText formControlName="telefono" appUppercase />
+      </div>
+
+      <div class="field">
+        <label for="email" class="font-bold">Email</label>
+        <input id="email" type="email" pInputText formControlName="email" appUppercase />
+      </div>
+
+      <div class="field">
+        <label for="rolId" class="font-bold">Rol</label>
+        <p-select id="rolId" [options]="roles" formControlName="rolId" optionLabel="nombre" optionValue="id"
+          placeholder="Seleccione un rol"></p-select>
+      </div>
+
+      <div class="field">
+        <label for="cargoId" class="font-bold">Cargo</label>
+        <p-select id="cargoId" [options]="cargos" formControlName="cargoId" optionLabel="nombre" optionValue="id"
+          placeholder="Seleccione un cargo"></p-select>
+      </div>
+
+      <div class="field">
+        <label for="servicioId" class="font-bold">Servicio</label>
+        <p-select id="servicioId" [options]="servicios" formControlName="servicioId" optionLabel="nombres"
+          optionValue="id" placeholder="Seleccione un servicio" [filter]="true"></p-select>
+      </div>
+
+      <div class="field">
+        <label for="mesaServicioRolId" class="font-bold">Rol Mesa de Servicios</label>
+        <p-select id="mesaServicioRolId" [options]="mesaRoles" formControlName="mesaServicioRolId" optionLabel="nombre"
+          optionValue="id" placeholder="Seleccione un rol de mesa"></p-select>
+      </div>
+
+      <div class="field">
+        <label for="registroInvima" class="font-bold">Registro Invima</label>
+        <input id="registroInvima" type="text" pInputText formControlName="registroInvima" appUppercase />
+      </div>
+    </div>
+
+    <div class="flex justify-content-end gap-2 mt-4">
+      <p-button label="Cancelar" icon="pi pi-times" [text]="true" (onClick)="visibleEditModal = false"
+        severity="secondary"></p-button>
+      <p-button label="Guardar" icon="pi pi-check" type="submit" [disabled]="formGroup.invalid"></p-button>
+    </div>
+  </form>
+</p-dialog>
+
+<!-- View Modal -->
+<p-dialog header="Detalles del Usuario" [(visible)]="visibleViewModal" [modal]="true" [style]="{ width: '700px' }"
+  styleClass="p-fluid shadow-6 border-round-xl">
+  <div class="p-4" *ngIf="selectedUser">
+    <div class="flex flex-column gap-4">
+      <!-- User Info Grid -->
+      <div class="grid">
+        <div class="col-12 md:col-6 mb-3">
+          <span class="block text-500 font-medium mb-1">Nombre Completo</span>
+          <div class="text-900 font-bold text-lg">{{ selectedUser.nombres }} {{ selectedUser.apellidos }}</div>
+        </div>
+        <div class="col-12 md:col-6 mb-3">
+          <span class="block text-500 font-medium mb-1">Identificaci&oacute;n</span>
+          <div class="text-900 font-medium">{{ selectedUser.tipoId }}: {{ selectedUser.numeroId }}</div>
+        </div>
+        <div class="col-12 md:col-6 mb-3">
+          <span class="block text-500 font-medium mb-1">Usuario</span>
+          <div class="text-primary font-bold">{{ selectedUser.nombreUsuario }}</div>
+        </div>
+        <div class="col-12 md:col-6 mb-3">
+          <span class="block text-500 font-medium mb-1">Email</span>
+          <div class="text-900 underline">{{ selectedUser.email }}</div>
+        </div>
+        <div class="col-12 md:col-6 mb-3">
+          <span class="block text-500 font-medium mb-1">Tel&eacute;fono</span>
+          <div class="text-900">{{ selectedUser.telefono }}</div>
+        </div>
+        <div class="col-12 md:col-6 mb-3">
+          <span class="block text-500 font-medium mb-1">Invima</span>
+          <div class="text-900">{{ selectedUser.registroInvima || 'N/A' }}</div>
+        </div>
+        <div class="col-12 md:col-6 mb-3">
+          <span class="block text-500 font-medium mb-1">Cargo</span>
+          <div class="text-900">{{ selectedUser.cargo?.nombre || 'Sin Cargo' }}</div>
+        </div>
+        <div class="col-12 md:col-6 mb-3">
+          <span class="block text-500 font-medium mb-1">Servicio</span>
+          <div class="text-900">{{ selectedUser.servicio?.nombres || 'Sin Servicio' }}</div>
+        </div>
+        <div class="col-12 md:col-6 mb-3">
+          <span class="block text-500 font-medium mb-1">Rol General</span>
+          <div class="text-900"><p-tag [value]="selectedUser.rol?.nombre || 'Sin Rol'" severity="info"></p-tag></div>
+        </div>
+        <div class="col-12 md:col-6 mb-3">
+          <span class="block text-500 font-medium mb-1">Estado</span>
+          <p-tag [value]="selectedUser.estado ? 'ACTIVO' : 'INACTIVO'"
+            [severity]="selectedUser.estado ? 'success' : 'danger'"></p-tag>
+        </div>
+      </div>
+
+      <!-- Signature Section -->
+      <div class="mt-2 border-top-1 surface-border pt-4">
+        <span class="block text-700 font-bold mb-3"><i class="pi pi-pencil mr-2"></i>Firma Registrada</span>
+        <div class="flex justify-content-center bg-gray-50 border-round p-3" style="min-height: 120px;">
+          <div *ngIf="firmaUrlSelected; else noFirma" class="signature-container">
+            <img [src]="firmaUrlSelected" alt="Firma del Usuario"
+              style="max-width: 300px; max-height: 100px; object-fit: contain;" />
+          </div>
+          <ng-template #noFirma>
+            <div class="flex align-items-center text-500 font-italic">
+              <i class="pi pi-info-circle mr-2"></i> No se ha registrado firma para este usuario.
+            </div>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-content-end gap-2 mt-5">
+      <p-button label="Cerrar" icon="pi pi-times" [text]="true" (onClick)="visibleViewModal = false"
+        severity="secondary"></p-button>
+      <p-button label="Editar Usuario" icon="pi pi-pencil" (onClick)="editFromView()" severity="primary"></p-button>
+    </div>
+  </div>
+</p-dialog>
+
+<!-- Password Modal -->
+<p-dialog header="Cambiar Contrase&ntilde;a" [(visible)]="visiblePasswordModal" [modal]="true" [style]="{ width: '400px' }"
+  styleClass="p-fluid">
+  <form [formGroup]="passwordFormGroup" (ngSubmit)="savePassword()" class="flex flex-column gap-3 pt-2">
+    <div class="flex flex-column gap-2">
+      <label for="newPassword" class="font-bold">Nueva Contrase&ntilde;a</label>
+      <input id="newPassword" type="password" pInputText formControlName="newPassword"
+        placeholder="Mínimo 4 caracteres" />
+    </div>
+    <div class="flex flex-column gap-2">
+      <label for="confirmPassword" class="font-bold">Confirmar Contrase&ntilde;a</label>
+      <input id="confirmPassword" type="password" pInputText formControlName="confirmPassword"
+        placeholder="Repetir contraseña" />
+    </div>
+
+    <div class="flex justify-content-end gap-2 mt-4">
+      <p-button label="Cancelar" icon="pi pi-times" [text]="true" (onClick)="visiblePasswordModal = false"
+        severity="secondary"></p-button>
+      <p-button label="Guardar" icon="pi pi-check" type="submit" [disabled]="passwordFormGroup.invalid"></p-button>
+    </div>
+  </form>
+</p-dialog>

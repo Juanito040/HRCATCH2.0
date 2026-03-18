@@ -1,0 +1,194 @@
+<br>
+<div class="container" [attr.inert]="(isDeleteOptionsDialogOpen || isModalOpen || isDetailModalOpen || isReactivarModalOpen) ? '' : null">
+  <div class="page-header">
+    <div>
+      <h1>Gestión de Equipos</h1>
+      <p class="subtitle">Administra todos los equipos de sistemas del hospital</p>
+    </div>
+    
+    
+    <div class="header-actions">
+      <button class="btn btn-primary" (click)="openCreateModal()">
+        <span>+ Nuevo Equipo</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtros de vista -->
+  <div class="view-filters">
+    <button class="view-filter-btn" [class.active]="selectedView === 'all'"
+      (click)="changeView('all')" [disabled]="isLoading">
+      <i class="fas fa-list"></i>
+      <span>Todos los Equipos</span>
+      <span class="badge-count" *ngIf="totalEquipos > 0">{{ totalEquipos }}</span>
+    </button>
+    <button class="view-filter-btn" [class.active]="selectedView === 'bodega'"
+      (click)="changeView('bodega')" [disabled]="isLoading">
+      <i class="fas fa-warehouse"></i>
+      <span>En Bodega</span>
+      <span class="badge-count" *ngIf="totalBodega > 0">{{ totalBodega }}</span>
+    </button>
+    <button class="view-filter-btn" [class.active]="selectedView === 'baja'"
+      (click)="changeView('baja')" [disabled]="isLoading">
+      <i class="fas fa-ban"></i>
+      <span>Dados de Baja</span>
+      <span class="badge-count" *ngIf="totalBaja > 0">{{ totalBaja }}</span>
+    </button>
+  </div>
+
+  <!-- Barra de búsqueda y filtros -->
+  <div class="toolbar">
+    <div class="search-box">
+      <span class="search-icon"><i class="fas fa-search"></i></span>
+      <input #searchInput type="text" name="equipment-search" autocomplete="off"
+        placeholder="Buscar por nombre, marca, modelo, serie o ubicación..."
+        (input)="onSearch($event)" [disabled]="isLoading" />
+    </div>
+    @if (selectedView === 'all') {
+      <div class="filters">
+        <select #estadoSelect class="filter-select" (change)="onEstadoChange($event)" [disabled]="isLoading">
+          <option value="">Todos los estados</option>
+          <option value="1">Activos</option>
+          <option value="0">Inactivos</option>
+        </select>
+      </div>
+    }
+  </div>
+
+  <!-- Tabla de equipos -->
+  <div class="table-container">
+    @if (isLoading) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando equipos...</p>
+      </div>
+    } @else if (error) {
+      <div class="error-state">
+        <div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
+        <p>{{ error }}</p>
+        <button class="btn btn-primary" (click)="loadEquipos()">Reintentar</button>
+      </div>
+    } @else {
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Tipo de Equipo</th>
+            <th>Marca</th>
+            <th>Modelo</th>
+            <th>Serie</th>
+            <th>Ubicación</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (equipo of pagedEquipos; track equipo.id_sysequipo) {
+            <tr>
+              <td>{{ equipo.id_sysequipo }}</td>
+              <td><strong>{{ equipo.nombre_equipo }}</strong></td>
+              <td>{{ formatTipoEquipo(equipo) }}</td>
+              <td>{{ equipo.marca || 'N/A' }}</td>
+              <td>{{ equipo.modelo || 'N/A' }}</td>
+              <td><code class="serie-badge">{{ formatSerie(equipo.serie) }}</code></td>
+              <td>{{ equipo.ubicacion || 'N/A' }}</td>
+              <td>
+                <span [class]="getEstadoBadgeClass(equipo.activo)">
+                  {{ formatEstado(equipo.activo) }}
+                </span>
+              </td>
+              <td>
+                <div class="action-dropdown">
+                  <button class="btn btn-sm btn-outline-primary" (click)="verHojaVida(equipo)">
+                    <i class="fas fa-file-alt"></i> HV
+                  </button>
+                  <button class="btn btn-sm btn-outline-primary  dropdown-toggle-btn"
+                    (click)="$event.stopPropagation(); toggleMenu(equipo)">
+                    <i class="fas fa-chevron-down"></i>
+                  </button>
+                  @if (equipo._menuOpen) {
+                    <div class="dropdown-menu-custom">
+                      @for (opcion of equipo.opciones; track opcion.label) {
+                        <button class="dropdown-item-custom"
+                          (click)="$event.stopPropagation(); opcion.command?.(); equipo._menuOpen = false">
+                          <i [class]="opcion.icon ? opcion.icon : ''"></i>
+                          {{ opcion.label }}
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="9" class="empty-state">
+                <div class="empty-icon"><i class="fas fa-boxes"></i></div>
+                <p>No se encontraron equipos</p>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    } <!-- end @else -->
+
+  </div>
+
+  <!-- Paginación -->
+  @if (!isLoading && !error && filteredEquipos.length > 0) {
+    <div class="pagination">
+      <button class="btn btn-secondary" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">
+        <i class="fas fa-chevron-left"></i> Anterior
+      </button>
+      <div class="pagination-pages">
+        @for (p of getPagesArray(); track p) {
+          <button class="page-number" [class.active]="p === currentPage" (click)="goToPage(p)">
+            {{ p }}
+          </button>
+        }
+      </div>
+      <button class="btn btn-secondary" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">
+        Siguiente <i class="fas fa-chevron-right"></i>
+      </button>
+      <span class="page-info">{{ (currentPage - 1) * pageSize + 1 }}–{{ min(currentPage * pageSize, filteredEquipos.length) }} de {{ filteredEquipos.length }}</span>
+    </div>
+  }
+</div>
+<br>
+
+<!-- Modal Crear/Editar Equipo -->
+<app-sys-equipo-modal
+  [isOpen]="isModalOpen"
+  [equipo]="selectedEquipo"
+  (closed)="closeModal()"
+  (saved)="onEquipoSaved()"
+></app-sys-equipo-modal>
+
+<!-- Modal Confirmación de Eliminación -->
+<app-sys-delete-dialog
+  [isOpen]="isDeleteOptionsDialogOpen"
+  [itemName]="equipoToDeleteWithOptions?.nombre_equipo || ''"
+  [itemType]="'equipo'"
+  [isAdmin]="isAdmin"
+  [hideBodegaOption]="selectedView === 'bodega'"
+  (closed)="closeDeleteOptionsDialog()"
+  (confirmed)="handleDeleteOptionsConfirm($event)"
+></app-sys-delete-dialog>
+
+<!-- Modal Vista Detallada -->
+<app-sys-equipo-detail-modal
+  [isOpen]="isDetailModalOpen"
+  [equipo]="equipoToView"
+  (closed)="closeDetailModal()"
+  (editRequested)="onEditFromDetail($event)"
+></app-sys-equipo-detail-modal>
+
+<!-- Modal Reactivar Equipo -->
+<app-sys-reactivar-equipo-modal
+  [isOpen]="isReactivarModalOpen"
+  [equipoNombre]="equipoToReactivar?.nombre_equipo || ''"
+  [ubicacionAnterior]="equipoToReactivar?.ubicacion_anterior || ''"
+  (closed)="closeReactivarModal()"
+  (confirmed)="handleReactivarConfirm($event)"
+></app-sys-reactivar-equipo-modal>

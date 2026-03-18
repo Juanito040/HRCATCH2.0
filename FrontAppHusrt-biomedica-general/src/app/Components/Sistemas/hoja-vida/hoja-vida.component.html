@@ -1,0 +1,257 @@
+<br>
+<div class="container">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <div>
+        <h1>Hoja de Vida del Equipo</h1>
+        <p class="subtitle">
+          @if (equipo) {
+            {{ equipo.nombre_equipo }}
+            @if (equipo.placa_inventario) { &nbsp;·&nbsp; <code class="serie-badge">{{ equipo.placa_inventario }}</code> }
+            @if (equipo.servicio?.nombres) { &nbsp;·&nbsp; {{ equipo.servicio.nombres }} }
+          } @else {
+            Equipo #{{ equipoId }}
+          }
+        </p>
+      </div>
+    </div>
+    <div class="header-actions">
+      @if (!isEditing && hojaVida) {
+        <button class="btn btn-primary" (click)="startEditing()">
+          <i class="fas fa-edit"></i> Editar
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Loading -->
+  @if (isLoading) {
+    <div class="table-container">
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando hoja de vida...</p>
+      </div>
+    </div>
+  }
+
+  <!-- Error general -->
+  @if (!isLoading && error) {
+    <div class="table-container">
+      <div class="error-state">
+        <div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
+        <p>{{ error }}</p>
+        <button class="btn btn-primary" (click)="load()">Reintentar</button>
+      </div>
+    </div>
+  }
+
+  <!-- Nuevo equipo sin hoja de vida -->
+  @if (!isLoading && isNew && !error) {
+    <div class="new-notice">
+      <i class="fas fa-info-circle"></i>
+      Este equipo aún no tiene hoja de vida. Completa el formulario para crear una.
+    </div>
+  }
+
+  <!-- Formulario (crear o editar) -->
+  @if (!isLoading && isEditing && !error) {
+    <div class="hv-card">
+      <div class="hv-card-header">
+        <h4><i class="fas fa-network-wired"></i> Red</h4>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Dirección IP</label>
+          <input type="text" class="form-control" [(ngModel)]="formData.ip" placeholder="192.168.1.x" />
+        </div>
+        <div class="form-group">
+          <label>Dirección MAC</label>
+          <input type="text" class="form-control" [(ngModel)]="formData.mac" placeholder="XX:XX:XX:XX:XX:XX" />
+        </div>
+      </div>
+
+      <div class="hv-card-header mt">
+        <h4><i class="fas fa-microchip"></i> Hardware</h4>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Procesador</label>
+          <input type="text" class="form-control" [(ngModel)]="formData.procesador" />
+        </div>
+        <div class="form-group">
+          <label>RAM</label>
+          <input type="text" class="form-control" [(ngModel)]="formData.ram" placeholder="8 GB DDR4" />
+        </div>
+        <div class="form-group">
+          <label>Disco Duro</label>
+          <input type="text" class="form-control" [(ngModel)]="formData.disco_duro" placeholder="SSD 256 GB" />
+        </div>
+        <div class="form-group">
+          <label>Tóner / Cartucho</label>
+          <input type="text" class="form-control" [(ngModel)]="formData.tonner" />
+        </div>
+      </div>
+
+      <div class="hv-card-header mt">
+        <h4><i class="fas fa-laptop-code"></i> Software</h4>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Sistema Operativo</label>
+          <input type="text" class="form-control" [(ngModel)]="formData.sistema_operativo" placeholder="Windows 11 Pro" />
+        </div>
+        <div class="form-group">
+          <label>Office / Suite ofimática</label>
+          <input type="text" class="form-control" [(ngModel)]="formData.office" placeholder="Microsoft 365" />
+        </div>
+      </div>
+
+      <div class="hv-card-header mt">
+        <h4><i class="fas fa-user"></i> Usuario y Uso</h4>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nombre del Usuario</label>
+          <input type="text" class="form-control" [(ngModel)]="formData.nombre_usuario" />
+        </div>
+        <div class="form-group">
+          <label>Tipo de Uso</label>
+          <input type="text" class="form-control" [(ngModel)]="formData.tipo_uso" />
+        </div>
+      </div>
+
+      <div class="hv-card-header mt">
+        <h4><i class="fas fa-shopping-cart"></i> Adquisición</h4>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Vendedor</label>
+          <input type="text" class="form-control" [(ngModel)]="formData.vendedor" />
+        </div>
+        <div class="form-group">
+          <label>Fecha de Compra</label>
+          <input type="date" class="form-control" [(ngModel)]="formData.fecha_compra" />
+        </div>
+        <div class="form-group">
+          <label>Fecha de Instalación</label>
+          <input type="date" class="form-control" [(ngModel)]="formData.fecha_instalacion" />
+        </div>
+        <div class="form-group">
+          <label>Costo de Compra</label>
+          <input type="text" class="form-control" [(ngModel)]="formData.costo_compra" placeholder="$ 0.00" />
+        </div>
+        <div class="form-group full-width">
+          <label>Contrato</label>
+          <input type="text" class="form-control" [(ngModel)]="formData.contrato" />
+        </div>
+      </div>
+
+      <div class="hv-card-header mt">
+        <h4><i class="fas fa-tags"></i> Modalidad de Adquisición</h4>
+      </div>
+      <div class="checkbox-row">
+        <label class="checkbox-label">
+          <input type="checkbox" [(ngModel)]="formData.compraddirecta" /> Compra Directa
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" [(ngModel)]="formData.convenio" /> Convenio
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" [(ngModel)]="formData.donado" /> Donado
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" [(ngModel)]="formData.comodato" /> Comodato
+        </label>
+      </div>
+
+      <div class="hv-card-header mt">
+        <h4><i class="fas fa-comment-alt"></i> Observaciones</h4>
+      </div>
+      <div class="form-group full-width">
+        <textarea class="form-control" rows="3" [(ngModel)]="formData.observaciones" placeholder="Observaciones generales del equipo..."></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-secondary" (click)="cancelEditing()" [disabled]="isSaving">Cancelar</button>
+        <button class="btn btn-primary" (click)="save()" [disabled]="isSaving">
+          @if (isSaving) { <span class="spinner-sm"></span> Guardando... }
+          @else { <i class="fas fa-save"></i> {{ isNew ? 'Crear Hoja de Vida' : 'Guardar Cambios' }} }
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Vista de lectura -->
+  @if (!isLoading && !isEditing && hojaVida && !error) {
+
+    <div class="hv-sections">
+
+      <div class="hv-card">
+        <div class="hv-card-header"><h4><i class="fas fa-network-wired"></i> Red</h4></div>
+        <div class="info-grid">
+          <div class="info-item"><span class="info-label">IP</span><span class="info-value">{{ hojaVida.ip || '—' }}</span></div>
+          <div class="info-item"><span class="info-label">MAC</span><span class="info-value mono">{{ hojaVida.mac || '—' }}</span></div>
+        </div>
+      </div>
+
+      <div class="hv-card">
+        <div class="hv-card-header"><h4><i class="fas fa-microchip"></i> Hardware</h4></div>
+        <div class="info-grid">
+          <div class="info-item"><span class="info-label">Procesador</span><span class="info-value">{{ hojaVida.procesador || '—' }}</span></div>
+          <div class="info-item"><span class="info-label">RAM</span><span class="info-value">{{ hojaVida.ram || '—' }}</span></div>
+          <div class="info-item"><span class="info-label">Disco Duro</span><span class="info-value">{{ hojaVida.disco_duro || '—' }}</span></div>
+          <div class="info-item"><span class="info-label">Tóner</span><span class="info-value">{{ hojaVida.tonner || '—' }}</span></div>
+        </div>
+      </div>
+
+      <div class="hv-card">
+        <div class="hv-card-header"><h4><i class="fas fa-laptop-code"></i> Software</h4></div>
+        <div class="info-grid">
+          <div class="info-item"><span class="info-label">Sistema Operativo</span><span class="info-value">{{ hojaVida.sistema_operativo || '—' }}</span></div>
+          <div class="info-item"><span class="info-label">Office</span><span class="info-value">{{ hojaVida.office || '—' }}</span></div>
+        </div>
+      </div>
+
+      <div class="hv-card">
+        <div class="hv-card-header"><h4><i class="fas fa-user"></i> Usuario y Uso</h4></div>
+        <div class="info-grid">
+          <div class="info-item"><span class="info-label">Nombre Usuario</span><span class="info-value">{{ hojaVida.nombre_usuario || '—' }}</span></div>
+          <div class="info-item"><span class="info-label">Tipo de Uso</span><span class="info-value">{{ hojaVida.tipo_uso || '—' }}</span></div>
+        </div>
+      </div>
+
+      <div class="hv-card">
+        <div class="hv-card-header"><h4><i class="fas fa-shopping-cart"></i> Adquisición</h4></div>
+        <div class="info-grid">
+          <div class="info-item"><span class="info-label">Vendedor</span><span class="info-value">{{ hojaVida.vendedor || '—' }}</span></div>
+          <div class="info-item"><span class="info-label">Fecha Compra</span><span class="info-value">{{ hojaVida.fecha_compra || '—' }}</span></div>
+          <div class="info-item"><span class="info-label">Fecha Instalación</span><span class="info-value">{{ hojaVida.fecha_instalacion || '—' }}</span></div>
+          <div class="info-item"><span class="info-label">Costo</span><span class="info-value">{{ hojaVida.costo_compra || '—' }}</span></div>
+          <div class="info-item full-width"><span class="info-label">Contrato</span><span class="info-value">{{ hojaVida.contrato || '—' }}</span></div>
+        </div>
+
+        <div class="badges-row">
+          @if (hojaVida.compraddirecta) { <span class="badge badge-blue">Compra Directa</span> }
+          @if (hojaVida.convenio)       { <span class="badge badge-green">Convenio</span> }
+          @if (hojaVida.donado)         { <span class="badge badge-purple">Donado</span> }
+          @if (hojaVida.comodato)       { <span class="badge badge-orange">Comodato</span> }
+          @if (!hojaVida.compraddirecta && !hojaVida.convenio && !hojaVida.donado && !hojaVida.comodato) {
+            <span class="text-muted">Sin modalidad especificada</span>
+          }
+        </div>
+      </div>
+
+      @if (hojaVida.observaciones) {
+        <div class="hv-card">
+          <div class="hv-card-header"><h4><i class="fas fa-comment-alt"></i> Observaciones</h4></div>
+          <p class="obs-text">{{ hojaVida.observaciones }}</p>
+        </div>
+      }
+
+    </div>
+  }
+
+</div>
+<br>

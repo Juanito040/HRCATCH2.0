@@ -1,0 +1,65 @@
+<div class="modal-overlay" *ngIf="isOpen" (click)="close()">
+  <div class="modal-dialog" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ dialogTitle }}</h2>
+      <button class="btn-close" (click)="close()" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <p class="confirmation-message">{{ confirmationMessage }}</p>
+      <div class="action-options">
+        <label class="radio-option" *ngIf="!hideBodegaOption" [class.selected]="selectedAction === 'bodega'">
+          <input type="radio" name="action" value="bodega" [(ngModel)]="selectedAction" (change)="onActionChange()" />
+          <div class="option-content">
+            <div class="option-icon warning"><i class="fas fa-warehouse"></i></div>
+            <div class="option-text">
+              <h3>Enviar a Bodega</h3>
+              <p>El {{ itemType }} se marcará como inactivo y se enviará a bodega. Podrás reactivarlo más tarde.</p>
+            </div>
+          </div>
+        </label>
+        <label class="radio-option" *ngIf="isAdmin" [class.selected]="selectedAction === 'baja'">
+          <input type="radio" name="action" value="baja" [(ngModel)]="selectedAction" (change)="onActionChange()" />
+          <div class="option-content">
+            <div class="option-icon danger"><i class="fas fa-ban"></i></div>
+            <div class="option-text">
+              <h3>Dar de Baja Permanente</h3>
+              <p class="warning-text"><i class="fas fa-exclamation-triangle"></i> Esta acción marca el {{ itemType }} como dado de baja permanentemente.</p>
+            </div>
+          </div>
+        </label>
+      </div>
+      <div class="password-section" *ngIf="selectedAction === 'bodega'">
+        <div class="alert alert-warning"><i class="fas fa-warehouse"></i> <strong>Motivo requerido:</strong> Indica el motivo por el cual se envía el equipo a bodega.</div>
+        <div class="form-group">
+          <label for="motivo"><i class="fas fa-comment"></i> Motivo</label>
+          <textarea id="motivo" class="form-control" [(ngModel)]="motivo" (input)="onPasswordInput()" placeholder="Ej: Equipo obsoleto, requiere reparación..." rows="3" [class.error]="passwordError"></textarea>
+          <span class="error-message" *ngIf="passwordError"><i class="fas fa-exclamation-circle"></i> {{ passwordError }}</span>
+        </div>
+      </div>
+      <div class="password-section" *ngIf="selectedAction === 'baja'">
+        <div class="alert alert-danger"><i class="fas fa-shield-alt"></i> <strong>Verificación requerida:</strong> Ingresa la contraseña de administrador para confirmar la baja permanente.</div>
+        <div class="form-group">
+          <label for="password"><i class="fas fa-lock"></i> Contraseña de Administrador</label>
+          <input type="password" id="password" name="admin-delete-password" autocomplete="new-password" class="form-control" [(ngModel)]="password" (input)="onPasswordInput()" placeholder="Ingresa la contraseña" [class.error]="passwordError" />
+        </div>
+        <div class="form-group">
+          <label for="justificacion"><i class="fas fa-file-alt"></i> Justificación de Baja *</label>
+          <textarea id="justificacion" class="form-control" [(ngModel)]="justificacion_baja" (input)="onPasswordInput()" placeholder="Describe el motivo de la baja permanente" rows="3" [class.error]="passwordError"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="accesorios"><i class="fas fa-box"></i> Accesorios Reutilizables (opcional)</label>
+          <textarea id="accesorios" class="form-control" [(ngModel)]="accesorios_reutilizables" placeholder="Lista de accesorios que pueden reutilizarse" rows="2"></textarea>
+        </div>
+        <span class="error-message" *ngIf="passwordError"><i class="fas fa-exclamation-circle"></i> {{ passwordError }}</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="close()" [disabled]="isSubmitting">Cancelar</button>
+      <button class="btn" [ngClass]="confirmButtonClass" (click)="confirm()" [disabled]="isSubmitting">
+        <i class="fas fa-spinner fa-spin" *ngIf="isSubmitting"></i>
+        <i class="fas" [ngClass]="selectedAction === 'bodega' ? 'fa-warehouse' : 'fa-ban'" *ngIf="!isSubmitting"></i>
+        {{ confirmButtonText }}
+      </button>
+    </div>
+  </div>
+</div>

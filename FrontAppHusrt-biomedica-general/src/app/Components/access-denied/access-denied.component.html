@@ -1,0 +1,17 @@
+<div class="flex justify-content-center align-items-center h-screen bg-red-50">
+    <p-card class="w-full md:w-6 lg:w-4 shadow-8 text-center" styleClass="border-round-xl">
+        <div class="flex flex-column align-items-center gap-4 py-4">
+            <i class="pi pi-ban text-red-500 text-8xl"></i>
+            <h1 class="text-red-700 font-bold m-0 text-3xl">Acceso Denegado</h1>
+            <p class="text-700 text-lg line-height-3 m-0 px-4">
+                Lo sentimos, no tienes los permisos necesarios para acceder a esta página.
+            </p>
+
+            <div class="mt-4">
+                <p-button label="Volver Atrás" icon="pi pi-arrow-left"
+                    styleClass="p-button-danger p-button-outlined font-bold border-2" (onClick)="goBack()">
+                </p-button>
+            </div>
+        </div>
+    </p-card>
+</div>

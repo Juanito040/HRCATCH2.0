@@ -1,0 +1,52 @@
+/* Mantenimiento Tecnico Styles */
+
+/* Tabs Customization */
+.nav-pills .nav-link {
+    color: #495057;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    margin: 0 5px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 50rem !important;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.nav-pills .nav-link.active {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    color: white;
+    border-color: transparent;
+    box-shadow: 0 4px 6px rgba(13, 110, 253, 0.3);
+    transform: translateY(-1px);
+}
+
+.nav-pills .nav-link:hover:not(.active) {
+    background-color: #e9ecef;
+    transform: translateY(-1px);
+}
+
+/* Responsive Table Container */
+:host ::ng-deep .p-datatable-wrapper {
+    background: #ffffff;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-header {
+    background: transparent;
+    border: none;
+    padding: 1rem 0;
+}
+
+/* Ensure table scrolls on mobile */
+@media (max-width: 960px) {
+
+    :host ::ng-deep .p-datatable .p-datatable-thead>tr>th,
+    :host ::ng-deep .p-datatable .p-datatable-tbody>tr>td {
+        white-space: nowrap;
+    }
+}
+
+/* Sub-tabs specific styling */
+.sub-tabs .nav-link.active {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    box-shadow: 0 4px 6px rgba(108, 117, 125, 0.3);
+}

@@ -1,0 +1,83 @@
+<div class="p-mx-5 p-mt-4 p-p-4 bg-white shadow-2 border-round">
+
+    <div class="text-center mb-4" style="margin-top: 2%;">
+        <h1>SEMAFORIZACIÓN DE GARANTÍAS</h1>
+        <h6>Equipos próximos a vencer garantía basándose en la hoja de vida</h6>
+    </div>
+
+    <div class="card" style="margin-top: 3%; width: 100%;">
+        <p-table #dt2 [value]="hojasVida" dataKey="id" [paginator]="true" [rows]="10"
+            [rowsPerPageOptions]="[10, 25, 50, 100]" [loading]="loading"
+            [globalFilterFields]="['equipo.nombres', 'equipo.marca', 'equipo.modelo', 'equipo.serie', 'equipo.placa', 'equipo.servicios.sede.nombres', 'equipo.servicios.nombres', 'equipo.ubicacionEspecifica', 'equipo.registroInvima', 'equipo.riesgo', 'fechaVencimientoGarantia']"
+            [scrollable]="true" [tableStyle]="{ 'min-width': '70rem' }" [showCurrentPageReport]="true"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros">
+
+            <ng-template pTemplate="caption">
+                <div class="flex justify-content-end">
+                    <p-iconfield iconPosition="left">
+                        <p-inputicon>
+                            <i class="pi pi-search"></i>
+                        </p-inputicon>
+                        <input pInputText type="text" (input)="onGlobalFilter($event)" placeholder="B&uacute;squeda General"
+                            appUppercase />
+                    </p-iconfield>
+                </div>
+            </ng-template>
+
+            <ng-template pTemplate="header">
+                <tr>
+                    <th pSortableColumn="equipo.nombres">Nombre <p-sortIcon field="equipo.nombres"></p-sortIcon></th>
+                    <th pSortableColumn="equipo.marca">Marca <p-sortIcon field="equipo.marca"></p-sortIcon></th>
+                    <th pSortableColumn="equipo.modelo">Modelo <p-sortIcon field="equipo.modelo"></p-sortIcon></th>
+                    <th pSortableColumn="equipo.serie">Serie <p-sortIcon field="equipo.serie"></p-sortIcon></th>
+                    <th pSortableColumn="equipo.placa">Placa <p-sortIcon field="equipo.placa"></p-sortIcon></th>
+                    <th pSortableColumn="equipo.servicios.sede.nombres">Sede <p-sortIcon
+                            field="equipo.servicios.sede.nombres"></p-sortIcon></th>
+                    <th pSortableColumn="equipo.servicios.nombres">Servicio <p-sortIcon
+                            field="equipo.servicios.nombres"></p-sortIcon></th>
+                    <th pSortableColumn="equipo.ubicacionEspecifica">Ubicaci&oacute;n Específica <p-sortIcon
+                            field="equipo.ubicacionEspecifica"></p-sortIcon></th>
+                    <th pSortableColumn="equipo.registroInvima">Registro Invima <p-sortIcon
+                            field="equipo.registroInvima"></p-sortIcon></th>
+                    <th pSortableColumn="equipo.riesgo">Riesgo <p-sortIcon field="equipo.riesgo"></p-sortIcon></th>
+                    <th pSortableColumn="fechaVencimientoGarantia">Fin Garant&iacute;a <p-sortIcon
+                            field="fechaVencimientoGarantia"></p-sortIcon></th>
+                    <th>HV</th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-hv>
+                <tr>
+                    <td>{{ hv.equipo?.nombres }}</td>
+                    <td>{{ hv.equipo?.marca }}</td>
+                    <td>{{ hv.equipo?.modelo }}</td>
+                    <td>{{ hv.equipo?.serie }}</td>
+                    <td>{{ hv.equipo?.placa }}</td>
+                    <td>{{ hv.equipo?.servicios?.sede?.nombres }}</td>
+                    <td>{{ hv.equipo?.servicios?.nombres }}</td>
+                    <td>{{ hv.equipo?.ubicacionEspecifica }}</td>
+                    <td>{{ hv.equipo?.registroInvima }}</td>
+                    <td>{{ hv.equipo?.riesgo }}</td>
+                    <td [ngStyle]="{
+            'background-color': getWarrantyColor(hv.fechaVencimientoGarantia),
+            'color': getWarrantyTextColor(hv.fechaVencimientoGarantia),
+            'font-weight': 'bold',
+            'text-align': 'center'
+          }">
+                        {{ hv.fechaVencimientoGarantia | date:'dd/MM/yyyy' }}
+                    </td>
+                    <td>
+                        <button pButton icon="pi pi-eye" class="p-button-rounded p-button-secondary"
+                            (click)="verHojaVida(hv.equipoIdFk)"></button>
+                    </td>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="12" class="text-center">No hay registros de hojas de vida con garantías.</td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+</div>

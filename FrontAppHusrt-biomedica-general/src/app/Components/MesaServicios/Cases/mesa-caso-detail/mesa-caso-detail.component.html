@@ -1,0 +1,249 @@
+<div class="grid m-2">
+    <div class="col-12">
+        <div class="card shadow-2 p-3 border-round-xl surface-card p-fluid" *ngIf="caso">
+            <p-toast></p-toast>
+            <p-confirmdialog header="Confirmación" icon="pi pi-exclamation-triangle"></p-confirmdialog>
+
+            <div class="flex justify-content-between align-items-center mb-4 border-bottom-1 surface-border pb-3">
+                <div class="flex align-items-center gap-3">
+                    <button pButton icon="pi pi-arrow-left" class="p-button-text p-button-secondary p-button-rounded"
+                        routerLink="/adminmesaservicios/casos" pTooltip="Volver"></button>
+                    <div>
+                        <h2 class="text-xl font-bold m-0 text-900">Caso #{{casoId}} - {{caso.titulo}}</h2>
+                        <div class="flex gap-2 mt-2 align-items-center">
+                            <p-tag [value]="caso.estado"
+                                [severity]="caso.estado === 'NUEVO' ? 'info' : (caso.estado === 'RESUELTO' ? 'success' : 'warning')"></p-tag>
+                            <span class="text-500 font-medium">{{caso.servicio?.nombres}} <i
+                                    class="pi pi-chevron-right text-xs mx-1"></i> {{caso.categoria?.nombre}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button *ngIf="canClose()" pButton label="Finalizar Caso" icon="pi pi-check-circle"
+                        class="p-button-success" (click)="openCloseDialog()"></button>
+                </div>
+            </div>
+
+            <div class="grid">
+                <!-- Detalle Lateral -->
+                <div class="col-12 md:col-4">
+                    <p-panel header="Informaci&oacute;n del Caso" styleClass="h-full">
+
+                        <div class="grid">
+                            <div class="col-6 mb-2">
+                                <label class="font-bold block text-900">Creado por</label>
+                                <span class="text-600"> {{caso.creador?.nombres}} {{caso.creador?.apellidos}}</span>
+                            </div>
+                            <div class="col-6 mb-2">
+                                <label class="font-bold block text-900">Fecha</label>
+                                <span class="text-600"> {{caso.fechaCreacion | date:'medium'}}</span>
+                            </div>
+                            <div class="col-6 mb-2">
+                                <label class="font-bold block text-900">Prioridad</label>
+                                <p-tag [value]="caso.prioridad"
+                                    [severity]="caso.prioridad === 'ALTA' || caso.prioridad === 'CRITICA' ? 'danger' : 'info'"></p-tag>
+                            </div>
+                            <div class="col-6 mb-2">
+                                <label class="font-bold block text-900">SUMERCE</label>
+                                <span class="text-600"> {{caso.sumerce}}</span>
+                            </div>
+                            <div class="col-6 mb-2">
+                                <label class="font-bold block text-900">Servicio Destino</label>
+                                <span class="text-600"> {{caso.servicio?.nombres}}</span>
+                            </div>
+                            <div class="col-6 mb-2">
+                                <label class="font-bold block text-900">Servicio Solicitante</label>
+                                <span class="text-600"> {{caso.servicioSolicitante?.nombres ||
+                                    caso.creador?.servicio?.nombres}}</span>
+                            </div>
+                            <div class="col-6 mb-2">
+                                <label class="font-bold block text-900">Estado Actual</label>
+                                <p-tag [value]="caso.estado"
+                                    [severity]="caso.estado === 'NUEVO' ? 'info' : (caso.estado === 'RESUELTO' ? 'success' : (caso.estado === 'CERRADO' ? 'success' : 'warning'))"></p-tag>
+                            </div>
+                        </div>
+
+                        <hr class="my-3 surface-border">
+
+                        <div>
+                            <div class="flex justify-content-between align-items-center mb-2">
+                                <label class="font-bold block text-900 m-0">Responsables Asignados</label>
+                                <button *ngIf="canAssign()" pButton icon="pi pi-plus" label="Asignar"
+                                    class="p-button-text p-button-sm p-button-success p-0"
+                                    (click)="openAssignDialog()"></button>
+                            </div>
+                            <div class="flex flex-wrap gap-2" *ngIf="caso.asignaciones && caso.asignaciones.length > 0">
+                                <p-chip *ngFor="let asig of caso.asignaciones" styleClass="pr-2">
+                                    <div class="flex align-items-center gap-2">
+                                        <i class="pi pi-user"></i>
+                                        <span class="font-medium">{{asig.usuario?.nombres}}
+                                            {{asig.usuario?.apellidos}}</span>
+                                        <i *ngIf="canAssign()"
+                                            class="pi pi-times-circle cursor-pointer text-500 hover:text-red-500"
+                                            (click)="removeResolutor(asig.usuario?.id)"
+                                            pTooltip="Quitar asignación"></i>
+                                    </div>
+                                </p-chip>
+                            </div>
+                            <div *ngIf="!caso.asignaciones || caso.asignaciones.length === 0"
+                                class="text-500 font-italic text-sm">
+                                <i class="pi pi-info-circle mr-1"></i> Sin resolutor asignado.
+                            </div>
+                        </div>
+                    </p-panel>
+                </div>
+
+                <!-- Chat Central -->
+                <div class="col-12 md:col-8">
+                    <p-panel header="Actividad y Mensajes" styleClass="h-full">
+                        <!-- Message History -->
+                        <div class="chat-history mb-4 p-3 surface-ground border-round"
+                            style="max-height: 500px; overflow-y: auto; height: 400px;">
+                            <div *ngFor="let msg of caso.mensajes" class="mb-3 flex"
+                                [ngClass]="{'justify-content-end': msg.usuarioId === userId, 'justify-content-start': msg.usuarioId !== userId}">
+                                <div class="p-3 border-round-xl shadow-1" style="max-width: 80%;"
+                                    [ngClass]="{'bg-blue-50 surface-card': msg.usuarioId !== userId, 'bg-green-50': msg.usuarioId === userId, 'bg-gray-100 font-italic border-1 surface-border': msg.tipo === 'SISTEMA'}">
+                                    <div class="text-xs text-500 mb-1 flex justify-content-between gap-3">
+                                        <span class="font-bold" *ngIf="msg.usuarioId">{{msg.usuario?.nombres}}
+                                            {{msg.usuario?.apellidos}}</span>
+                                        <span class="font-bold" *ngIf="!msg.usuarioId">Sistema</span>
+                                        <span>{{msg.fecha | date:'short'}}</span>
+                                    </div>
+                                    <div class="text-800 line-height-3" [innerHTML]="msg.mensaje"></div>
+
+                                    <!-- Attachments Display -->
+                                    <div *ngIf="msg.adjuntos && msg.adjuntos.length > 0"
+                                        class="mt-3 surface-border border-top-1 pt-2">
+                                        <div class="flex flex-wrap gap-2">
+                                            <div *ngFor="let file of msg.adjuntos"
+                                                class="flex align-items-center surface-0 border-1 border-round p-2 gap-2">
+                                                <!-- Image Preview -->
+                                                <div *ngIf="file.tipoMime && file.tipoMime.startsWith('image/')"
+                                                    class="cursor-pointer">
+                                                    <p-image [src]="apiUrl + '/api/mesa/adjuntos/' + file.id"
+                                                        [preview]="true" alt="Imagen adjunta" width="500"
+                                                        [imageStyle]="{'max-width': '100%', 'height': 'auto'}"
+                                                        imageClass="border-round"></p-image>
+                                                </div>
+
+                                                <!-- File Info -->
+                                                <div class="flex flex-column"
+                                                    [ngClass]="{'justify-content-center': !file.tipoMime || !file.tipoMime.startsWith('image/')}">
+                                                    <span
+                                                        class="font-bold text-sm text-900 white-space-nowrap overflow-hidden text-overflow-ellipsis"
+                                                        style="max-width: 150px;"
+                                                        pTooltip="{{file.nombreOriginal}}">{{file.nombreOriginal}}</span>
+                                                    <a [href]="apiUrl + '/api/mesa/adjuntos/' + file.id" target="_blank"
+                                                        class="text-xs text-primary hover:underline cursor-pointer flex align-items-center gap-1">
+                                                        <i class="pi pi-download"></i> Descargar
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div *ngIf="!caso.mensajes || caso.mensajes.length === 0"
+                                class="text-center text-500 p-4 h-full flex align-items-center justify-content-center">
+                                No hay mensajes aún.
+                            </div>
+                        </div>
+
+                        <!-- Input Area -->
+                        <div *ngIf="caso.estado !== 'CERRADO'">
+                            <div class="field mb-3">
+                                <label class="font-bold block mb-2">Nuevo Mensaje</label>
+                                <p-editor [(ngModel)]="newMessage" [style]="{'height':'150px'}"
+                                    placeholder="Escribe tu mensaje..."></p-editor>
+                            </div>
+                            <div class="field mb-3">
+                                <label class="font-bold block mb-2 text-900">Adjuntar Archivos</label>
+                                <p-fileupload mode="advanced" [multiple]="true" accept="image/*,application/pdf"
+                                    [maxFileSize]="5000000" (onSelect)="onUpload($event)" [auto]="false"
+                                    chooseLabel="Elegir" uploadLabel="Cargar" cancelLabel="Cancelar">
+                                </p-fileupload>
+                            </div>
+                            <div class="flex justify-content-end">
+                                <button pButton label="Enviar Mensaje" icon="pi pi-send" (click)="sendMessage()"
+                                    [disabled]="!newMessage || newMessage.trim() === ''"></button>
+                            </div>
+                        </div>
+                        <div *ngIf="caso.estado === 'CERRADO'"
+                            class="text-center bg-gray-100 p-3 border-round text-500">
+                            Este caso está cerrado y no admite más mensajes.
+                        </div>
+                    </p-panel>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Close Dialog -->
+<p-dialog [(visible)]="displayCloseDialog" [style]="{width: '450px'}" header="Cerrar Caso" [modal]="true"
+    class="p-fluid">
+    <ng-template pTemplate="content">
+        <p class="mb-3">Por favor ingrese el mensaje final de solución o cierre.</p>
+        <div class="field">
+            <label>Mensaje de Cierre *</label>
+            <p-editor [(ngModel)]="cierreMensaje" [style]="{'height':'150px'}" required></p-editor>
+        </div>
+        <div class="field">
+            <label>Adjuntar Archivos (Opcional)</label>
+            <p-fileupload mode="advanced" [multiple]="true" accept="image/*,application/pdf" [maxFileSize]="5000000"
+                (onSelect)="onUploadClose($event)" [auto]="false" chooseLabel="Elegir" uploadLabel="Cargar"
+                cancelLabel="Cancelar" [showUploadButton]="false" [showCancelButton]="false">
+                <ng-template pTemplate="content">
+                    <ul *ngIf="uploadedCloseFiles.length">
+                        <li *ngFor="let file of uploadedCloseFiles">{{file.name}} - {{file.size}} bytes</li>
+                    </ul>
+                </ng-template>
+            </p-fileupload>
+        </div>
+    </ng-template>
+    <ng-template pTemplate="footer">
+        <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text"
+            (click)="displayCloseDialog = false"></button>
+        <button pButton label="Confirmar Cierre" icon="pi pi-check" class="p-button-danger"
+            (click)="confirmClose()"></button>
+    </ng-template>
+</p-dialog>
+
+<!-- Assign Dialog -->
+<p-dialog [(visible)]="displayAssignDialog" [style]="{width: '450px'}" header="Asignar Responsable" [modal]="true"
+    class="p-fluid">
+    <ng-template pTemplate="content">
+        <div class="field">
+            <label class="font-bold text-lg mb-2 block">Asignado a: <span class="text-red-500">*</span></label>
+            <p-autocomplete [(ngModel)]="selectedResolutor" [suggestions]="filteredUsers"
+                (completeMethod)="filterUsers($event)" field="nombres" [multiple]="true" [dropdown]="true"
+                placeholder="Buscar funcionario..." appendTo="body" styleClass="w-full" [inputStyle]="{'width':'100%'}">
+
+                <ng-template let-user pTemplate="item">
+                    <div class="flex align-items-center gap-2">
+                        <div
+                            class="flex align-items-center justify-content-center bg-orange-100 border-circle w-2rem h-2rem text-orange-700 font-bold">
+                            {{user.nombres.charAt(0)}}
+                        </div>
+                        <div class="flex flex-column">
+                            <span class="font-medium">{{user.nombres}} {{user.apellidos}}</span>
+                            <span class="text-xs text-500">{{user.mesaServicioRol?.nombre}}</span>
+                        </div>
+                    </div>
+                </ng-template>
+
+                <ng-template let-user pTemplate="selectedItem">
+                    <div class="flex align-items-center gap-2" style="background-color: inherit;">
+                        <i class="pi pi-user text-sm"></i>
+                        <span class="text-sm">{{user.nombres}} {{user.apellidos}}</span>
+                    </div>
+                </ng-template>
+            </p-autocomplete>
+        </div>
+    </ng-template>
+    <ng-template pTemplate="footer">
+        <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text"
+            (click)="displayAssignDialog = false"></button>
+        <button pButton label="Asignar" icon="pi pi-check" (click)="confirmAssign()"></button>
+    </ng-template>
+</p-dialog>
