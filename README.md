@@ -154,7 +154,3 @@ Nuevo aplicativo/
 
 ---
 
-## Desarrollado para
-
-**Hospital Universitario San Rafael de Tunja**
-Área de Ingeniería Biomédica
