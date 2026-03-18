@@ -1,0 +1,60 @@
+<div class="dashboard-container">
+    <div class="hero-section">
+        <div class="hero-content">
+            <h1>Mesa de Servicios</h1>
+            <p>Administración global, gestión de tickets e indicadores de soporte.</p>
+        </div>
+    </div>
+
+    <div class="cards-grid">
+
+        <!-- Configuración Categor&iacute;as -->
+        <div class="dashboard-card" (click)="viewCategorias()">
+            <div class="card-icon-container gradient-blue">
+                <i class="pi pi-tags"></i>
+            </div>
+            <div class="card-content">
+                <h3>Categor&iacute;as</h3>
+                <p>Gestione categorías y subcategorías por servicio.</p>
+                <span class="card-action">Parametrizar <i class="pi pi-arrow-right"></i></span>
+            </div>
+        </div>
+
+        <!-- Configuración Roles -->
+        <div class="dashboard-card" (click)="viewRoles()">
+            <div class="card-icon-container gradient-blue">
+                <i class="pi pi-users"></i>
+            </div>
+            <div class="card-content">
+                <h3>Roles y Usuarios</h3>
+                <p>Asigne roles (Admin, Resolutor, Creador) a los usuarios.</p>
+                <span class="card-action">Gestionar <i class="pi pi-arrow-right"></i></span>
+            </div>
+        </div>
+
+        <!-- Gesti&oacute;n de Casos -->
+        <div class="dashboard-card" (click)="viewCasos()">
+            <div class="card-icon-container gradient-blue">
+                <i class="pi pi-ticket"></i>
+            </div>
+            <div class="card-content">
+                <h3>Casos</h3>
+                <p>Cree, asigne y resuelva incidencias y requerimientos.</p>
+                <span class="card-action">Acceder <i class="pi pi-arrow-right"></i></span>
+            </div>
+        </div>
+
+        <!-- Indicadores -->
+        <div class="dashboard-card opacity-60" (click)="viewIndicadores()">
+            <div class="card-icon-container gradient-blue">
+                <i class="pi pi-chart-bar"></i>
+            </div>
+            <div class="card-content">
+                <h3>Indicadores</h3>
+                <p>Visualice métricas de rendimiento y gestión (Pr&oacute;ximamente).</p>
+                <span class="card-action">Cargando...</span>
+            </div>
+        </div>
+
+    </div>
+</div>

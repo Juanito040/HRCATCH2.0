@@ -1,0 +1,19 @@
+/* Responsive Table Container */
+:host ::ng-deep .p-datatable-wrapper {
+    background: #ffffff;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-header {
+    background: transparent;
+    border: none;
+    padding: 1rem 0;
+}
+
+/* Ensure table scrolls on mobile */
+@media (max-width: 960px) {
+
+    :host ::ng-deep .p-datatable .p-datatable-thead>tr>th,
+    :host ::ng-deep .p-datatable .p-datatable-tbody>tr>td {
+        white-space: nowrap;
+    }
+}

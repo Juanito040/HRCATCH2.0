@@ -1,0 +1,214 @@
+<div class="card px-4 py-4 m-4 shadow-2 border-round-xl surface-card">
+    <p-toast></p-toast>
+    <p-confirmdialog header="Confirmación" icon="pi pi-exclamation-triangle"></p-confirmdialog>
+
+    <h2 class="text-xl font-bold mb-4">Gesti&oacute;n de Categor&iacute;as y Subcategorías</h2>
+
+    <p-fieldset legend="Selección de Servicio" [toggleable]="false" styleClass="mb-4">
+        <div class="grid p-fluid">
+            <div class="col-12 md:col-6">
+                <label for="servicio" class="block font-bold mb-2">Servicio</label>
+                <p-select [options]="servicios" [(ngModel)]="selectedServicio" optionLabel="nombres" [filter]="true"
+                    filterBy="nombres" placeholder="Seleccione un Servicio" (onChange)="onServicioChange()"
+                    [showClear]="true" appendTo="body">
+                </p-select>
+            </div>
+        </div>
+    </p-fieldset>
+
+    <div *ngIf="selectedServicio">
+        <p-toolbar styleClass="mb-4 gap-2">
+            <ng-template pTemplate="left">
+                <button pButton pRipple label="Nueva Categor&iacute;a" icon="pi pi-plus" class="p-button-success mr-2"
+                    (click)="openNewCategory()"></button>
+            </ng-template>
+        </p-toolbar>
+
+        <p-table [value]="categorias" dataKey="id" [tableStyle]="{'min-width': '60rem'}"
+            styleClass="p-datatable-striped" [paginator]="true" [rows]="10" [showCurrentPageReport]="true"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros">
+            <ng-template pTemplate="header">
+                <tr>
+                    <th style="width: 3rem"></th>
+                    <th>Nombre</th>
+                    <th>Descripci&oacute;n</th>
+                    <th style="width: 10rem">Estado</th>
+                    <th style="width: 10rem; text-align: center">Acciones</th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-categoria let-expanded="expanded">
+                <tr>
+                    <td>
+                        <button type="button" pButton pRipple [pRowToggler]="categoria"
+                            class="p-button-text p-button-rounded p-button-plain"
+                            [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"></button>
+                    </td>
+                    <td class="font-bold">{{ categoria.nombre }}</td>
+                    <td>{{ categoria.descripcion }}</td>
+                    <td>
+                        <p-tag [value]="categoria.activo ? 'Activo' : 'Inactivo'"
+                            [severity]="categoria.activo ? 'success' : 'danger'"></p-tag>
+                    </td>
+                    <td style="text-align: center">
+                        <button pButton icon="pi pi-bars" class="p-button-rounded p-button-text p-button-info mr-2"
+                            (click)="openManageSubcategories(categoria)" pTooltip="Gestionar Subcategorías"
+                            tooltipPosition="left"></button>
+                        <button pButton [icon]="'pi pi-power-off'"
+                            [class]="'p-button-rounded p-button-text mr-2 ' + (categoria.activo ? 'p-button-danger' : 'p-button-success')"
+                            (click)="toggleCategoria(categoria)"
+                            [pTooltip]="categoria.activo ? 'Desactivar Categor&iacute;a' : 'Activar Categor&iacute;a'"
+                            tooltipPosition="left"></button>
+                        <button pButton icon="pi pi-plus" class="p-button-rounded p-button-text p-button-secondary"
+                            (click)="openNewSubCategory(categoria)" pTooltip="Agregar Subcategoría"
+                            tooltipPosition="left"></button>
+                    </td>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="rowexpansion" let-categoria>
+                <tr>
+                    <td colspan="5">
+                        <div class="p-3 pl-5">
+                            <h4 class="mb-3 text-500">Subcategorías de {{categoria.nombre}}</h4>
+                            <p-table [value]="categoria.subcategorias" dataKey="id" styleClass="p-datatable-sm">
+                                <ng-template pTemplate="header">
+                <tr>
+                    <th>Nombre</th>
+                    <th>Descripci&oacute;n</th>
+                    <th style="width: 100px">Estado</th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-sub>
+                <tr>
+                    <td>{{ sub.nombre }}</td>
+                    <td>{{ sub.descripcion }}</td>
+                    <td>
+                        <p-tag [value]="sub.activo ? 'Activo' : 'Inactivo'"
+                            [severity]="sub.activo ? 'success' : 'danger'"></p-tag>
+                    </td>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="3" class="text-center p-3 text-500">No hay subcategorías registradas.
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+    </td>
+    </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+        <tr>
+            <td colspan="5" class="text-center p-4">No hay categorías registradas para este servicio.</td>
+        </tr>
+    </ng-template>
+    </p-table>
+</div>
+</div>
+
+<!-- Dialog New Category -->
+<p-dialog [(visible)]="displayCategoryDialog" [style]="{width: '500px'}" header="Nueva Categor&iacute;a" [modal]="true"
+    class="p-fluid">
+    <ng-template pTemplate="content">
+        <div class="field mb-3">
+            <label for="name" class="block font-bold mb-2">Nombre</label>
+            <input type="text" pInputText id="name" [(ngModel)]="newCategory.nombre" required autofocus
+                class="w-full" />
+            <small class="p-error block mt-1" *ngIf="!newCategory.nombre">El nombre es requerido.</small>
+        </div>
+        <div class="field mb-3">
+            <label for="description" class="block font-bold mb-2">Descripci&oacute;n</label>
+            <textarea id="description" pInputTextarea [(ngModel)]="newCategory.descripcion" rows="3"
+                class="w-full"></textarea>
+        </div>
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+        <button pButton pRipple label="Cancelar" icon="pi pi-times" class="p-button-text"
+            (click)="displayCategoryDialog = false"></button>
+        <button pButton pRipple label="Guardar" icon="pi pi-check" class="p-button-text"
+            (click)="saveCategory()"></button>
+    </ng-template>
+</p-dialog>
+
+<!-- Dialog New SubCategory -->
+<p-dialog [(visible)]="displaySubCategoryDialog" [style]="{width: '500px'}" header="Nueva Subcategoría" [modal]="true"
+    class="p-fluid">
+    <ng-template pTemplate="content">
+        <div class="field mb-3">
+            <label for="catName" class="block font-bold mb-2">Categor&iacute;a Padre</label>
+            <input type="text" pInputText id="catName" [value]="selectedCategoriaForSub?.nombre" disabled
+                class="w-full font-bold opacity-70" />
+        </div>
+        <div class="field mb-3">
+            <label for="subName" class="block font-bold mb-2">Nombre Subcategoría</label>
+            <input type="text" pInputText id="subName" [(ngModel)]="newSubCategory.nombre" required autofocus
+                class="w-full" />
+            <small class="p-error block mt-1" *ngIf="!newSubCategory.nombre">El nombre es requerido.</small>
+        </div>
+        <div class="field mb-3">
+            <label for="subDesc" class="block font-bold mb-2">Descripci&oacute;n</label>
+            <textarea id="subDesc" pInputTextarea [(ngModel)]="newSubCategory.descripcion" rows="3"
+                class="w-full"></textarea>
+        </div>
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+        <button pButton pRipple label="Cancelar" icon="pi pi-times" class="p-button-text"
+            (click)="displaySubCategoryDialog = false"></button>
+        <button pButton pRipple label="Guardar" icon="pi pi-check" class="p-button-text"
+            (click)="saveSubCategory()"></button>
+    </ng-template>
+</p-dialog>
+
+<!-- Dialog Manage Subcategories -->
+<p-dialog [(visible)]="displaySubManageDialog" [style]="{width: '700px'}"
+    [header]="'Gestionar Subcategorías - ' + (selectedCategoryForManage?.nombre || '')" [modal]="true" class="p-fluid">
+    <ng-template pTemplate="content">
+        <p-toolbar styleClass="mb-4 gap-2">
+            <ng-template pTemplate="left">
+                <button pButton pRipple label="Nueva Subcategoría" icon="pi pi-plus" class="p-button-success"
+                    (click)="openNewSubCategory(selectedCategoryForManage)"></button>
+            </ng-template>
+        </p-toolbar>
+
+        <p-table [value]="selectedCategoryForManage?.subcategorias" styleClass="p-datatable-sm p-datatable-striped"
+            [rowHover]="true">
+            <ng-template pTemplate="header">
+                <tr>
+                    <th>Nombre</th>
+                    <th>Descripci&oacute;n</th>
+                    <th style="width: 100px">Estado</th>
+                    <th style="width: 100px; text-align: center">Acciones</th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-sub>
+                <tr>
+                    <td>{{ sub.nombre }}</td>
+                    <td>{{ sub.descripcion }}</td>
+                    <td>
+                        <p-tag [value]="sub.activo ? 'Activo' : 'Inactivo'"
+                            [severity]="sub.activo ? 'success' : 'danger'"></p-tag>
+                    </td>
+                    <td style="text-align: center">
+                        <button pButton [icon]="'pi pi-power-off'"
+                            [class]="'p-button-rounded p-button-text ' + (sub.activo ? 'p-button-danger' : 'p-button-success')"
+                            (click)="toggleSubcategoria(sub)" [pTooltip]="sub.activo ? 'Desactivar' : 'Activar'"
+                            tooltipPosition="left"></button>
+                    </td>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="3" class="text-center p-3">No hay subcategorías registradas.
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </ng-template>
+    <ng-template pTemplate="footer">
+        <button pButton pRipple label="Cerrar" icon="pi pi-check" class="p-button-text"
+            (click)="displaySubManageDialog = false"></button>
+    </ng-template>
+</p-dialog>

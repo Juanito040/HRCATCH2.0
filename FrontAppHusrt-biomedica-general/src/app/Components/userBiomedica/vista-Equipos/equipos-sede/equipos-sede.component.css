@@ -1,0 +1,9 @@
+/* Reusing generic table styles if possible, otherwise empty or specific */
+:host ::ng-deep .p-paginator {
+    background: transparent;
+}
+
+:host ::ng-deep .p-datatable .p-datatable-header {
+    background: transparent;
+    border: none;
+}

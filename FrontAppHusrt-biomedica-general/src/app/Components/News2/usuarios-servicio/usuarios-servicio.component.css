@@ -1,0 +1,43 @@
+    /* Estilos para el contenedor */
+    .grid-container {
+      display: grid;
+      gap: 10px;
+      padding: 10px;
+    }
+
+    /* Configuración para pantallas grandes: 6 columnas */
+    @media (min-width: 1200px) {
+      .grid-container {
+        grid-template-columns: repeat(6, 1fr);
+      }
+    }
+
+    /* Para pantallas medianas: 4 columnas */
+    @media (min-width: 900px) and (max-width: 1199px) {
+      .grid-container {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    /* Para pantallas pequeñas: 2 columnas */
+    @media (min-width: 600px) and (max-width: 899px) {
+      .grid-container {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    /* Para pantallas muy pequeñas: 1 columna */
+    @media (max-width: 599px) {
+      .grid-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Estilos para los elementos dentro del grid */
+    .grid-item {
+      background-color: #FFFFFF;
+      color: white;
+      text-align: center;
+      padding: 2px;
+      font-size: 15px;
+    }

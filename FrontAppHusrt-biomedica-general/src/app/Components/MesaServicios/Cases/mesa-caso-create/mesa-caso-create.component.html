@@ -1,0 +1,90 @@
+<div class="flex justify-content-center p-4">
+    <div class="surface-card p-4 shadow-2 border-round w-full lg:w-8">
+        <p-toast></p-toast>
+
+        <div class="text-center mb-5">
+            <div class="text-900 text-5xl font-bold mb-3">CREAR CASO</div>
+            <span class="text-600 font-medium line-height-3">Diligencie la información para radicar su incidente o
+                requerimiento</span>
+        </div>
+
+        <p-fieldset legend="Clasificación y Ubicaci&oacute;n" [toggleable]="false" styleClass="mb-4">
+            <div class="grid p-fluid">
+                <div class="col-12 md:col-6">
+                    <label class="font-bold block mb-2"><i class="pi pi-building mr-2"></i>Servicio</label>
+                    <p-select [options]="servicios" [(ngModel)]="selectedServicio" optionLabel="nombres"
+                        placeholder="Seleccione Servicio" (onChange)="onServicioChange()" [filter]="true"
+                        [showClear]="true"></p-select>
+                </div>
+                <div class="col-12 md:col-6">
+                    <label class="font-bold block mb-2"><i class="pi pi-star mr-2"></i>Promesa de Valor</label>
+                    <p-select [options]="sumerceOptions" [(ngModel)]="selectedSumerce" optionLabel="label"
+                        placeholder="Seleccione Clasificación"></p-select>
+                </div>
+
+                <div class="col-12 md:col-6">
+                    <label class="font-bold block mb-2"><i class="pi pi-tags mr-2"></i>Categor&iacute;a</label>
+                    <p-select [options]="categorias" [(ngModel)]="selectedCategoria" optionLabel="nombre"
+                        placeholder="Seleccione Categor&iacute;a" (onChange)="onCategoriaChange()"
+                        [disabled]="!selectedServicio" emptyMessage="Seleccione primero un servicio"></p-select>
+                </div>
+                <div class="col-12 md:col-6">
+                    <label class="font-bold block mb-2"><i class="pi pi-tag mr-2"></i>Subcategoría</label>
+                    <p-select [options]="subcategorias" [(ngModel)]="selectedSubcategoria" optionLabel="nombre"
+                        placeholder="Seleccione Subcategoría" [disabled]="!selectedCategoria"
+                        emptyMessage="Seleccione primero una categoría"></p-select>
+                </div>
+            </div>
+        </p-fieldset>
+
+        <p-fieldset legend="Detalles del Caso" [toggleable]="false" styleClass="mb-4">
+            <div class="grid p-fluid">
+                <div class="col-12 md:col-6">
+                    <label class="font-bold block mb-2"><i class="pi pi-info-circle mr-2"></i>Tipo de Caso</label>
+                    <p-select [options]="tipos" [(ngModel)]="caso.tipo" optionLabel="label"
+                        optionValue="value"></p-select>
+                </div>
+                <div class="col-12 md:col-6">
+                    <label class="font-bold block mb-2"><i class="pi pi-exclamation-triangle mr-2"></i>Prioridad</label>
+                    <p-select [options]="prioridades" [(ngModel)]="caso.prioridad" optionLabel="label"
+                        optionValue="value"></p-select>
+                </div>
+
+                <div class="col-12">
+                    <label class="font-bold block mb-2">Título del Caso</label>
+                    <p-iconfield position="left" class="w-full">
+                        <p-inputicon styleClass="pi pi-pencil" />
+                        <input type="text" pInputText [(ngModel)]="caso.titulo" placeholder="Resumen breve del caso"
+                            class="w-full" appUppercase />
+                    </p-iconfield>
+                </div>
+
+                <div class="col-12">
+                    <label class="font-bold block mb-2">Descripci&oacute;n Detallada</label>
+                    <p-editor [(ngModel)]="caso.descripcion" [style]="{'height':'200px'}"
+                        placeholder="Describa detalladamente su solicitud o incidente..."></p-editor>
+                </div>
+
+                <div class="col-12">
+                    <label class="font-bold block mb-2">Adjuntar Archivos (Opcional)</label>
+                    <p-fileupload mode="advanced" [multiple]="true" accept="image/*,application/pdf"
+                        [maxFileSize]="5000000" (onSelect)="onUpload($event)" [auto]="false" chooseLabel="Elegir"
+                        uploadLabel="Cargar" cancelLabel="Cancelar" [showUploadButton]="false"
+                        [showCancelButton]="false">
+                        <ng-template pTemplate="content">
+                            <ul *ngIf="uploadedFiles.length">
+                                <li *ngFor="let file of uploadedFiles">{{file.name}} - {{file.size}} bytes</li>
+                            </ul>
+                        </ng-template>
+                    </p-fileupload>
+                </div>
+            </div>
+        </p-fieldset>
+
+        <div class="flex justify-content-end gap-2">
+            <button pButton label="Cancelar" icon="pi pi-times" class="p-button-outlined p-button-secondary"
+                routerLink="/adminmesaservicios/casos"></button>
+            <button pButton label="Radicar Caso" icon="pi pi-send" class="p-button-primary" (click)="submit()"></button>
+        </div>
+    </div>
+</div>

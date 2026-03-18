@@ -1,0 +1,17 @@
+.form-grid {
+    align-items: stretch;
+}
+
+.form-grid .field {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.form-grid .field>label {
+    margin-bottom: 0.25rem;
+}
+
+.form-grid .field> :not(label) {
+    width: 100%;
+}

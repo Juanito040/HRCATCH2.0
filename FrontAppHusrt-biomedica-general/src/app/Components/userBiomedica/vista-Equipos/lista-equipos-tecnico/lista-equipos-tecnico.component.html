@@ -1,0 +1,80 @@
+<div style="margin-top: 3%; margin-left: 5%; margin-right: 5%; background-color: white;">
+</div>
+
+<div style="margin-top: 2%; margin-bottom: 2%;">
+    <h1 style="text-align: center;">LISTADO GENERAL DE EQUIPOS BIOMÉDICOS (TÉCNICO)</h1>
+    <h6 style="text-align: center;">Visualización de equipos y hojas de vida.</h6>
+</div>
+
+<div class="card" style="margin-top: 3%; width: 94%; margin-left: 3%; margin-right: 3%;">
+    <p-table #dt2 [value]="equipos" dataKey="id" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 25, 50, 100]"
+        [loading]="loading"
+        [globalFilterFields]="['nombres', 'marca', 'modelo', 'serie', 'ubicacionEspecifica', 'placa']"
+        [tableStyle]="{ 'min-width': '10rem' }" [showCurrentPageReport]="true"
+        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros">
+
+        <!-- Filtro -->
+        <ng-template pTemplate="caption">
+            <div class="flex justify-content-end">
+                <p-iconfield iconPosition="left">
+                    <p-inputicon>
+                        <i class="pi pi-search"></i>
+                    </p-inputicon>
+                    <input pInputText type="text" (input)="onGlobalFilter($event)" placeholder="B&uacute;squeda General" />
+                </p-iconfield>
+            </div>
+        </ng-template>
+
+        <!-- Cabecera -->
+        <ng-template pTemplate="header">
+            <tr>
+                <th style="width:5%">ID(Hv)</th>
+                <th>Nombre</th>
+                <th>Marca</th>
+                <th>Modelo</th>
+                <th>Serie</th>
+                <th>Placa</th>
+                <th>Ubicaci&oacute;n</th>
+                <th style="width:15%">Próximo Mtto</th>
+                <th>Opciones</th>
+            </tr>
+        </ng-template>
+
+        <!-- Cuerpo -->
+        <ng-template pTemplate="body" let-equipo>
+            <tr>
+                <td class="text-center">
+                    <button type="button" class="btn btn-primary btn-sm">{{ equipo.id }}</button>
+                </td>
+                <td>{{ equipo.nombres }}</td>
+                <td>{{ equipo.marca }}</td>
+                <td>{{ equipo.modelo }}</td>
+                <td>{{ equipo.serie }}</td>
+                <td>{{ equipo.placa }}</td>
+                <td>{{ equipo.ubicacionEspecifica }}</td>
+                <td>
+                    <div class="flex flex-wrap gap-1">
+                        <span *ngFor="let m of obtenerMesesConCumplimiento(equipo)"
+                            [ngStyle]="{'color': m.completado ? '#22C55E' : '#EF4444'}" class="font-bold text-xs">
+                            {{ m.mes }}{{ m.year !== 2025 ? ' ' + m.year : '' }}
+                        </span>
+                        <span *ngIf="!equipo.planesMantenimiento || equipo.planesMantenimiento.length === 0"
+                            class="text-400">-</span>
+                    </div>
+                </td>
+                <td>
+                    <p-splitButton label="Acciones" icon="pi pi-cog" [model]="equipo.opciones" severity="info"
+                        (onClick)="equipo.opciones[0].command()">
+                    </p-splitButton>
+                </td>
+            </tr>
+        </ng-template>
+
+        <!-- Mensaje vacío -->
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="9" class="text-center">No se encontraron equipos.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>

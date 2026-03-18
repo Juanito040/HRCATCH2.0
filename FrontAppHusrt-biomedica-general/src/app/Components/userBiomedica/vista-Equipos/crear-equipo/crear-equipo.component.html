@@ -1,0 +1,163 @@
+<div style="width: 90%; margin-left: 5%;">
+  <h1 style="text-align: center; margin-top: 40px;">Registro de Equipos</h1>
+  <div class="card" style="margin-top: 5%;">
+    <div class="card-body">
+      <form [formGroup]="equipoForm" (ngSubmit)="guardar()">
+
+        <div class="row g-3">
+
+          <div class="col-md-6">
+            <label>Tipo de Equipo</label>
+            <select formControlName="tipoEquipoIdFk" class="form-control">
+              <option value="">Seleccione...</option>
+              <option *ngFor="let t of tiposequipo" [value]="t.id">{{ t.nombres }}</option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label>Nombre del equipo</label>
+            <input type="text" formControlName="nombres" class="form-control"
+              placeholder="Ej: Monitor de signos vitales" appUppercase />
+          </div>
+
+          <div class="col-md-6">
+            <label>Marca</label>
+            <input type="text" formControlName="marca" class="form-control" appUppercase />
+          </div>
+
+          <div class="col-md-6">
+            <label>Modelo</label>
+            <input type="text" formControlName="modelo" class="form-control" appUppercase />
+          </div>
+
+          <div class="col-md-6">
+            <label>Serie</label>
+            <input type="text" formControlName="serie" class="form-control" appUppercase />
+          </div>
+
+          <div class="col-md-6">
+            <label>Placa</label>
+            <input type="text" formControlName="placa" class="form-control" appUppercase />
+          </div>
+
+          <div class="col-md-6">
+            <label>Registro INVIMA</label>
+            <input type="text" formControlName="registroInvima" class="form-control" appUppercase />
+          </div>
+
+          <div class="col-md-6">
+            <label>Riesgo</label>
+            <select formControlName="riesgo" class="form-control">
+              <option value="I">I</option>
+              <option value="IIA">IIA</option>
+              <option value="IIB">IIB</option>
+              <option value="III">III</option>
+              <option value="NA">NA</option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label class="block mb-2">Servicio</label>
+            <p-select [options]="servicios || []" formControlName="servicioIdFk" optionLabel="displayName"
+              optionValue="id" [filter]="true" filterBy="displayName" placeholder="Seleccione un servicio"
+              styleClass="w-full" appendTo="body">
+            </p-select>
+          </div>
+
+          <div class="col-md-6">
+            <label>Ubicaci&oacute;n</label>
+            <input type="text" formControlName="ubicacion" class="form-control" appUppercase />
+          </div>
+
+          <div class="col-md-6">
+            <label>Ubicaci&oacute;n espec&iacute;fica</label>
+            <input type="text" formControlName="ubicacionEspecifica" class="form-control" appUppercase />
+          </div>
+
+
+
+          <div class="col-md-6">
+            <label>Responsable</label>
+            <select formControlName="responsableIdFk" class="form-control">
+              <option value="">Seleccione...</option>
+              <option *ngFor="let r of responsables" [value]="r.id">{{ r.nombres }} {{ r.apellidos }}</option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label>Intervenciones Preventivas Anuales:</label>
+            <p-select [options]="intervencionOptions" formControlName="periodicidadM" optionLabel="name"
+              optionValue="value" styleClass="w-full"></p-select>
+          </div>
+
+
+
+          <div class="col-md-6" *ngIf="showMetrologyFrequency">
+            <label>Numero de Actividades Metrologicas Anuales:</label>
+            <input type="number" max="12" formControlName="periodicidadAM" class="form-control" />
+          </div>
+
+        </div>
+
+        <div class="text-center mt-4">
+          <button type="button" (click)="guardar()" class="btn btn-dark px-5" style="margin: 10px;">Guardar</button>
+          <button type="button" class="btn btn-secondary px-5" (click)="cancelar()">Regresar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<p-dialog header="Configurar Plan de Mantenimiento" [modal]="true" [(visible)]="modalAddFechasMantenimiento"
+  styleClass="standard-modal modal-md" [closable]="false" [draggable]="false" [resizable]="false">
+  <div class="p-fluid">
+    <div class="field">
+      <label class="block mb-2 font-bold" for="mesInicio">Mes de Inicio</label>
+      <p-select [options]="monthOptions" [(ngModel)]="mesInicio" optionLabel="name" optionValue="value"
+        (onChange)="calcularFechas()" appendTo="body" styleClass="w-full"></p-select>
+      <small class="block mt-1">Seleccione el mes en que inicia el primer mantenimiento.</small>
+    </div>
+    <div class="field mt-3">
+      <label class="block mb-2 font-bold" for="anioInicio">A&ntilde;o de Inicio</label>
+      <p-select [options]="anioOptions" [(ngModel)]="anioInicio" optionLabel="name" optionValue="value"
+        (onChange)="calcularFechas()" appendTo="body" styleClass="w-full"></p-select>
+      <small class="block mt-1">Seleccione el año de inicio.</small>
+    </div>
+    <div class="field mt-3">
+      <label class="block mb-2 font-bold" for="meses">Ciclo de Mantenimiento Calculado</label>
+      <p class="font-bold mt-2"
+        [ngClass]="{'text-green-500': selectedPlans.length > 0, 'text-red-500': selectedPlans.length === 0}">
+        {{calculatedMonthsText}}
+      </p>
+    </div>
+  </div>
+  <div class="flex justify-content-end gap-2 mt-4">
+    <p-button label="Guardar y Continuar" (click)="validarFechasMantenimiento()" icon="pi pi-check" />
+  </div>
+</p-dialog>
+
+<p-dialog header="Agregar Fechas de Actividades Metrologicas" [modal]="true" [(visible)]="modalAddFechasCalibracion"
+  [style]="{ width: '25rem' }" [closable]="false">
+  <div *ngFor="let item of fechasCalibracion; let i = index; trackBy: trackByIndex" class="mb-4">
+    <h5 class="mb-2 font-bold">Actividad {{ i + 1 }}</h5>
+
+    <div class="field mb-3">
+      <label class="block mb-1 text-sm font-medium" [for]="'fecha-cal-'+i">Fecha Programada</label>
+      <p-datepicker [(ngModel)]="fechasCalibracion[i].fecha" inputId="{{ 'fecha-cal-' + i }}" view="month"
+        dateFormat="mm/yy" [style]="{ width: '100%' }" appendTo="body">
+      </p-datepicker>
+    </div>
+
+    <div class="field mb-3">
+      <label class="block mb-1 text-sm font-medium" [for]="'tipo-act-'+i">Tipo de Actividad</label>
+      <p-select [options]="tipoActividadOptions" [(ngModel)]="fechasCalibracion[i].tipoActividad" optionLabel="label"
+        optionValue="value" [style]="{ width: '100%' }" placeholder="Seleccione Tipo" appendTo="body">
+      </p-select>
+    </div>
+    <hr *ngIf="i < fechasCalibracion.length - 1" class="my-3 border-gray-300" />
+  </div>
+
+  <div class="flex justify-content-end mt-4">
+    <p-button label="Guardar y Finalizar" (click)="validarFechasCalibracion()" styleClass="p-button-success" />
+  </div>
+</p-dialog>

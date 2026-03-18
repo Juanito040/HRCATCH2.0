@@ -1,0 +1,1122 @@
+{
+	"info": {
+		"_postman_id": "63335a8c-8b96-475b-84f9-55580743ac28",
+		"name": "New-App-Husrt",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "33017928"
+	},
+	"item": [
+		{
+			"name": "Usuarios",
+			"item": [
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"usuarion\":\"david.guerrero\",\r\n    \"contraseña\":\"12345678\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseurlhusrt}}/login",
+							"host": [
+								"{{baseurlhusrt}}"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Usuarios",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoiQklPTUVESUNBVVNFUiIsImlhdCI6MTc1Mjc1NzcwNywiZXhwIjoxNzUyNzYxMzA3fQ.gbaYMxXBwT5OKbTPXBwr5VmDX7odwGmusy2H0zGNX5M",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseurlhusrt}}/user/5",
+							"host": [
+								"{{baseurlhusrt}}"
+							],
+							"path": [
+								"user",
+								"5"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "OlvidoContraseña",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"eduardocasas965@gmail.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://172.30.40.241:3005/olvidocontrasena",
+							"protocol": "http",
+							"host": [
+								"172",
+								"30",
+								"40",
+								"241"
+							],
+							"port": "3005",
+							"path": [
+								"olvidocontrasena"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "NombreUsuarioById",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoiQklPTUVESUNBVVNFUiIsImlhdCI6MTc1MjA2OTM3MCwiZXhwIjoxNzUyMDcyOTcwfQ.YcZ5A1AcOkS9BCE-hUHIaFK4SSs9fOmeH5JnEQxDhp4",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseurlhusrt}}/nombreusuario/2",
+							"host": [
+								"{{baseurlhusrt}}"
+							],
+							"path": [
+								"nombreusuario",
+								"2"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Servicios",
+			"item": [
+				{
+					"name": "GetServicios",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3005/servicios",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3005",
+							"path": [
+								"servicios"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "addServicio",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": ""
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Equipos",
+			"item": [
+				{
+					"name": "GetEquipos",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Miwicm9sIjoiU1VQRVJBRE1JTiIsImlhdCI6MTc0MzAxNjMyMCwiZXhwIjoxNzQzMDE5OTIwfQ.5Kz42jDCs0SkEso7vBd-UjRuU48np2XkB1FoSA4SOhI",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://172.30.40.113:3005/equipos",
+							"protocol": "http",
+							"host": [
+								"172",
+								"30",
+								"40",
+								"113"
+							],
+							"port": "3005",
+							"path": [
+								"equipos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetEquiposPorTipo",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Miwicm9sIjoiU1VQRVJBRE1JTiIsImlhdCI6MTc0MjM5Nzc5NSwiZXhwIjoxNzQyNDAxMzk1fQ.vSS_MgmWohi-Ehgwx3bT8KGpCip4sRdEM6_k7jBWDn4",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://172.30.40.113:3005/equipos/tipo/5",
+							"protocol": "http",
+							"host": [
+								"172",
+								"30",
+								"40",
+								"113"
+							],
+							"port": "3005",
+							"path": [
+								"equipos",
+								"tipo",
+								"5"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetEquiposServicio",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Miwicm9sIjoiU1VQRVJBRE1JTiIsImlhdCI6MTc0MjM5Nzc5NSwiZXhwIjoxNzQyNDAxMzk1fQ.vSS_MgmWohi-Ehgwx3bT8KGpCip4sRdEM6_k7jBWDn4",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://172.30.40.113:3005/equipos/servicio/1",
+							"protocol": "http",
+							"host": [
+								"172",
+								"30",
+								"40",
+								"113"
+							],
+							"port": "3005",
+							"path": [
+								"equipos",
+								"servicio",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetEquipoID",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoiQklPTUVESUNBVVNFUiIsImlhdCI6MTc1MjUyNjkzNywiZXhwIjoxNzUyNTMwNTM3fQ.SoaWfUje5LFPmpa9bmzsQlyGPZx5_rPjUcGf5Ena5Bk",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseurlhusrt}}/equipo/1",
+							"host": [
+								"{{baseurlhusrt}}"
+							],
+							"path": [
+								"equipo",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CantidadEquipos",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Miwicm9sIjoiU1VQRVJBRE1JTiIsImlhdCI6MTc0MzYyMzE5NywiZXhwIjoxNzQzNjI2Nzk3fQ.znzA4-5yv3TK1mrNLLnnWfa8xd2qqI3Ves3ZsbNUaRg",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://172.30.40.113:3005/cantidadequipos/3",
+							"protocol": "http",
+							"host": [
+								"172",
+								"30",
+								"40",
+								"113"
+							],
+							"port": "3005",
+							"path": [
+								"cantidadequipos",
+								"3"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "SeriesEquipos",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoiQklPTUVESUNBVVNFUiIsImlhdCI6MTc1MjA2OTM3MCwiZXhwIjoxNzUyMDcyOTcwfQ.YcZ5A1AcOkS9BCE-hUHIaFK4SSs9fOmeH5JnEQxDhp4",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseurlhusrt}}/seriesequipos",
+							"host": [
+								"{{baseurlhusrt}}"
+							],
+							"path": [
+								"seriesequipos"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "TiposEquipo",
+			"item": [
+				{
+					"name": "getTiposEquipo",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Miwicm9sIjoiU1VQRVJBRE1JTiIsImlhdCI6MTc0MjM5Nzc5NSwiZXhwIjoxNzQyNDAxMzk1fQ.vSS_MgmWohi-Ehgwx3bT8KGpCip4sRdEM6_k7jBWDn4",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://172.30.40.113:3005/tiposequipo",
+							"protocol": "http",
+							"host": [
+								"172",
+								"30",
+								"40",
+								"113"
+							],
+							"port": "3005",
+							"path": [
+								"tiposequipo"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getTiposEquipoBio",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Miwicm9sIjoiU1VQRVJBRE1JTiIsImlhdCI6MTc0MjM5Nzc5NSwiZXhwIjoxNzQyNDAxMzk1fQ.vSS_MgmWohi-Ehgwx3bT8KGpCip4sRdEM6_k7jBWDn4",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://172.30.40.113:3005/tiposequipoBio",
+							"protocol": "http",
+							"host": [
+								"172",
+								"30",
+								"40",
+								"113"
+							],
+							"port": "3005",
+							"path": [
+								"tiposequipoBio"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Documentos",
+			"item": [
+				{
+					"name": "New request",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": ""
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "TiposDocumento",
+			"item": [
+				{
+					"name": "TiposDocumento",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": ""
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "HojasVida",
+			"item": [
+				{
+					"name": "New request",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": ""
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetHojaVidaEquipo",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoiQklPTUVESUNBVVNFUiIsImlhdCI6MTc1MjUyNjkzNywiZXhwIjoxNzUyNTMwNTM3fQ.SoaWfUje5LFPmpa9bmzsQlyGPZx5_rPjUcGf5Ena5Bk",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseurlhusrt}}/hojavidaequipo/1",
+							"host": [
+								"{{baseurlhusrt}}"
+							],
+							"path": [
+								"hojavidaequipo",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Responsable",
+			"item": [
+				{
+					"name": "GetResponsables",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Miwicm9sIjoiU1VQRVJBRE1JTiIsImlhdCI6MTc0MjM5Nzc5NSwiZXhwIjoxNzQyNDAxMzk1fQ.vSS_MgmWohi-Ehgwx3bT8KGpCip4sRdEM6_k7jBWDn4",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://172.30.40.113:3005/responsables",
+							"protocol": "http",
+							"host": [
+								"172",
+								"30",
+								"40",
+								"113"
+							],
+							"port": "3005",
+							"path": [
+								"responsables"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetResponsablesComodatos",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Miwicm9sIjoiU1VQRVJBRE1JTiIsImlhdCI6MTc0MjM5Nzc5NSwiZXhwIjoxNzQyNDAxMzk1fQ.vSS_MgmWohi-Ehgwx3bT8KGpCip4sRdEM6_k7jBWDn4",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://172.30.40.113:3005/responsablescomodatos",
+							"protocol": "http",
+							"host": [
+								"172",
+								"30",
+								"40",
+								"113"
+							],
+							"port": "3005",
+							"path": [
+								"responsablescomodatos"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Reportes",
+			"item": [
+				{
+					"name": "GetReportesEquipo",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoiQklPTUVESUNBVVNFUiIsImlhdCI6MTc0OTc1OTQ1NSwiZXhwIjoxNzQ5NzYzMDU1fQ.vxN0k49m9BMUHKCgxzC1qzhmfTa-MRbzz3X7vvOlpyI",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://172.30.40.241:3005/reportes/equipo/11570",
+							"protocol": "http",
+							"host": [
+								"172",
+								"30",
+								"40",
+								"241"
+							],
+							"port": "3005",
+							"path": [
+								"reportes",
+								"equipo",
+								"11570"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ReportesPreventivosAñoMes",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoiQklPTUVESUNBVVNFUiIsImlhdCI6MTc0ODQ3Mjk1MiwiZXhwIjoxNzQ4NDc2NTUyfQ.61_gEfmi20jsTr_pz1pXOXuhclPV_rG4RndlsgRm3Yk",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"mes\":\"4\",\r\n    \"anio\":\"2025\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://172.30.40.241:3005/reportes/preventivosmes",
+							"protocol": "http",
+							"host": [
+								"172",
+								"30",
+								"40",
+								"241"
+							],
+							"port": "3005",
+							"path": [
+								"reportes",
+								"preventivosmes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CorrectivosMesAño",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoiQklPTUVESUNBVVNFUiIsImlhdCI6MTc0ODQ3MTMyNiwiZXhwIjoxNzQ4NDc0OTI2fQ.erpiC-9s5wbIW-nyGyofLbv5MSo-LccECmhqDRa3D_U",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"mes\":\"5\",\r\n    \"anio\":\"2025\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://172.30.40.241:3005/reportes/correctivosmes",
+							"protocol": "http",
+							"host": [
+								"172",
+								"30",
+								"40",
+								"241"
+							],
+							"port": "3005",
+							"path": [
+								"reportes",
+								"correctivosmes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ReporteById",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoiQklPTUVESUNBVVNFUiIsImlhdCI6MTc1MDI2NDA0MiwiZXhwIjoxNzUwMjY3NjQyfQ.dNiwwIjgRQCPoJv0IvjdpIBv-GwOJFDPNVXIWU3Tiz4",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseurlhusrt}}/reporte/1",
+							"host": [
+								"{{baseurlhusrt}}"
+							],
+							"path": [
+								"reporte",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "NuevoReporte",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoiQklPTUVESUNBVVNFUiIsImlhdCI6MTc1MDI3Njg2NiwiZXhwIjoxNzUwMjgwNDY2fQ.jZs27N9723U6HTpCafBUePOmZ1WDeyjWXiz4E3h0zgk",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"añoProgramado\": 2025,\r\n  \"mesProgramado\": 6,\r\n  \"fechaRealizado\": \"2025-06-18\",\r\n  \"horaInicio\": \"08:00:00\",\r\n  \"fechaFin\": \"2025-06-18\",\r\n  \"horaTerminacion\": \"10:30:00\",\r\n  \"horaTotal\": \"02:30:00\",\r\n  \"tipoMantenimiento\": \"Correctivo\",\r\n  \"tipoFalla\": \"Desgaste\",\r\n  \"motivo\": \"Revisión de funcionamiento anómalo\",\r\n  \"trabajoRealizado\": \"Cambio de sensor\",\r\n  \"calificacion\": 5,\r\n  \"nombreRecibio\": \"Carlos Pérez\",\r\n  \"cedulaRecibio\": \"12345678\",\r\n  \"observaciones\": \"Equipo entregado en correcto estado\",\r\n  \"mantenimientoPropio\": true,\r\n  \"realizado\": true,\r\n  \"rutaPdf\": \"src/pdf/test.pdf\",\r\n  \"servicioIdFk\": 1,\r\n  \"equipoIdFk\": 2,\r\n  \"usuarioIdFk\": 3\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3005/addreporte",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3005",
+							"path": [
+								"addreporte"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Protocolos",
+			"item": [
+				{
+					"name": "ProtocoloEquipo",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoiQklPTUVESUNBVVNFUiIsImlhdCI6MTc1MDI1MDQ1NiwiZXhwIjoxNzUwMjU0MDU2fQ.4ppteYnaPfNOpOMEvZ8JY09-7lk8QiXFSbqYl5DUNYg",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://172.30.40.241:3005/protocolos/tipoequipo/1",
+							"protocol": "http",
+							"host": [
+								"172",
+								"30",
+								"40",
+								"241"
+							],
+							"port": "3005",
+							"path": [
+								"protocolos",
+								"tipoequipo",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "PlanMantenimiento",
+			"item": [
+				{
+					"name": "PlanEquipo",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoiQklPTUVESUNBVVNFUiIsImlhdCI6MTc1MjA2OTM3MCwiZXhwIjoxNzUyMDcyOTcwfQ.YcZ5A1AcOkS9BCE-hUHIaFK4SSs9fOmeH5JnEQxDhp4",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseurlhusrt}}/planmantenimientoequipo/1",
+							"host": [
+								"{{baseurlhusrt}}"
+							],
+							"path": [
+								"planmantenimientoequipo",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PlanMes",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoiQklPTUVESUNBVVNFUiIsImlhdCI6MTc1MjY3ODA4OCwiZXhwIjoxNzUyNjgxNjg4fQ.zJN9mrhXfbEfWWxGuvSd-nP34fzUCfhQq6jhh2-WTVQ",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"mes\":\"1\",\r\n    \"ano\":\"2025\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseurlhusrt}}/planmantenimientomes",
+							"host": [
+								"{{baseurlhusrt}}"
+							],
+							"path": [
+								"planmantenimientomes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ProgramarPreventivos",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoiQklPTUVESUNBVVNFUiIsImlhdCI6MTc1MjY3NDc3NywiZXhwIjoxNzUyNjc4Mzc3fQ.kX7TkXyYTrkflvS1QVj0AeLwUDbKGwUQ33KJfyWLRME",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"mes\": 9,\r\n    \"anio\": 2025\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseurlhusrt}}/programacionpreventivosresponsabletest",
+							"host": [
+								"{{baseurlhusrt}}"
+							],
+							"path": [
+								"programacionpreventivosresponsabletest"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PlanServicio",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoiQklPTUVESUNBVVNFUiIsImlhdCI6MTc1Mjc2NzAwOSwiZXhwIjoxNzUyNzcwNjA5fQ.RuxP7J6YAa9oE7ZHrrs3ieyA4uktC8-lpUxfT_Dczkw",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseurlhusrt}}/planmantenimientoservicio/1",
+							"host": [
+								"{{baseurlhusrt}}"
+							],
+							"path": [
+								"planmantenimientoservicio",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PlanTipoEquipo",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoiQklPTUVESUNBVVNFUiIsImlhdCI6MTc1Mjc2NzAwOSwiZXhwIjoxNzUyNzcwNjA5fQ.RuxP7J6YAa9oE7ZHrrs3ieyA4uktC8-lpUxfT_Dczkw",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseurlhusrt}}/planmantenimientotipoequipo/1?=",
+							"host": [
+								"{{baseurlhusrt}}"
+							],
+							"path": [
+								"planmantenimientotipoequipo",
+								"1"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "ActividadesMetrologicas",
+			"item": [
+				{
+					"name": "PlanMetrologiaEquipo",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoiQklPTUVESUNBVVNFUiIsImlhdCI6MTc1MjU5MjA1MywiZXhwIjoxNzUyNTk1NjUzfQ.kKhB_Bk_fYnsTFfNWYYIEDUda2_tTvLRuvRmG5_Uxsw",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseurlhusrt}}/planmetrologiaequipo/476",
+							"host": [
+								"{{baseurlhusrt}}"
+							],
+							"path": [
+								"planmetrologiaequipo",
+								"476"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ActividadesMetrologicasEquipo",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoiQklPTUVESUNBVVNFUiIsImlhdCI6MTc1MjYwNzkyNywiZXhwIjoxNzUyNjExNTI3fQ.PUR2uF8OlSZStTxv3O19G-97GrWWXMeJKZWlaY_dFIM",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseurlhusrt}}/actividadesequipo/3",
+							"host": [
+								"{{baseurlhusrt}}"
+							],
+							"path": [
+								"actividadesequipo",
+								"3"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ActividadesMetrologicasMes",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoiQklPTUVESUNBVVNFUiIsImlhdCI6MTc1MjYxNTY1OSwiZXhwIjoxNzUyNjE5MjU5fQ.WrcJBwhy1zv-zZw-fV3ilJFoNCmJU9oZtd_MjtXa_pA",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"mes\": 8,\r\n    \"anio\" : 2024\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseurlhusrt}}/reportesMetrologicosmes",
+							"host": [
+								"{{baseurlhusrt}}"
+							],
+							"path": [
+								"reportesMetrologicosmes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PlanMetrologiaMes",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoiQklPTUVESUNBVVNFUiIsImlhdCI6MTc1Mjc1NzcwNywiZXhwIjoxNzUyNzYxMzA3fQ.gbaYMxXBwT5OKbTPXBwr5VmDX7odwGmusy2H0zGNX5M",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"mes\":\"8\",\r\n    \"ano\":\"2025\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseurlhusrt}}/planactividadmetrologicames",
+							"host": [
+								"{{baseurlhusrt}}"
+							],
+							"path": [
+								"planactividadmetrologicames"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ProgramarAMetrologicasMes",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoiQklPTUVESUNBVVNFUiIsImlhdCI6MTc1Mjc3MDc5OCwiZXhwIjoxNzUyNzc0Mzk4fQ.2IpyXt2X4JtUJ-YpNnZSi1W2Cnra31kBaIQ_i6FtmyU",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"mes\": 9,\r\n    \"anio\": 2025\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseurlhusrt}}/programacionmetrologiames",
+							"host": [
+								"{{baseurlhusrt}}"
+							],
+							"path": [
+								"programacionmetrologiames"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PlanAMetrologicasTipoEquipo",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoiQklPTUVESUNBVVNFUiIsImlhdCI6MTc1Mjc4MTk4MCwiZXhwIjoxNzUyNzg1NTgwfQ.dtDHxEK29brH5_PAQNjxXKtqggmuWMThdNZUDM8rXgY",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseurlhusrt}}/planametrologicastipoequipo/2",
+							"host": [
+								"{{baseurlhusrt}}"
+							],
+							"path": [
+								"planametrologicastipoequipo",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PlanAMetrologicasServicio",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

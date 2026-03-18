@@ -1,0 +1,26 @@
+<div class="dashboard-container">
+
+  <div class="text-center mb-5">
+    <h1 class="text-3xl font-bold mb-2">Equipos Biomédicos - Comodatos</h1>
+    <p class="text-secondary text-lg">Busque según el Responsable de comodatos Requerido.</p>
+  </div>
+
+  <div class="search-container">
+    <input type="text" placeholder="Buscar responsable..." [(ngModel)]="searchText" class="search-bar">
+  </div>
+
+  <div class="cards-grid">
+    <div class="dashboard-card" *ngFor="let responsable of filteredResponsable()"
+      (click)="viewEquiposComodatos(responsable.id)">
+      <div class="card-icon-container gradient-orange">
+        <i class="pi pi-file"></i>
+      </div>
+      <div class="card-content">
+        <h3>{{ responsable.nombres }}</h3>
+        <p>Total Equipos en Comodato: <strong>{{ cantidadesEquipos[responsable.id] || 0 }}</strong></p>
+        <span class="card-action">Ver Equipos <i class="pi pi-arrow-right"></i></span>
+      </div>
+    </div>
+  </div>
+
+</div>

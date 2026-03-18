@@ -1,0 +1,136 @@
+<div class="card px-4 py-4 m-4 shadow-2 border-round-xl surface-card">
+    <p-toolbar styleClass="mb-4 gap-2 border-none surface-ground">
+        <ng-template pTemplate="left">
+            <div class="flex align-items-center gap-2">
+                <i class="pi pi-desktop text-2xl text-primary"></i>
+                <h2 class="m-0 font-bold text-900">Gestión de Sistemas de Información</h2>
+            </div>
+        </ng-template>
+
+        <ng-template pTemplate="right">
+            <p-button label="Nuevo Sistema" icon="pi pi-plus" (onClick)="openNew()" severity="primary"
+                [raised]="true"></p-button>
+        </ng-template>
+    </p-toolbar>
+
+    <p-table #dt [value]="sistemas" [rows]="10" [paginator]="true" [loading]="loading"
+        [globalFilterFields]="['nombre', 'tipo', 'tecnologia', 'responsableObj.nombres', 'proveedorObj.nombres', 'periodicidad']"
+        [tableStyle]="{ 'min-width': '75rem' }" [rowHover]="true" dataKey="id"
+        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+        [showCurrentPageReport]="true">
+
+        <ng-template pTemplate="caption">
+            <div class="flex align-items-center justify-content-between">
+                <h5 class="m-0">Listado de Sistemas de Información</h5>
+                <p-iconfield position="left">
+                    <p-inputicon styleClass="pi pi-search" />
+                    <input pInputText type="text" (input)="onGlobalFilter($event)" placeholder="Buscar..." />
+                </p-iconfield>
+            </div>
+        </ng-template>
+
+        <ng-template pTemplate="header">
+            <tr>
+                <th pSortableColumn="nombre">Nombre <p-sortIcon field="nombre"></p-sortIcon></th>
+                <th pSortableColumn="tipo">Tipo <p-sortIcon field="tipo"></p-sortIcon></th>
+                <th pSortableColumn="version">Versión <p-sortIcon field="version"></p-sortIcon></th>
+                <th pSortableColumn="tecnologia">Tecnología <p-sortIcon field="tecnologia"></p-sortIcon></th>
+                <th pSortableColumn="periodicidad">Periodicidad <p-sortIcon field="periodicidad"></p-sortIcon></th>
+                <th>Responsable</th>
+                <th>Proveedor</th>
+                <th pSortableColumn="estado">Estado <p-sortIcon field="estado"></p-sortIcon></th>
+                <th>Acciones</th>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-sistema>
+            <tr>
+                <td>{{ sistema.nombre }}</td>
+                <td>{{ sistema.tipo }}</td>
+                <td>{{ sistema.version }}</td>
+                <td>{{ sistema.tecnologia }}</td>
+                <td>{{ sistema.periodicidad }}</td>
+                <td>{{ sistema.responsableObj?.nombres }} {{ sistema.responsableObj?.apellidos }}</td>
+                <td>{{ sistema.proveedorObj?.nombres }}</td>
+                <td>
+                    <p-tag [value]="sistema.estado ? 'Activo' : 'Inactivo'"
+                        [severity]="sistema.estado ? 'success' : 'danger'"></p-tag>
+                </td>
+                <td>
+                    <div class="flex gap-2">
+                        <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="warn"
+                            (onClick)="openEdit(sistema)" pTooltip="Editar"></p-button>
+
+                        <p-button *ngIf="sistema.estado" icon="pi pi-ban" [rounded]="true" [text]="true"
+                            severity="danger" (onClick)="toggleEstado(sistema)" pTooltip="Desactivar"></p-button>
+
+                        <p-button *ngIf="!sistema.estado" icon="pi pi-check" [rounded]="true" [text]="true"
+                            severity="success" (onClick)="toggleEstado(sistema)" pTooltip="Activar"></p-button>
+                    </div>
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="9" class="text-center p-4">No se encontraron sistemas de información.</td>
+            </tr>
+        </ng-template>
+
+    </p-table>
+</div>
+
+<p-dialog [(visible)]="viewModal" styleClass="standard-modal modal-lg p-fluid"
+    [header]="isEditing ? 'Editar Sistema de Información' : 'Nuevo Sistema de Información'" [modal]="true">
+    <ng-template pTemplate="content">
+        <form [formGroup]="formGroup">
+            <div class="form-grid">
+                <div class="field" style="grid-column: 1 / -1;">
+                    <label for="nombre">Nombre</label>
+                    <input type="text" pInputText id="nombre" formControlName="nombre" required autofocus
+                        class="w-full" />
+                </div>
+
+                <div class="field">
+                    <label for="tipo">Tipo</label>
+                    <input type="text" pInputText id="tipo" formControlName="tipo" required class="w-full" />
+                </div>
+                <div class="field">
+                    <label for="version">Versión</label>
+                    <input type="text" pInputText id="version" formControlName="version" required class="w-full" />
+                </div>
+
+                <div class="field">
+                    <label for="tecnologia">Tecnología</label>
+                    <input type="text" pInputText id="tecnologia" formControlName="tecnologia" required
+                        class="w-full" />
+                </div>
+                <div class="field">
+                    <label for="periodicidad">Periodicidad</label>
+                    <p-select id="periodicidad" [options]="periodicidadOptions" formControlName="periodicidad"
+                        optionLabel="label" optionValue="value" placeholder="Seleccione periodicidad"
+                        class="w-full" appendTo="body"></p-select>
+                </div>
+
+                <div class="field">
+                    <label for="proveedorId">Proveedor</label>
+                    <p-select id="proveedorId" [options]="proveedores" formControlName="proveedorId"
+                        optionLabel="nombres" optionValue="id" placeholder="Seleccione proveedor"
+                        class="w-full" appendTo="body"></p-select>
+                </div>
+                <div class="field">
+                    <label for="responsableId">Responsable</label>
+                    <p-select id="responsableId" [options]="usuarios" formControlName="responsableId"
+                        optionLabel="nombres" optionValue="id" placeholder="Seleccione responsable"
+                        class="w-full" appendTo="body"></p-select>
+                </div>
+            </div>
+        </form>
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+        <button pButton pRipple label="Cancelar" icon="pi pi-times" class="p-button-text p-button-secondary"
+            (click)="viewModal = false"></button>
+        <button pButton pRipple label="Guardar" icon="pi pi-check" (click)="saveSistema()"></button>
+    </ng-template>
+</p-dialog>

@@ -1,0 +1,688 @@
+/* Global CSS Variables for "Pleasant" Theme */
+:root {
+    /* Color Palette - Clean & Modern (Blue/Teal dominant) */
+    --primary-color: #0056b3;
+    /* Darker standard blue */
+    --primary-dark: #004494;
+    --secondary-color: #6c757d;
+    --secondary-color: #6c757d;
+
+    --bg-app: #ffffff;
+    /* Clean True White */
+    --bg-surface: #ffffff;
+
+    --text-color: #333333;
+    --text-secondary: #6c757d;
+
+    /* Spacing */
+    --border-radius-xl: 1rem;
+    --border-radius-lg: 0.75rem;
+    --border-radius: 0.5rem;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.05);
+
+    /* Transitions */
+    --transition-base: all 0.2s ease-in-out;
+
+    /* Semantic Colors - Initialized by ThemeService */
+    --success-color: #198754;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --info-color: #0dcaf0;
+
+    /* Navigation - Initialized by ThemeService */
+    --navbar-bg: #ffffff;
+    --navbar-text: #333333;
+
+    /* Tables - Initialized by ThemeService */
+    --table-header-bg: #f8f9fa;
+    --table-header-text: #333333;
+
+    /* Login - Initialized by ThemeService */
+    --login-bg-start: #ffffff;
+    --login-bg-end: #ffffff;
+}
+
+body {
+    background-color: var(--bg-app) !important;
+    color: var(--text-color);
+    font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* --- Global Component Overrides (PrimeNG/Bootstrap) --- */
+
+/* Card Styling Override */
+.card {
+    background-color: var(--bg-surface);
+    border: none;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    margin-bottom: 1.5rem;
+    transition: var(--transition-base);
+}
+
+.card:hover {
+    box-shadow: var(--shadow-lg);
+}
+
+.card-header {
+    background-color: transparent;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 1.25rem 1.5rem;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+/* Global Titles */
+h1 {
+    font-weight: 700;
+    color: var(--text-color);
+    margin-bottom: 1.5rem;
+    font-size: 2rem;
+}
+
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+/* Button Refinement */
+.p-button {
+    border-radius: var(--border-radius) !important;
+}
+
+.p-button.p-button-rounded {
+    border-radius: 2rem !important;
+}
+
+/* Table Refinement */
+.p-datatable .p-datatable-header {
+    background-color: var(--bg-surface);
+    border: none;
+    padding: 1rem;
+}
+
+.p-datatable .p-datatable-thead>tr>th {
+    background-color: var(--table-header-bg) !important;
+    color: var(--table-header-text) !important;
+    font-weight: 600;
+    border-color: #dee2e6;
+}
+
+/* Responsive Containers */
+.container-responsive {
+    width: 100%;
+    padding-right: var(--bs-gutter-x, .75rem);
+    padding-left: var(--bs-gutter-x, .75rem);
+    margin-right: auto;
+    margin-left: auto;
+    max-width: 1400px;
+    /* Limit max width on very large screens */
+}
+
+/* Utility to center content nicely */
+.page-container {
+    padding: 2rem;
+}
+
+@media (max-width: 768px) {
+    .page-container {
+        padding: 1rem;
+    }
+}
+
+/* --- Global Button & Icon Standardization (Blue & Gray Theme) --- */
+
+/* Primary Buttons (Blue) */
+.btn-primary,
+.p-button,
+button.btn-primary {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    color: white !important;
+}
+
+.btn-primary:hover,
+.p-button:hover,
+button.btn-primary:hover {
+    background-color: var(--primary-dark) !important;
+    border-color: var(--primary-dark) !important;
+}
+
+/* Secondary/Dark/Light Buttons (Gray/Dark Blue scale) */
+.btn-secondary,
+.btn-light,
+.btn-dark,
+.p-button-secondary {
+    background-color: #5a6268 !important;
+    /* Dark Gray */
+    border-color: #545b62 !important;
+    color: white !important;
+}
+
+.btn-secondary:hover,
+.btn-light:hover,
+.btn-dark:hover,
+.p-button-secondary:hover {
+    background-color: #23272b !important;
+    /* Darker Gray/Black */
+    border-color: #1d2124 !important;
+}
+
+/* Success/Info/Warning - Map to standardized blues/grays if strictly requested, 
+   but usually better to keep semantic. User asked for "escala de grises y azules". 
+   I will mute them to cooler tones or force them to blue/gray if they are action buttons.
+   For now, I'll force common action buttons to Blue/Gray. 
+*/
+
+/* Icons - Force Blue/Gray scale */
+i,
+.pi,
+.bi,
+.material-icons {
+    color: inherit;
+    /* Inherit text color by default */
+}
+
+/* Specific overrides for standalone icons often used as buttons */
+.p-button-icon,
+.btn i {
+    color: white !important;
+    /* Icons inside buttons should be white */
+}
+
+/* Standalone icons that act as indicators - User said "color of all buttons and icons... uniform" */
+/* Let's target specific common icon colors if they are manually set */
+.text-primary {
+    color: var(--primary-color) !important;
+}
+
+.text-success {
+    color: var(--success-color) !important;
+}
+
+/* Keep semantic green but could shift to teal */
+.text-danger {
+    color: var(--danger-color) !important;
+}
+
+/* Keep semantic red */
+
+/* Force large icons in cards (like in Inventory) to be dark gray/blue instead of pitch black */
+.bi {
+    color: #343a40;
+    /* Dark gray for icons */
+}
+
+/* SplitButton Overrides */
+.p-splitbutton-defaultbutton,
+.p-splitbutton-menubutton {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+}
+
+/* Pagination Buttons */
+.p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
+    background-color: var(--primary-color) !important;
+    color: white;
+}
+
+/* --- Dashboard & Menu Card Styles (Redesign) --- */
+
+/* Global Dashboard Layout Wrapper */
+.dashboard-container {
+    padding: 2rem 5%;
+    min-height: 100vh;
+}
+
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(-45deg, #006fe6, #009688, #4a148c, #00c853);
+    background-size: 400% 400%;
+    animation: movingGradient 15s ease infinite;
+    padding: 3.5rem 2rem;
+    border-radius: var(--border-radius-xl);
+    margin-bottom: 2.5rem;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+    border: none;
+    color: white;
+}
+
+@keyframes movingGradient {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 60%);
+    animation: rotate 20s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.hero-content {
+    position: relative;
+    z-index: 1;
+}
+
+.hero-content h1 {
+    font-size: 2.8rem;
+    margin-bottom: 0.75rem;
+    font-weight: 800;
+    color: white !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.hero-content p {
+    font-size: 1.2rem;
+    opacity: 0.95;
+    color: white !important;
+    font-weight: 500;
+}
+
+/* Unified Cards Grid */
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+}
+
+@media (min-width: 1400px) {
+    .cards-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* Standard Dashboard Card */
+.dashboard-card {
+    background: var(--bg-surface);
+    border-radius: var(--border-radius-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* Card Icon Box */
+.card-icon-container {
+    width: 100%;
+    padding: 2.5rem 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: transparent;
+    transition: background 0.3s ease;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-icon-container i {
+    font-size: 3rem;
+    color: white !important;
+}
+
+@keyframes cardMovingGradient {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* Universal Gradients - Unified Blue Animated */
+.gradient-blue,
+.gradient-indigo,
+.gradient-cyan,
+.gradient-teal,
+.gradient-orange,
+.gradient-yellow,
+.gradient-green,
+.gradient-mint,
+.gradient-red,
+.gradient-purple {
+    background: linear-gradient(-45deg, #006fe6, #0091ea, #00bcd4, #005eb8) !important;
+    background-size: 300% 300% !important;
+    animation: cardMovingGradient 10s ease infinite !important;
+    color: white !important;
+}
+
+.gradient-blue i,
+.gradient-blue .pi,
+.gradient-indigo i,
+.gradient-indigo .pi,
+.gradient-cyan i,
+.gradient-cyan .pi,
+.gradient-teal i,
+.gradient-teal .pi,
+.gradient-orange i,
+.gradient-orange .pi,
+.gradient-yellow i,
+.gradient-yellow .pi,
+.gradient-green i,
+.gradient-green .pi,
+.gradient-mint i,
+.gradient-mint .pi,
+.gradient-red i,
+.gradient-red .pi,
+.gradient-purple i,
+.gradient-purple .pi {
+    color: white !important;
+}
+
+.gradient-gray {
+    background: linear-gradient(135deg, #78909c, #546e7a);
+}
+
+/* Card Content Standard */
+.card-content {
+    padding: 1.5rem;
+    text-align: center;
+    width: 100%;
+    background: white;
+    z-index: 2;
+}
+
+.card-content h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.3rem;
+    color: var(--text-color);
+    font-weight: 600;
+}
+
+.card-content p {
+    margin: 0 0 1.5rem 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.card-action {
+    color: var(--primary-color);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: color 0.3s;
+}
+
+.dashboard-card:hover .card-action {
+    color: var(--primary-dark);
+}
+
+.dashboard-card:hover .card-action i {
+    transform: translateX(4px);
+    transition: transform 0.3s;
+}
+
+/* Responsive adjustments for mobile and tablets */
+@media (max-width: 992px) {
+    .dashboard-container {
+        padding: 1.5rem 3%;
+    }
+
+    .cards-grid {
+        gap: 1.5rem;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 1rem;
+    }
+
+    .hero-content h1 {
+        font-size: 1.8rem;
+    }
+
+    .cards-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* --- Standard Modal Styles --- */
+
+/* Base Modal Styling */
+/* Base Modal Styling - Target ALL PrimeNG Dialogs */
+.p-dialog .p-dialog-header {
+    border-bottom: 1px solid #f1f3f5;
+    background-color: #ffffff !important;
+    color: var(--text-color);
+    padding: 1.5rem;
+    border-top-right-radius: var(--border-radius-lg);
+    border-top-left-radius: var(--border-radius-lg);
+}
+
+.p-dialog .p-dialog-content {
+    padding: 2rem;
+    background-color: #ffffff !important;
+}
+
+.p-dialog .p-dialog-footer {
+    border-top: 1px solid #f1f3f5;
+    background-color: #ffffff !important;
+    padding: 1.5rem;
+    text-align: right;
+    border-bottom-right-radius: var(--border-radius-lg);
+    border-bottom-left-radius: var(--border-radius-lg);
+}
+
+/* Modal Sizes */
+.modal-sm {
+    width: 400px;
+}
+
+.modal-md {
+    width: 600px;
+}
+
+.modal-lg {
+    width: 900px;
+}
+
+.modal-xl {
+    width: 90vw;
+}
+
+/* Responsive Overrides */
+@media (max-width: 992px) {
+
+    .modal-md,
+    .modal-lg {
+        width: 90vw;
+    }
+}
+
+@media (max-width: 576px) {
+
+    .modal-sm,
+    .modal-md,
+    .modal-lg,
+    .modal-xl {
+        width: 95vw;
+    }
+}
+
+/* Form Grid Utility */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.form-grid .field {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0;
+    /* Let grid gap handle spacing */
+}
+
+/* Align labels and inputs consistently */
+.form-grid label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+}
+
+/* Fix SweetAlert2 z-index to be above PrimeNG Dialogs */
+.swal2-container {
+    z-index: 99999 !important;
+}
+
+/* --- Legacy PrimeNG Input Icon Support (v19 Compatibility) --- */
+.p-input-icon-left,
+.p-input-icon-right {
+    position: relative;
+    display: inline-block;
+    width: auto;
+}
+
+.p-input-icon-left>i,
+.p-input-icon-right>i {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-top: 0;
+    z-index: 1;
+    color: var(--text-secondary);
+    font-size: 1rem;
+}
+
+.p-input-icon-left>i {
+    left: 0.75rem;
+}
+
+.p-input-icon-right>i {
+    right: 0.75rem;
+}
+
+.p-input-icon-left>input,
+.p-input-icon-left>.p-inputtext {
+    padding-left: 2.5rem !important;
+}
+
+.p-input-icon-right>input,
+.p-input-icon-right>.p-inputtext {
+    padding-right: 2.5rem !important;
+}
+
+/* --- Login Layout --- */
+.login-layout {
+    min-height: 100vh;
+    background: #ffffff !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+/* PrimeNG Button Semantic Overrides */
+.p-button-success {
+    background: var(--success-color) !important;
+    border-color: var(--success-color) !important;
+}
+
+.p-button-danger {
+    background: var(--danger-color) !important;
+    border-color: var(--danger-color) !important;
+}
+
+.p-button-warning {
+    background: var(--warning-color) !important;
+    border-color: var(--warning-color) !important;
+    color: #212529 !important;
+}
+
+.p-button-info {
+    background: var(--info-color) !important;
+    border-color: var(--info-color) !important;
+}
+
+/* Navbar Theme Overrides */
+.glass-navbar,
+.p-menubar {
+    background-color: var(--navbar-bg) !important;
+    color: var(--navbar-text) !important;
+}
+
+.p-menubar .p-menuitem-link .p-menuitem-text,
+.p-menubar .p-menuitem-link .p-menuitem-icon {
+    color: var(--navbar-text) !important;
+}
+
+/* Global Uppercase for Inputs */
+input,
+textarea {
+    text-transform: uppercase;
+}
+/* Offline Banner Style */
+.offline-banner {
+    background-color: #ffc107;
+    color: #212529;
+    text-align: center;
+    padding: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 9999;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.offline-banner i {
+    font-size: 1.2rem;
+}
