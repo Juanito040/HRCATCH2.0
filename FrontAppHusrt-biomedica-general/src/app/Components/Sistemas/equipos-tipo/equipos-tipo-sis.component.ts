@@ -1,21 +1,26 @@
-import { Component, OnInit, HostListener, inject } from '@angular/core';
+import { Component, OnInit, HostListener, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { SysequiposService, SysEquipo } from '../../../Services/appServices/sistemasServices/sysequipos/sysequipos.service';
 import { TipoEquipoService } from '../../../Services/appServices/general/tipoEquipo/tipo-equipo.service';
 import { SysEquipoModalComponent } from '../equipo-modal/equipo-modal.component';
 import { SysEquipoDetailModalComponent } from '../equipo-detail-modal/equipo-detail-modal.component';
+import { SysHistorialEquipoComponent } from '../historial-equipo/historial-equipo.component';
+import { SysDeleteConfirmationDialogComponent, DeleteAction } from '../delete-confirmation-dialog/delete-confirmation-dialog.component';
 import { getDecodedAccessToken } from '../../../utilidades';
 import { MenuItem } from 'primeng/api';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-equipos-tipo-sis',
   standalone: true,
-  imports: [CommonModule, SysEquipoModalComponent, SysEquipoDetailModalComponent],
+  imports: [CommonModule, SysEquipoModalComponent, SysEquipoDetailModalComponent, SysHistorialEquipoComponent, SysDeleteConfirmationDialogComponent],
   templateUrl: './equipos-tipo-sis.component.html',
   styleUrl: './equipos-tipo-sis.component.css'
 })
 export class EquiposTipoSisComponent implements OnInit {
+  @ViewChild(SysDeleteConfirmationDialogComponent) deleteDialog!: SysDeleteConfirmationDialogComponent;
+
   equipos: SysEquipo[] = [];
   filteredEquipos: any[] = [];
   pagedEquipos: any[] = [];
@@ -35,6 +40,13 @@ export class EquiposTipoSisComponent implements OnInit {
   isDetailModalOpen: boolean = false;
   equipoToView: SysEquipo | null = null;
 
+  isHistorialModalOpen: boolean = false;
+  equipoToHistorial: SysEquipo | null = null;
+
+  isDeleteOptionsDialogOpen: boolean = false;
+  equipoToDeleteWithOptions: SysEquipo | null = null;
+  deleteDialogMode: 'bodega' | 'baja' = 'bodega';
+
   private router = inject(Router);
   private sysequiposService = inject(SysequiposService);
   private tipoEquipoService = inject(TipoEquipoService);
@@ -45,6 +57,7 @@ export class EquiposTipoSisComponent implements OnInit {
   }
 
   ngOnInit() {
+    if (typeof sessionStorage === 'undefined') return;
     const id = sessionStorage.getItem('idTipoEquipoSis');
     if (!id) {
       this.router.navigate(['/adminsistemas/tiposequipo']);
@@ -113,9 +126,103 @@ export class EquiposTipoSisComponent implements OnInit {
 
   private buildOpciones(equipo: SysEquipo): MenuItem[] {
     return [
-      { label: 'Ver Detalles', icon: 'pi pi-eye',    command: () => this.openDetailModal(equipo) },
-      { label: 'Editar',       icon: 'pi pi-pencil', command: () => this.openEditModal(equipo) },
+      { label: 'Ver Detalles',    icon: 'pi pi-eye',      command: () => this.openDetailModal(equipo) },
+      { label: 'Editar',          icon: 'pi pi-pencil',   command: () => this.openEditModal(equipo) },
+      { label: 'Ver Historial',   icon: 'fas fa-history', command: () => this.openHistorialModal(equipo) },
+      { label: 'Enviar a Bodega', icon: 'fas fa-warehouse', command: () => this.confirmBodega(equipo) },
+      { label: 'Dar de Baja',     icon: 'pi pi-ban',      command: () => this.confirmBaja(equipo) },
     ];
+  }
+
+  confirmBodega(equipo: SysEquipo) {
+    this.equipoToDeleteWithOptions = equipo;
+    this.deleteDialogMode = 'bodega';
+    this.isDeleteOptionsDialogOpen = true;
+  }
+
+  confirmBaja(equipo: SysEquipo) {
+    this.equipoToDeleteWithOptions = equipo;
+    this.deleteDialogMode = 'baja';
+    this.isDeleteOptionsDialogOpen = true;
+  }
+
+  confirmDelete(equipo: SysEquipo) {
+    this.equipoToDeleteWithOptions = equipo;
+    this.deleteDialogMode = 'bodega';
+    this.isDeleteOptionsDialogOpen = true;
+  }
+
+  handleDeleteOptionsConfirm(deleteAction: DeleteAction) {
+    if (!this.equipoToDeleteWithOptions?.id_sysequipo) return;
+
+    const id = this.equipoToDeleteWithOptions.id_sysequipo;
+    const nombreEquipo = this.equipoToDeleteWithOptions.nombre_equipo || 'Equipo desconocido';
+
+    if (deleteAction.action === 'bodega') {
+      this.sysequiposService.enviarABodega(id, deleteAction.data.motivo).subscribe({
+        next: (response) => {
+          if (this.deleteDialog) this.deleteDialog.resetSubmitting();
+          if (response.success) {
+            this.closeDeleteOptionsDialog();
+            this.loadEquipos();
+            Swal.fire({ icon: 'success', title: 'Enviado a Bodega', text: `Equipo "${nombreEquipo}" enviado a bodega exitosamente`, timer: 2000, showConfirmButton: false });
+          } else {
+            const msg = response.message || 'Error al enviar el equipo a bodega';
+            if (this.deleteDialog) this.deleteDialog.showError(msg);
+            Swal.fire({ icon: 'error', title: 'Error', text: msg });
+          }
+        },
+        error: (err) => {
+          const msg = err.error?.message || 'Error al conectar con el servidor.';
+          if (this.deleteDialog) this.deleteDialog.showError(msg);
+          Swal.fire({ icon: 'error', title: 'Error', text: msg });
+        }
+      });
+    } else if (deleteAction.action === 'baja') {
+      const bajaData = {
+        justificacion_baja: deleteAction.data.justificacion_baja || '',
+        accesorios_reutilizables: deleteAction.data.accesorios_reutilizables,
+        id_usuario: deleteAction.data.id_usuario,
+        password: deleteAction.data.password || ''
+      };
+      this.sysequiposService.darDeBaja(id, bajaData).subscribe({
+        next: (response) => {
+          if (this.deleteDialog) this.deleteDialog.resetSubmitting();
+          if (response.success) {
+            this.closeDeleteOptionsDialog();
+            this.loadEquipos();
+            Swal.fire({ icon: 'success', title: 'Dado de Baja', text: `Equipo "${nombreEquipo}" dado de baja exitosamente`, timer: 2000, showConfirmButton: false });
+          } else {
+            const msg = response.message || 'Error al dar de baja el equipo';
+            if (this.deleteDialog) this.deleteDialog.showError(msg);
+            Swal.fire({ icon: 'error', title: 'Error', text: msg });
+          }
+        },
+        error: (err) => {
+          let msg = 'Error al conectar con el servidor';
+          if (err.status === 403) msg = err.error?.message || 'Contraseña incorrecta';
+          else if (err.status === 400) msg = err.error?.message || 'Datos inválidos';
+          else if (err.error?.message) msg = err.error.message;
+          if (this.deleteDialog) this.deleteDialog.showError(msg);
+          Swal.fire({ icon: 'error', title: 'Error', text: msg });
+        }
+      });
+    }
+  }
+
+  closeDeleteOptionsDialog() {
+    this.isDeleteOptionsDialogOpen = false;
+    this.equipoToDeleteWithOptions = null;
+  }
+
+  openHistorialModal(equipo: SysEquipo) {
+    this.equipoToHistorial = equipo;
+    this.isHistorialModalOpen = true;
+  }
+
+  closeHistorialModal() {
+    this.isHistorialModalOpen = false;
+    this.equipoToHistorial = null;
   }
 
   private withOpciones(equipos: SysEquipo[]): any[] {

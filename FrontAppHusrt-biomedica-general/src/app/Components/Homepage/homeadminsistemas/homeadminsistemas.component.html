@@ -9,27 +9,31 @@
 
   <div class="cards-grid" style="justify-content: center; max-width: 1500px; margin: 0 auto;">
 
-    <!-- Gestión de Equipos -->
-    <div class="dashboard-card" (click)="irAEquipos()">
+    <!-- Inventario -->
+    <div class="dashboard-card inventario-card">
       <div class="card-icon-container gradient-blue">
-        <i class="pi pi-desktop" style="font-size: 4rem;"></i>
+        <i class="pi pi-box" style="font-size: 4rem;"></i>
       </div>
       <div class="card-content">
-        <h3>Gestión de Equipos</h3>
-        <p>Inventario, hojas de vida y control de equipos de sistemas.</p>
-        <span class="card-action">Acceder <i class="pi pi-arrow-right"></i></span>
-      </div>
-    </div>
-
-    <!-- Gestión de TipoEQUIPOS -->
-    <div class="dashboard-card" (click)="irATiposEquipos()">
-      <div class="card-icon-container gradient-blue">
-        <i class="pi pi-align-left" style="font-size: 4rem;"></i>
-      </div>
-      <div class="card-content">
-        <h3>Tipos de Equipos</h3>
-        <p>Visualizar diferentes tipos de equipos.</p>
-        <span class="card-action">Acceder <i class="pi pi-arrow-right"></i></span>
+        <h3>Inventario</h3>
+        <p>Gestión de equipos, tipos y control del inventario de sistemas.</p>
+        <div class="sub-actions">
+          <button class="sub-action-btn" (click)="irATiposEquipos()">
+            <i class="pi pi-th-large"></i>
+            <span>Tipos de Equipo</span>
+            <i class="pi pi-arrow-right sub-arrow"></i>
+          </button>
+          <button class="sub-action-btn" (click)="irAEquiposBodega()">
+            <i class="fas fa-warehouse"></i>
+            <span>Equipos en Bodega</span>
+            <i class="pi pi-arrow-right sub-arrow"></i>
+          </button>
+          <button class="sub-action-btn" (click)="irAEquiposBaja()">
+            <i class="pi pi-ban"></i>
+            <span>Dados de Baja</span>
+            <i class="pi pi-arrow-right sub-arrow"></i>
+          </button>
+        </div>
       </div>
     </div>
 

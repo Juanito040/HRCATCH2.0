@@ -40,14 +40,15 @@ export class SistemasadminnavbarComponent implements OnInit {
         routerLink: '/admusuarios'
       },
       {
-        label: 'Tipos de Equipo',
-        icon: 'pi pi-th-large',
-        routerLink: '/adminsistemas/tiposequipo'
-      },
-      {
-        label: 'Equipos de Sistemas',
-        icon: 'pi pi-desktop',
-        routerLink: '/adminsistemas/equipos'
+        label: 'Inventario',
+        icon: 'pi pi-box',
+        items: [
+          { label: 'Tipos de Equipo',     icon: 'pi pi-th-large',     routerLink: '/adminsistemas/tiposequipo' },
+          { label: 'Crear Equipo',       icon: 'pi pi-plus-circle',  routerLink: '/adminsistemas/equipos', queryParams: { action: 'crear' } },
+          { separator: true },
+          { label: 'Equipos en Bodega', icon: 'pi pi-inbox',        routerLink: '/adminsistemas/equipos', queryParams: { vista: 'bodega' } },
+          { label: 'Dados de Baja',     icon: 'pi pi-ban',          routerLink: '/adminsistemas/equipos', queryParams: { vista: 'baja' } },
+        ]
       },
       {
         label: 'Mantenimientos',

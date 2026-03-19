@@ -6,9 +6,13 @@
 
 .page-wrapper { padding: 1.5rem; max-width: 1200px; margin: 0 auto; }
 
-.page-header { margin-bottom: 1.5rem; }
+.page-header { margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
 .page-header h1 { font-size: 1.75rem; font-weight: 700; color: var(--gray-900); margin: 0 0 0.25rem; }
 .subtitle { color: var(--gray-500); font-size: 0.9375rem; margin: 0; }
+
+.btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1.125rem; border: none; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: var(--primary-dark); }
 
 /* Search */
 .search-container { margin-bottom: 2rem; display: flex; justify-content: center; }

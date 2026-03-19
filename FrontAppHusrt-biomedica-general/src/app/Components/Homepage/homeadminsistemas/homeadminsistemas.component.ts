@@ -16,6 +16,8 @@ export class HomeadminsistemasComponent {
   router = inject(Router);
 
   irAEquipos() { this.router.navigate(['/adminsistemas/equipos']); }
+  irAEquiposBodega() { this.router.navigate(['/adminsistemas/equipos'], { queryParams: { vista: 'bodega' } }); }
+  irAEquiposBaja() { this.router.navigate(['/adminsistemas/equipos'], { queryParams: { vista: 'baja' } }); }
   irATiposEquipos() { this.router.navigate(['/adminsistemas/tiposequipo']); }
   irAMantenimientosEquipos() { this.router.navigate(['/adminsistemas/mantenimientos']); }
   irAMesa() { this.router.navigate(['/adminmesaservicios/casos']); }

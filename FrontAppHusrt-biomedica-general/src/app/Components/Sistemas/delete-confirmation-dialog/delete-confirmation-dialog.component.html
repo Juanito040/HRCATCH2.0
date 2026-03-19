@@ -1,4 +1,4 @@
-<div class="modal-overlay" *ngIf="isOpen" (click)="close()">
+<div class="modal-overlay" *ngIf="isOpen">
   <div class="modal-dialog" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <h2>{{ dialogTitle }}</h2>
@@ -17,7 +17,7 @@
             </div>
           </div>
         </label>
-        <label class="radio-option" *ngIf="isAdmin" [class.selected]="selectedAction === 'baja'">
+        <label class="radio-option" *ngIf="isAdmin && !hideBajaOption" [class.selected]="selectedAction === 'baja'">
           <input type="radio" name="action" value="baja" [(ngModel)]="selectedAction" (change)="onActionChange()" />
           <div class="option-content">
             <div class="option-icon danger"><i class="fas fa-ban"></i></div>

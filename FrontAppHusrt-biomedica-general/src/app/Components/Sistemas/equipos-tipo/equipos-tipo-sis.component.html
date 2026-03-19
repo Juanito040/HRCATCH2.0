@@ -1,5 +1,5 @@
 <br>
-<div class="container" [attr.inert]="(isModalOpen || isDetailModalOpen) ? '' : null">
+<div class="container" [attr.inert]="(isModalOpen || isDetailModalOpen || isHistorialModalOpen || isDeleteOptionsDialogOpen) ? '' : null">
 
   <div class="page-header">
     <div class="header-left">
@@ -132,3 +132,20 @@
   (closed)="closeDetailModal()"
   (editRequested)="onEditFromDetail($event)"
 ></app-sys-equipo-detail-modal>
+
+<app-sys-historial-equipo
+  [isOpen]="isHistorialModalOpen"
+  [equipo]="equipoToHistorial"
+  (closed)="closeHistorialModal()"
+></app-sys-historial-equipo>
+
+<app-sys-delete-dialog
+  [isOpen]="isDeleteOptionsDialogOpen"
+  [itemName]="equipoToDeleteWithOptions?.nombre_equipo || ''"
+  [initialAction]="deleteDialogMode"
+  [hideBodegaOption]="deleteDialogMode === 'baja'"
+  [hideBajaOption]="deleteDialogMode === 'bodega'"
+  [isAdmin]="deleteDialogMode === 'baja'"
+  (confirmed)="handleDeleteOptionsConfirm($event)"
+  (closed)="closeDeleteOptionsDialog()"
+></app-sys-delete-dialog>

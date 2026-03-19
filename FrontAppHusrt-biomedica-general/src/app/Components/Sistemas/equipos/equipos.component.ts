@@ -1,11 +1,12 @@
 import { Component, OnInit, ViewChild, ElementRef, inject, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { SysequiposService, SysEquipo } from '../../../Services/appServices/sistemasServices/sysequipos/sysequipos.service';
 import { SysEquipoModalComponent } from '../equipo-modal/equipo-modal.component';
 import { SysEquipoDetailModalComponent } from '../equipo-detail-modal/equipo-detail-modal.component';
 import { SysDeleteConfirmationDialogComponent, DeleteAction } from '../delete-confirmation-dialog/delete-confirmation-dialog.component';
 import { SysReactivarEquipoModalComponent, ReactivarEquipoData } from '../reactivar-equipo-modal/reactivar-equipo-modal.component';
+import { SysHistorialEquipoComponent } from '../historial-equipo/historial-equipo.component';
 import { getDecodedAccessToken } from '../../../utilidades';
 import { MenuItem } from 'primeng/api';
 import Swal from 'sweetalert2';
@@ -18,7 +19,8 @@ import Swal from 'sweetalert2';
     SysEquipoModalComponent,
     SysEquipoDetailModalComponent,
     SysDeleteConfirmationDialogComponent,
-    SysReactivarEquipoModalComponent
+    SysReactivarEquipoModalComponent,
+    SysHistorialEquipoComponent
   ],
   templateUrl: './equipos.component.html',
   styleUrls: ['./equipos.component.css']
@@ -58,13 +60,27 @@ export class SisEquiposComponent implements OnInit {
   isReactivarModalOpen: boolean = false;
   equipoToReactivar: SysEquipo | null = null;
 
+  isHistorialModalOpen: boolean = false;
+  equipoToHistorial: SysEquipo | null = null;
+
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   constructor(private sysequiposService: SysequiposService) {}
 
   ngOnInit() {
-    this.loadEquipos();
     this.loadCounters();
+    const params = this.route.snapshot.queryParams;
+    if (params['vista'] === 'bodega') {
+      this.changeView('bodega');
+    } else if (params['vista'] === 'baja') {
+      this.changeView('baja');
+    } else {
+      this.changeView('bodega');
+      if (params['action'] === 'crear') {
+        this.openCreateModal();
+      }
+    }
   }
 
   get isAdmin(): boolean {
@@ -300,23 +316,37 @@ export class SisEquiposComponent implements OnInit {
   }
 
   private buildOpciones(equipo: SysEquipo): MenuItem[] {
+    const opcionHistorial = { label: 'Ver Historial', icon: 'fas fa-history', command: () => this.openHistorialModal(equipo) };
     if (this.selectedView === 'all') {
       return [
-        { label: 'Ver Detalles',    icon: 'pi pi-eye',     command: () => this.openDetailModal(equipo) },
-        { label: 'Editar',          icon: 'pi pi-pencil',  command: () => this.openEditModal(equipo) },
-        { label: 'Enviar a Bodega / Baja', icon: 'pi pi-trash', command: () => this.confirmDelete(equipo) }
+        { label: 'Ver Detalles',          icon: 'pi pi-eye',     command: () => this.openDetailModal(equipo) },
+        { label: 'Editar',                icon: 'pi pi-pencil',  command: () => this.openEditModal(equipo) },
+        opcionHistorial,
+        { label: 'Enviar a Bodega / Baja', icon: 'pi pi-trash',  command: () => this.confirmDelete(equipo) }
       ];
     } else if (this.selectedView === 'bodega') {
       return [
         { label: 'Ver Detalles', icon: 'pi pi-eye',       command: () => this.openDetailModal(equipo) },
         { label: 'Reactivar',    icon: 'pi pi-power-off', command: () => this.reactivarEquipo(equipo) },
+        opcionHistorial,
         { label: 'Dar de Baja',  icon: 'pi pi-trash',     command: () => this.confirmDelete(equipo) }
       ];
     } else {
       return [
-        { label: 'Ver Detalles', icon: 'pi pi-eye', command: () => this.openDetailModal(equipo) }
+        { label: 'Ver Detalles', icon: 'pi pi-eye', command: () => this.openDetailModal(equipo) },
+        opcionHistorial
       ];
     }
+  }
+
+  openHistorialModal(equipo: SysEquipo) {
+    this.equipoToHistorial = equipo;
+    this.isHistorialModalOpen = true;
+  }
+
+  closeHistorialModal() {
+    this.isHistorialModalOpen = false;
+    this.equipoToHistorial = null;
   }
 
   private withOpciones(equipos: SysEquipo[]): any[] {

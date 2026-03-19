@@ -1,9 +1,9 @@
 <br>
-<div class="container" [attr.inert]="(isDeleteOptionsDialogOpen || isModalOpen || isDetailModalOpen || isReactivarModalOpen) ? '' : null">
+<div class="container" [attr.inert]="(isDeleteOptionsDialogOpen || isModalOpen || isDetailModalOpen || isReactivarModalOpen || isHistorialModalOpen) ? '' : null">
   <div class="page-header">
     <div>
-      <h1>Gestión de Equipos</h1>
-      <p class="subtitle">Administra todos los equipos de sistemas del hospital</p>
+      <h1>Gestión de Equipos en bodega y dados de baja</h1>
+      <p class="subtitle">Administra todos los equipos de sistemas del hospital en bodega y dados de baja.</p>
     </div>
     
     
@@ -16,12 +16,6 @@
 
   <!-- Filtros de vista -->
   <div class="view-filters">
-    <button class="view-filter-btn" [class.active]="selectedView === 'all'"
-      (click)="changeView('all')" [disabled]="isLoading">
-      <i class="fas fa-list"></i>
-      <span>Todos los Equipos</span>
-      <span class="badge-count" *ngIf="totalEquipos > 0">{{ totalEquipos }}</span>
-    </button>
     <button class="view-filter-btn" [class.active]="selectedView === 'bodega'"
       (click)="changeView('bodega')" [disabled]="isLoading">
       <i class="fas fa-warehouse"></i>
@@ -192,3 +186,10 @@
   (closed)="closeReactivarModal()"
   (confirmed)="handleReactivarConfirm($event)"
 ></app-sys-reactivar-equipo-modal>
+
+<!-- Modal Historial del Equipo -->
+<app-sys-historial-equipo
+  [isOpen]="isHistorialModalOpen"
+  [equipo]="equipoToHistorial"
+  (closed)="closeHistorialModal()"
+></app-sys-historial-equipo>
