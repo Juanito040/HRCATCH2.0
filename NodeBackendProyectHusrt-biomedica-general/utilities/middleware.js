@@ -9,7 +9,7 @@ const checkToken = (req, res, next) => {
 
     let payload;
     try {
-        payload = jwt.verify(token, 'aPPHusRT2024');
+        payload = jwt.verify(token, process.env.JWT_SECRET);
         req.user = payload;
     } catch {
         return res.json({ err: 'Token no valido' })

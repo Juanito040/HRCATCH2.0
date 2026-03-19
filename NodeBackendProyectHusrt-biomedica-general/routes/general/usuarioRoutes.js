@@ -9,8 +9,8 @@ const app = Router();
 const transporter = require('../../utilities/mailer');
 const generarPDF = require('../../utilities/crearPDF');
 
-const SECRET_KEY = 'aPPHusRT2024';
-const CLIENT_URL = 'http://172.30.40.201:4200/recuperarcontraseña';
+const SECRET_KEY = process.env.JWT_SECRET;
+const CLIENT_URL = process.env.CLIENT_URL;
 
 app.post('/adduser', async (req, res) => {
   try {

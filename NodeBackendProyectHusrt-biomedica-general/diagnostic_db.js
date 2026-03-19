@@ -1,6 +1,6 @@
 const { Sequelize } = require('sequelize');
 
-const sequelize = new Sequelize('dbnewapphusrt', 'root', 'Millos310114$', {
+const sequelize = new Sequelize('dbnewapphusrt', 'root', process.env.MYSQL_PASSWORD, {
     host: 'localhost',
     dialect: 'mariadb',
     logging: false

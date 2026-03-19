@@ -1,1 +1,47 @@
-node_modules
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Environment variables (credenciales, secrets)
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+logs/
+
+# Coverage
+coverage/
+
+# Build output
+dist/
+build/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# SSL certificates (local dev)
+certs/
+*.pem
+*.key
+*.crt
+
+# Archivos de migración/diagnóstico puntuales (no son parte del código productivo)
+diagnostic_db.js
+simulate_create.js
+src/fix_responsableId_fk.js
+src/manual_migration*.js
+
+# Scripts de un solo uso
+scripts/add_*.js
+scripts/insert_*.js
