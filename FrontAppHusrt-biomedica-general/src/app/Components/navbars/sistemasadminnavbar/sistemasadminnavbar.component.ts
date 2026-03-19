@@ -54,6 +54,11 @@ export class SistemasadminnavbarComponent implements OnInit {
         icon: 'pi pi-wrench',
         routerLink: '/adminsistemas/mantenimientos'
       },
+      {
+        label: 'Repuestos',
+        icon: 'pi pi-box',
+        routerLink: '/adminsistemas/repuestos'
+      },
     ];
   }
 

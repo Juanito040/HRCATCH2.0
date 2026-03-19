@@ -1,6 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../../config/configDb');
-const SysEquipo = require('./SysEquipo');
+const SysTipoRepuesto = require('./SysTipoRepuesto');
 
 const SysRepuesto = sequelize.define('SysRepuesto', {
   id_sysrepuesto: {
@@ -8,24 +8,62 @@ const SysRepuesto = sequelize.define('SysRepuesto', {
     primaryKey: true,
     autoIncrement: true
   },
-  nombre_equipo: { type: DataTypes.STRING(255), allowNull: true },
-  marca: { type: DataTypes.STRING(255), allowNull: true },
-  modelo: { type: DataTypes.STRING(255), allowNull: true },
-  serie: { type: DataTypes.STRING(255), allowNull: true },
-  ubicacion: { type: DataTypes.STRING(255), allowNull: true },
-  observaciones: { type: DataTypes.STRING(255), allowNull: true },
-  activo: { type: DataTypes.BOOLEAN, allowNull: true, defaultValue: true },
-  id_sys_equipo_fk: {
+  nombre: {
+    type: DataTypes.STRING(255),
+    allowNull: false
+  },
+  descripcion_tecnica: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  numero_parte: {
+    type: DataTypes.STRING(200),
+    allowNull: true
+  },
+  numero_serie: {
+    type: DataTypes.STRING(100),
+    allowNull: true
+  },
+  id_sys_tipo_repuesto_fk: {
     type: DataTypes.INTEGER,
     allowNull: true,
-    references: { model: 'SysEquipo', key: 'id_sysequipo' }
+    references: { model: 'SysTipoRepuesto', key: 'id_sys_tipo_repuesto' }
+  },
+  modelo_asociado: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
+  proveedor: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
+  cantidad_stock: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0
+  },
+  ubicacion_fisica: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
+  is_active: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+    allowNull: false
   }
 }, {
   tableName: 'SysRepuesto',
   timestamps: true
 });
 
-SysRepuesto.belongsTo(SysEquipo, { foreignKey: 'id_sys_equipo_fk', as: 'equipo' });
-SysEquipo.hasMany(SysRepuesto, { foreignKey: 'id_sys_equipo_fk', as: 'repuestos' });
+SysRepuesto.belongsTo(SysTipoRepuesto, {
+  foreignKey: 'id_sys_tipo_repuesto_fk',
+  as: 'tipoRepuesto'
+});
+
+SysTipoRepuesto.hasMany(SysRepuesto, {
+  foreignKey: 'id_sys_tipo_repuesto_fk',
+  as: 'repuestos'
+});
 
 module.exports = SysRepuesto;

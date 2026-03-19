@@ -1,0 +1,325 @@
+<!-- Repuestos Component -->
+
+<!-- ── Header ─────────────────────────────────────────────── -->
+<div class="page-header">
+  <div class="page-title">
+    <span class="icon-badge"><i class="pi pi-wrench"></i></span>
+    <div>
+      <h1>Gestión de Repuestos</h1>
+      <small style="color: var(--text-color-secondary);font-size:0.8rem;">
+        Módulo Administrador — Sistemas
+      </small>
+    </div>
+  </div>
+</div>
+
+<!-- ── Tabs ───────────────────────────────────────────────── -->
+<div class="tab-bar">
+  <button class="tab-btn" [class.active]="tabActual === 'repuestos'" (click)="setTab('repuestos')">
+    <i class="pi pi-box mr-1"></i> Repuestos
+  </button>
+  <button class="tab-btn" [class.active]="tabActual === 'tipos'" (click)="setTab('tipos')">
+    <i class="pi pi-tags mr-1"></i> Tipos de Repuesto
+  </button>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     TAB: REPUESTOS
+═══════════════════════════════════════════════════════ -->
+<div *ngIf="tabActual === 'repuestos'">
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="search-box">
+      <i class="pi pi-search"></i>
+      <input type="text" placeholder="Buscar por nombre, tipo, N° parte..." (input)="onSearch($event)" />
+    </div>
+    <button class="btn-primary" (click)="openCreateModal()">
+      <i class="pi pi-plus"></i> Nuevo Repuesto
+    </button>
+  </div>
+
+  <!-- Tabla -->
+  <div class="table-card">
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Código (ID)</th>
+            <th>Nombre</th>
+            <th>Tipo</th>
+            <th>N° Parte</th>
+            <th>N° Serie</th>
+            <th>Proveedor</th>
+            <th>Stock</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <!-- Loading -->
+          <tr *ngIf="isLoading">
+            <td colspan="9">
+              <div class="state-box">
+                <i class="pi pi-spin pi-spinner"></i>
+                <p>Cargando repuestos...</p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Error -->
+          <tr *ngIf="!isLoading && error">
+            <td colspan="9">
+              <div class="state-box">
+                <i class="pi pi-exclamation-triangle" style="color:#ef4444"></i>
+                <p>{{ error }}</p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Empty -->
+          <tr *ngIf="!isLoading && !error && pagedRepuestos.length === 0">
+            <td colspan="9">
+              <div class="state-box">
+                <i class="pi pi-inbox"></i>
+                <p>No hay repuestos registrados.</p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Data rows -->
+          <tr *ngFor="let r of pagedRepuestos">
+            <td><span class="code-badge">#{{ r.id_sysrepuesto }}</span></td>
+            <td><strong>{{ r.nombre }}</strong></td>
+            <td>{{ r.tipoRepuesto?.nombre || getTipoNombre(r.id_sys_tipo_repuesto_fk) }}</td>
+            <td>{{ r.numero_parte || '—' }}</td>
+            <td>{{ r.numero_serie || '—' }}</td>
+            <td>{{ r.proveedor || '—' }}</td>
+            <td>{{ r.cantidad_stock ?? 0 }}</td>
+            <td>
+              <span class="badge" [ngClass]="r.is_active ? 'badge-success' : 'badge-danger'">
+                <i class="pi" [ngClass]="r.is_active ? 'pi-check-circle' : 'pi-times-circle'"></i>
+                {{ r.is_active ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td style="display:flex;gap:0.4rem;flex-wrap:wrap;align-items:center;">
+              <button class="btn-icon" title="Editar" (click)="openEditModal(r)">
+                <i class="pi pi-pencil"></i>
+              </button>
+              <button *ngIf="r.is_active" class="btn-outline-danger" (click)="toggleRepuesto(r)" title="Desactivar">
+                <i class="pi pi-ban"></i> Desactivar
+              </button>
+              <button *ngIf="!r.is_active" class="btn-outline-success" (click)="toggleRepuesto(r)" title="Activar">
+                <i class="pi pi-check"></i> Activar
+              </button>
+            </td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación -->
+    <div class="pagination-bar" *ngIf="!isLoading && filteredRepuestos.length > 0">
+      <span class="pagination-info">
+        Mostrando {{ (currentPage - 1) * pageSize + 1 }}–{{ min(currentPage * pageSize, filteredRepuestos.length) }}
+        de {{ filteredRepuestos.length }} repuestos
+      </span>
+      <div class="pagination-btns">
+        <button class="pg-btn" (click)="goToPage(1)" [disabled]="currentPage === 1">
+          <i class="pi pi-angle-double-left"></i>
+        </button>
+        <button class="pg-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">
+          <i class="pi pi-angle-left"></i>
+        </button>
+        <button *ngFor="let p of getPagesArray()" class="pg-btn" [class.active]="p === currentPage" (click)="goToPage(p)">
+          {{ p }}
+        </button>
+        <button class="pg-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">
+          <i class="pi pi-angle-right"></i>
+        </button>
+        <button class="pg-btn" (click)="goToPage(totalPages)" [disabled]="currentPage === totalPages">
+          <i class="pi pi-angle-double-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     TAB: TIPOS DE REPUESTO
+═══════════════════════════════════════════════════════ -->
+<div *ngIf="tabActual === 'tipos'">
+
+  <div class="toolbar">
+    <span style="font-size:0.9rem;color:var(--text-color-secondary)">
+      Crea primero un tipo, luego podés asignarlo a un repuesto.
+    </span>
+    <button class="btn-primary" (click)="openCreateTipoModal()">
+      <i class="pi pi-plus"></i> Nuevo Tipo
+    </button>
+  </div>
+
+  <div class="table-card">
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="tipos.length === 0">
+            <td colspan="5">
+              <div class="state-box">
+                <i class="pi pi-tags"></i>
+                <p>No hay tipos registrados. Crea el primero.</p>
+              </div>
+            </td>
+          </tr>
+          <tr *ngFor="let t of tipos">
+            <td><span class="code-badge">#{{ t.id_sys_tipo_repuesto }}</span></td>
+            <td><strong>{{ t.nombre }}</strong></td>
+            <td>{{ t.descripcion || '—' }}</td>
+            <td>
+              <span class="badge" [ngClass]="t.is_active ? 'badge-success' : 'badge-danger'">
+                <i class="pi" [ngClass]="t.is_active ? 'pi-check-circle' : 'pi-times-circle'"></i>
+                {{ t.is_active ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+              <button class="btn-icon" title="Editar" (click)="openEditTipoModal(t)">
+                <i class="pi pi-pencil"></i>
+              </button>
+              <button *ngIf="t.is_active" class="btn-outline-danger" (click)="toggleTipo(t)">
+                <i class="pi pi-ban"></i> Desactivar
+              </button>
+              <button *ngIf="!t.is_active" class="btn-outline-success" (click)="toggleTipo(t)">
+                <i class="pi pi-check"></i> Activar
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════
+     MODAL — CREAR / EDITAR REPUESTO
+═══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" *ngIf="isRepuestoModalOpen" (click)="closeRepuestoModal()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ isEditMode ? 'Editar Repuesto' : 'Nuevo Repuesto' }}</h3>
+      <button class="btn-close" (click)="closeRepuestoModal()"><i class="pi pi-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+
+        <!-- Nombre -->
+        <div class="form-group full-width">
+          <label>Nombre *</label>
+          <input type="text" [(ngModel)]="formRepuesto.nombre" placeholder="Nombre del repuesto" />
+        </div>
+
+        <!-- Tipo -->
+        <div class="form-group">
+          <label>Tipo de Repuesto</label>
+          <select [(ngModel)]="formRepuesto.id_sys_tipo_repuesto_fk">
+            <option [ngValue]="undefined">— Sin tipo —</option>
+            <option *ngFor="let t of tipos" [ngValue]="t.id_sys_tipo_repuesto">{{ t.nombre }}</option>
+          </select>
+        </div>
+
+        <!-- Stock -->
+        <div class="form-group">
+          <label>Cantidad en Stock</label>
+          <input type="number" [(ngModel)]="formRepuesto.cantidad_stock" min="0" />
+        </div>
+
+        <!-- N° Parte -->
+        <div class="form-group">
+          <label>Número de Parte</label>
+          <input type="text" [(ngModel)]="formRepuesto.numero_parte" placeholder="Ej. ABC-1234" />
+        </div>
+
+        <!-- N° Serie -->
+        <div class="form-group">
+          <label>Número de Serie</label>
+          <input type="text" [(ngModel)]="formRepuesto.numero_serie" placeholder="Ej. SN-9876" />
+        </div>
+
+        <!-- Proveedor -->
+        <div class="form-group">
+          <label>Proveedor</label>
+          <input type="text" [(ngModel)]="formRepuesto.proveedor" placeholder="Nombre del proveedor" />
+        </div>
+
+        <!-- Modelo Asociado -->
+        <div class="form-group">
+          <label>Modelo Asociado</label>
+          <input type="text" [(ngModel)]="formRepuesto.modelo_asociado" placeholder="Modelo del equipo" />
+        </div>
+
+        <!-- Ubicación Física -->
+        <div class="form-group full-width">
+          <label>Ubicación Física</label>
+          <input type="text" [(ngModel)]="formRepuesto.ubicacion_fisica" placeholder="Ej. Estante A / Bodega" />
+        </div>
+
+        <!-- Descripción técnica -->
+        <div class="form-group full-width">
+          <label>Descripción Técnica</label>
+          <textarea [(ngModel)]="formRepuesto.descripcion_tecnica" placeholder="Descripción detallada..."></textarea>
+        </div>
+
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeRepuestoModal()">Cancelar</button>
+      <button class="btn-primary" (click)="guardarRepuesto()" [disabled]="isSaving">
+        <i class="pi" [ngClass]="isSaving ? 'pi-spin pi-spinner' : 'pi-save'"></i>
+        {{ isSaving ? 'Guardando...' : (isEditMode ? 'Actualizar' : 'Guardar') }}
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════
+     MODAL — CREAR / EDITAR TIPO
+═══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" *ngIf="isTipoModalOpen" (click)="closeTipoModal()">
+  <div class="modal-card" style="max-width:420px" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ isTipoEditMode ? 'Editar Tipo' : 'Nuevo Tipo de Repuesto' }}</h3>
+      <button class="btn-close" (click)="closeTipoModal()"><i class="pi pi-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid" style="grid-template-columns:1fr">
+        <div class="form-group">
+          <label>Nombre *</label>
+          <input type="text" [(ngModel)]="formTipo.nombre" placeholder="Ej. Electrónico, Mecánico..." />
+        </div>
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea [(ngModel)]="formTipo.descripcion" placeholder="Descripción del tipo (opcional)"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeTipoModal()">Cancelar</button>
+      <button class="btn-primary" (click)="guardarTipo()">
+        <i class="pi pi-save"></i>
+        {{ isTipoEditMode ? 'Actualizar Tipo' : 'Guardar Tipo' }}
+      </button>
+    </div>
+  </div>
+</div>

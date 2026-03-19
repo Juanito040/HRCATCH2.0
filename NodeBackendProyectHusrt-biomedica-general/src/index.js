@@ -86,6 +86,7 @@ app.use(CondicionInicialRoutes, checkToken);
 require('../models/Sistemas/SysHojaVida');
 require('../models/Sistemas/SysBaja');
 require('../models/Sistemas/SysMantenimiento');
+require('../models/Sistemas/SysTipoRepuesto');
 require('../models/Sistemas/SysRepuesto');
 const sysEquipoRoutes = require('./../routes/sistemas/sysEquipoRoutes');
 const sysMantenimientoRoutes = require('./../routes/sistemas/sysMantenimientoRoutes');
@@ -93,6 +94,11 @@ const sysHojaVidaRoutes = require('./../routes/sistemas/sysHojaVidaRoutes');
 app.use('/sysequipo', checkToken, sysEquipoRoutes);
 app.use('/sysmantenimiento', checkToken, sysMantenimientoRoutes);
 app.use('/syshojavida', checkToken, sysHojaVidaRoutes);
+
+const sysTipoRepuestoRoutes = require('./../routes/sistemas/sysTipoRepuestoRoutes');
+const sysRepuestoRoutes = require('./../routes/sistemas/sysRepuestoRoutes');
+app.use('/systiporepuesto', checkToken, sysTipoRepuestoRoutes);
+app.use('/sysrepuesto', checkToken, sysRepuestoRoutes);
 
 
 const cargoRoutes = require('./../routes/generales/cargoRoutes');
