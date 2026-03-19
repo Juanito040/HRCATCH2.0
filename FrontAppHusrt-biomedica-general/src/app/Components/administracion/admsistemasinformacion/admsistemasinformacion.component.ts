@@ -11,9 +11,12 @@ import { TagModule } from 'primeng/tag';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { SelectModule } from 'primeng/select';
+import { DatePickerModule, DatePickerMonthChangeEvent } from 'primeng/datepicker';
+import { TextareaModule } from 'primeng/textarea';
 import { SistemaInformacionService } from '../../../Services/appServices/biomedicaServices/sistemaInformacion/sistema-informacion.service';
 import { ResponsableService } from '../../../Services/appServices/biomedicaServices/responsable/responsable.service';
 import { UserService } from '../../../Services/appServices/userServices/user.service';
+import { BackupSistemaService } from '../../../Services/appServices/biomedicaServices/backup/backup-sistema.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -22,7 +25,7 @@ import Swal from 'sweetalert2';
     imports: [
         CommonModule, ReactiveFormsModule, FormsModule,
         TableModule, InputTextModule, ButtonModule, DialogModule, ToolbarModule, TooltipModule, TagModule,
-        IconFieldModule, InputIconModule, SelectModule
+        IconFieldModule, InputIconModule, SelectModule, DatePickerModule, TextareaModule
     ],
     templateUrl: './admsistemasinformacion.component.html',
     styleUrl: './admsistemasinformacion.component.css'
@@ -32,6 +35,7 @@ export class AmdSistemasInformacionComponent implements OnInit {
     sistemaService = inject(SistemaInformacionService);
     responsableService = inject(ResponsableService);
     userService = inject(UserService);
+    backupService = inject(BackupSistemaService);
     formBuilder = inject(FormBuilder);
 
     sistemas: any[] = [];
@@ -42,11 +46,31 @@ export class AmdSistemasInformacionComponent implements OnInit {
     isEditing: boolean = false;
     selectedSistema: any;
 
+    // Calendario de backups
+    viewCalendarioBackup: boolean = false;
+    sistemaSeleccionado: any = null;
+    backupsDelMes: any[] = [];
+    fechaBackup: Date = new Date();
+    viewFormBackup: boolean = false;
+    nuevoBackup: any = { fecha: null, tipo: 'Completo', estado: 'Pendiente', observacion: '' };
+
     periodicidadOptions = [
         { label: 'Diario', value: 'Diario' },
         { label: 'Semanal', value: 'Semanal' },
         { label: 'Mensual', value: 'Mensual' },
         { label: 'Anual', value: 'Anual' }
+    ];
+
+    tipoBackupOptions = [
+        { label: 'Completo', value: 'Completo' },
+        { label: 'Incremental', value: 'Incremental' },
+        { label: 'Diferencial', value: 'Diferencial' }
+    ];
+
+    estadoBackupOptions = [
+        { label: 'Pendiente', value: 'Pendiente' },
+        { label: 'Completado', value: 'Completado' },
+        { label: 'Fallido', value: 'Fallido' }
     ];
 
     formGroup: FormGroup;
@@ -156,5 +180,99 @@ export class AmdSistemasInformacionComponent implements OnInit {
                 }
             }
         });
+    }
+
+    // --- Calendario de backups ---
+
+    async openCalendarioBackup(sistema: any) {
+        this.sistemaSeleccionado = sistema;
+        this.fechaBackup = new Date();
+        this.viewCalendarioBackup = true;
+        await this.cargarBackupsDelMes();
+    }
+
+    async onMesCalendarioChange(event: DatePickerMonthChangeEvent) {
+        if (event.month != null && event.year != null) {
+            this.fechaBackup = new Date(event.year, event.month - 1, 1);
+            await this.cargarBackupsDelMes();
+        }
+    }
+
+    async cargarBackupsDelMes() {
+        try {
+            const mes = this.fechaBackup.getMonth() + 1;
+            const anio = this.fechaBackup.getFullYear();
+            this.backupsDelMes = await this.backupService.getBackupsPorMes(
+                this.sistemaSeleccionado.id, mes, anio
+            );
+        } catch (error) {
+            console.error(error);
+            this.backupsDelMes = [];
+        }
+    }
+
+    abrirFormBackup() {
+        this.nuevoBackup = { fecha: null, tipo: 'Completo', estado: 'Pendiente', observacion: '' };
+        this.viewFormBackup = true;
+    }
+
+    async guardarBackup() {
+        if (!this.nuevoBackup.fecha) {
+            Swal.fire('Atención', 'Seleccione una fecha para el backup', 'warning');
+            return;
+        }
+        try {
+            const fechaStr = this.nuevoBackup.fecha instanceof Date
+                ? this.nuevoBackup.fecha.toISOString().split('T')[0]
+                : this.nuevoBackup.fecha;
+            await this.backupService.createBackup({
+                sistemaInformacionId: this.sistemaSeleccionado.id,
+                fecha: fechaStr,
+                tipo: this.nuevoBackup.tipo,
+                estado: this.nuevoBackup.estado,
+                observacion: this.nuevoBackup.observacion
+            });
+            this.viewFormBackup = false;
+            await this.cargarBackupsDelMes();
+        } catch (error) {
+            console.error(error);
+            Swal.fire('Error', 'No se pudo guardar el backup', 'error');
+        }
+    }
+
+    async eliminarBackup(backup: any) {
+        const result = await Swal.fire({
+            title: '¿Eliminar backup?',
+            text: `Fecha: ${backup.fecha}`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        });
+        if (result.isConfirmed) {
+            try {
+                await this.backupService.deleteBackup(backup.id);
+                await this.cargarBackupsDelMes();
+            } catch (error) {
+                console.error(error);
+                Swal.fire('Error', 'No se pudo eliminar el backup', 'error');
+            }
+        }
+    }
+
+    async cambiarEstadoBackup(backup: any, nuevoEstado: string) {
+        try {
+            await this.backupService.updateBackup(backup.id, { estado: nuevoEstado });
+            backup.estado = nuevoEstado;
+        } catch (error) {
+            console.error(error);
+            Swal.fire('Error', 'No se pudo actualizar el estado', 'error');
+        }
+    }
+
+    getEstadoSeverity(estado: string): 'success' | 'warn' | 'danger' | 'info' {
+        if (estado === 'Completado') return 'success';
+        if (estado === 'Fallido') return 'danger';
+        return 'warn';
     }
 }

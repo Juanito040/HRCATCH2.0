@@ -29,6 +29,7 @@ const TrazabilidadRoutes = require('./../routes/biomedica/trazabilidadRoutes');
 const TrasladoRoutes = require('./../routes/biomedica/trasladoRoutes');
 const firmaRoutes = require('./../routes/biomedica/firmaRoutes');
 const SistemaInformacion = require('./../routes/biomedica/sistemaInformacionRoutes');
+const BackupRoutes = require('./../routes/biomedica/backupRoutes');
 const { checkToken } = require('./../utilities/middleware');
 const sequelize = require('./../config/configDb');
 const imagenesRoutes = require('./../routes/general/imagenesRoutes');
@@ -82,6 +83,7 @@ app.use(TrazabilidadRoutes, checkToken);
 app.use(TrasladoRoutes, checkToken);
 app.use(firmaRoutes, checkToken);
 app.use(SistemaInformacion, checkToken);
+app.use(BackupRoutes, checkToken);
 
 const CondicionInicialRoutes = require('./../routes/biomedica/condicionInicialRoutes');
 app.use(CondicionInicialRoutes, checkToken);

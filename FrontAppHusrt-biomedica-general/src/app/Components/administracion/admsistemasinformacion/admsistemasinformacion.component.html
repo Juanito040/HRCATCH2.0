@@ -61,6 +61,9 @@
                         <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="warn"
                             (onClick)="openEdit(sistema)" pTooltip="Editar"></p-button>
 
+                        <p-button icon="pi pi-calendar" [rounded]="true" [text]="true" severity="info"
+                            (onClick)="openCalendarioBackup(sistema)" pTooltip="Calendario de Backups"></p-button>
+
                         <p-button *ngIf="sistema.estado" icon="pi pi-ban" [rounded]="true" [text]="true"
                             severity="danger" (onClick)="toggleEstado(sistema)" pTooltip="Desactivar"></p-button>
 
@@ -80,6 +83,7 @@
     </p-table>
 </div>
 
+<!-- Modal: Crear / Editar Sistema -->
 <p-dialog [(visible)]="viewModal" styleClass="standard-modal modal-lg p-fluid"
     [header]="isEditing ? 'Editar Sistema de Información' : 'Nuevo Sistema de Información'" [modal]="true">
     <ng-template pTemplate="content">
@@ -132,5 +136,111 @@
         <button pButton pRipple label="Cancelar" icon="pi pi-times" class="p-button-text p-button-secondary"
             (click)="viewModal = false"></button>
         <button pButton pRipple label="Guardar" icon="pi pi-check" (click)="saveSistema()"></button>
+    </ng-template>
+</p-dialog>
+
+<!-- Modal: Calendario de Backups -->
+<p-dialog [(visible)]="viewCalendarioBackup"
+    [header]="'Backups — ' + (sistemaSeleccionado?.nombre || '')"
+    [modal]="true" [style]="{ width: '850px' }" styleClass="p-fluid">
+    <ng-template pTemplate="content">
+        <div class="flex flex-column gap-4">
+
+            <!-- Datepicker inline -->
+            <div class="flex justify-content-center">
+                <p-datepicker [(ngModel)]="fechaBackup" [inline]="true"
+                    (onMonthChange)="onMesCalendarioChange($event)">
+                </p-datepicker>
+            </div>
+
+            <!-- Encabezado lista + botón agregar -->
+            <div class="flex align-items-center justify-content-between">
+                <h5 class="m-0">Backups del mes</h5>
+                <p-button label="Agregar Backup" icon="pi pi-plus" severity="primary" [raised]="true"
+                    (onClick)="abrirFormBackup()"></p-button>
+            </div>
+
+            <!-- Lista de backups -->
+            <p-table [value]="backupsDelMes" [tableStyle]="{ 'min-width': '100%' }" [rowHover]="true">
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Tipo</th>
+                        <th>Estado</th>
+                        <th>Observación</th>
+                        <th>Acciones</th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-backup>
+                    <tr>
+                        <td>{{ backup.fecha }}</td>
+                        <td>{{ backup.tipo }}</td>
+                        <td>
+                            <p-select [options]="estadoBackupOptions" [(ngModel)]="backup.estado"
+                                optionLabel="label" optionValue="value"
+                                (onChange)="cambiarEstadoBackup(backup, backup.estado)"
+                                appendTo="body" [style]="{ width: '130px' }">
+                            </p-select>
+                        </td>
+                        <td>{{ backup.observacion }}</td>
+                        <td>
+                            <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger"
+                                (onClick)="eliminarBackup(backup)" pTooltip="Eliminar"></p-button>
+                        </td>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td colspan="5" class="text-center p-3">No hay backups registrados para este mes.</td>
+                    </tr>
+                </ng-template>
+            </p-table>
+
+        </div>
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+        <p-button label="Cerrar" icon="pi pi-times" severity="secondary" [text]="true"
+            (onClick)="viewCalendarioBackup = false"></p-button>
+    </ng-template>
+</p-dialog>
+
+<!-- Sub-modal: Agregar Backup -->
+<p-dialog [(visible)]="viewFormBackup" header="Agregar Backup" [modal]="true"
+    [style]="{ width: '450px' }" styleClass="p-fluid">
+    <ng-template pTemplate="content">
+        <div class="flex flex-column gap-3">
+            <div class="field">
+                <label>Fecha</label>
+                <p-datepicker [(ngModel)]="nuevoBackup.fecha" dateFormat="yy-mm-dd"
+                    placeholder="Seleccione fecha" class="w-full" appendTo="body">
+                </p-datepicker>
+            </div>
+            <div class="field">
+                <label>Tipo</label>
+                <p-select [options]="tipoBackupOptions" [(ngModel)]="nuevoBackup.tipo"
+                    optionLabel="label" optionValue="value" placeholder="Seleccione tipo"
+                    class="w-full" appendTo="body">
+                </p-select>
+            </div>
+            <div class="field">
+                <label>Estado</label>
+                <p-select [options]="estadoBackupOptions" [(ngModel)]="nuevoBackup.estado"
+                    optionLabel="label" optionValue="value" placeholder="Seleccione estado"
+                    class="w-full" appendTo="body">
+                </p-select>
+            </div>
+            <div class="field">
+                <label>Observación</label>
+                <textarea pTextarea [(ngModel)]="nuevoBackup.observacion" rows="3"
+                    class="w-full" placeholder="Observaciones..."></textarea>
+            </div>
+        </div>
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+        <p-button label="Cancelar" icon="pi pi-times" severity="secondary" [text]="true"
+            (onClick)="viewFormBackup = false"></p-button>
+        <p-button label="Guardar" icon="pi pi-check" (onClick)="guardarBackup()"></p-button>
     </ng-template>
 </p-dialog>
