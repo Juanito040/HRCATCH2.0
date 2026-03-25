@@ -1,0 +1,9 @@
+.alerta-item {
+    padding: 0.5rem;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.alerta-item:hover {
+    background: var(--surface-hover);
+}

@@ -1,0 +1,33 @@
+<div class="panel-alertas">
+    <div class="flex align-items-center justify-content-between mb-3">
+        <div class="flex align-items-center gap-2">
+            <i class="pi pi-bell text-primary"></i>
+            <span class="font-bold text-lg">Alertas de Backup</span>
+        </div>
+        <button pButton icon="pi pi-refresh" label="Actualizar"
+                class="p-button-text p-button-sm"
+                (click)="actualizar()">
+        </button>
+    </div>
+
+    <div class="alertas-lista" style="max-height: 420px; overflow-y: auto;">
+        <ng-container *ngIf="alertas$ | async as alertas">
+            <div *ngIf="alertas.length === 0" class="flex align-items-center gap-2 p-3">
+                <i class="pi pi-check-circle" style="color: var(--green-500); font-size: 1.2rem;"></i>
+                <span class="text-secondary">Sin alertas pendientes</span>
+            </div>
+
+            <div *ngFor="let alerta of alertas" class="alerta-item flex align-items-start gap-2">
+                <i class="pi pi-exclamation-triangle mt-1" style="color: var(--orange-500); font-size: 1.1rem;"></i>
+                <div class="flex flex-column gap-1 flex-1">
+                    <span class="font-bold">{{ alerta.nombre }}</span>
+                    <span class="text-secondary text-sm">{{ alerta.periodicidad }}</span>
+                    <span class="text-sm">{{ alerta.mensaje }}</span>
+                    <span *ngIf="alerta.ultimoBackup !== null" class="text-xs text-secondary">
+                        Último backup: {{ alerta.ultimoBackup }} ({{ alerta.diasDesdeUltimo }} día(s))
+                    </span>
+                </div>
+            </div>
+        </ng-container>
+    </div>
+</div>

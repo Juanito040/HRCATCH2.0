@@ -12,6 +12,21 @@
 
     <ng-template pTemplate="end">
       <div class="flex align-items-center gap-2">
+        <div class="relative mr-2">
+          <button pButton icon="pi pi-bell"
+                  class="p-button-rounded p-button-text p-button-secondary"
+                  pTooltip="Alertas de Backup" tooltipPosition="bottom"
+                  (click)="opAlertas.toggle($event)">
+          </button>
+          <p-badge *ngIf="notificacionService.conteoAlertas > 0"
+                   [value]="notificacionService.conteoAlertas.toString()"
+                   severity="danger"
+                   styleClass="absolute top-0 right-0 pointer-events-none">
+          </p-badge>
+        </div>
+        <p-overlayPanel #opAlertas [style]="{ width: '380px' }">
+          <app-panel-alertas-backup></app-panel-alertas-backup>
+        </p-overlayPanel>
         <p-avatar icon="pi pi-user" styleClass="mr-2 cursor-pointer" shape="circle"
           [style]="{'background-color': '#eef2ff', 'color': '#0056b3'}" (click)="viewUser()"
           pTooltip="Perfil"></p-avatar>
