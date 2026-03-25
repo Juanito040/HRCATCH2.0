@@ -8,4 +8,6 @@ router.post('/', ctrl.create);
 router.patch('/:id', ctrl.update);
 router.patch('/:id/toggle', ctrl.toggleActive);
 
+router.delete('/:id', ctrl.delete);
+
 module.exports = router;

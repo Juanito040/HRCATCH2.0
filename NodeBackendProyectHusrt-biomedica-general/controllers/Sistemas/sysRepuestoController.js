@@ -55,7 +55,8 @@ exports.create = async (req, res) => {
     const {
       nombre, descripcion_tecnica, numero_parte, numero_serie,
       id_sys_tipo_repuesto_fk, modelo_asociado, proveedor,
-      cantidad_stock, ubicacion_fisica
+      cantidad_stock, ubicacion_fisica, garantia_inicio,
+      garantia_fin, estado, fecha_ingreso, costo_unitario
     } = req.body;
 
     if (!nombre) return res.status(400).json({ success: false, message: 'El nombre es obligatorio' });
@@ -63,7 +64,8 @@ exports.create = async (req, res) => {
     const repuesto = await SysRepuesto.create({
       nombre, descripcion_tecnica, numero_parte, numero_serie,
       id_sys_tipo_repuesto_fk, modelo_asociado, proveedor,
-      cantidad_stock: cantidad_stock || 0, ubicacion_fisica
+      cantidad_stock: cantidad_stock || 0, ubicacion_fisica,
+      garantia_inicio, garantia_fin, estado, fecha_ingreso, costo_unitario
     });
 
     const repuestoCompleto = await SysRepuesto.findByPk(repuesto.id_sysrepuesto, { include: INCLUDES_BASE });
@@ -81,13 +83,15 @@ exports.update = async (req, res) => {
     const {
       nombre, descripcion_tecnica, numero_parte, numero_serie,
       id_sys_tipo_repuesto_fk, modelo_asociado, proveedor,
-      cantidad_stock, ubicacion_fisica
+      cantidad_stock, ubicacion_fisica, garantia_inicio,
+      garantia_fin, estado, fecha_ingreso, costo_unitario
     } = req.body;
 
     const [affected] = await SysRepuesto.update({
       nombre, descripcion_tecnica, numero_parte, numero_serie,
       id_sys_tipo_repuesto_fk, modelo_asociado, proveedor,
-      cantidad_stock, ubicacion_fisica
+      cantidad_stock, ubicacion_fisica, garantia_inicio,
+      garantia_fin, estado, fecha_ingreso, costo_unitario
     }, { where: { id_sysrepuesto: id } });
 
     if (affected === 0) return res.status(404).json({ success: false, message: 'Repuesto no encontrado' });

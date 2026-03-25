@@ -46,6 +46,28 @@ const SysRepuesto = sequelize.define('SysRepuesto', {
     type: DataTypes.STRING(255),
     allowNull: true
   },
+  garantia_inicio: {
+    type: DataTypes.DATEONLY,
+    allowNull: true
+  },
+  garantia_fin: {
+    type: DataTypes.DATEONLY,
+    allowNull: true
+  },
+  estado: {
+    type: DataTypes.ENUM('Nuevo', 'Usado', 'Reacondicionado', 'Defectuoso'),
+    allowNull: false,
+    defaultValue: 'Nuevo'
+  },
+  fecha_ingreso: {
+    type: DataTypes.DATEONLY,
+    allowNull: true
+  },
+  costo_unitario: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false,
+    defaultValue: 0.00
+  },
   is_active: {
     type: DataTypes.BOOLEAN,
     defaultValue: true,

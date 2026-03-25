@@ -68,3 +68,19 @@ exports.toggleActive = async (req, res) => {
     res.status(500).json({ success: false, message: 'Error al cambiar estado del tipo de repuesto' });
   }
 };
+
+// Eliminar (borrado físico) tipo de repuesto
+exports.delete = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const tipo = await SysTipoRepuesto.findByPk(id);
+    if (!tipo) return res.status(404).json({ success: false, message: 'Tipo de repuesto no encontrado' });
+
+    await tipo.destroy();
+    res.json({ success: true, message: 'Tipo de repuesto eliminado físicamente' });
+  } catch (error) {
+    console.error('Error delete SysTipoRepuesto:', error);
+    // Si falla suele ser porque tiene repuestos asociados por foreign key
+    res.status(500).json({ success: false, message: 'Error al eliminar el tipo de repuesto. Verifica que no tenga repuestos asociados.' });
+  }
+};
