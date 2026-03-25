@@ -21,12 +21,15 @@
   <button class="tab-btn" [class.active]="tabActual === 'tipos'" (click)="setTab('tipos')">
     <i class="pi pi-tags mr-1"></i> Tipos de Repuesto
   </button>
+  <button class="tab-btn" [class.active]="tabActual === 'inactivos'" (click)="setTab('inactivos')">
+    <i class="pi pi-ban mr-1"></i> Repuestos Dados de Baja
+  </button>
 </div>
 
 <!-- ══════════════════════════════════════════════════════
      TAB: REPUESTOS
 ═══════════════════════════════════════════════════════ -->
-<div *ngIf="tabActual === 'repuestos'">
+<div *ngIf="tabActual === 'repuestos' || tabActual === 'inactivos'">
 
   <!-- Toolbar -->
   <div class="toolbar">
@@ -34,7 +37,7 @@
       <i class="pi pi-search"></i>
       <input type="text" placeholder="Buscar por nombre, tipo, N° parte..." (input)="onSearch($event)" />
     </div>
-    <button class="btn-primary" (click)="openCreateModal()">
+    <button *ngIf="tabActual === 'repuestos'" class="btn-primary" (click)="openCreateModal()">
       <i class="pi pi-plus"></i> Nuevo Repuesto
     </button>
   </div>
@@ -100,18 +103,18 @@
             <td>
               <span class="badge" [ngClass]="r.is_active ? 'badge-success' : 'badge-danger'">
                 <i class="pi" [ngClass]="r.is_active ? 'pi-check-circle' : 'pi-times-circle'"></i>
-                {{ r.is_active ? 'Activo' : 'Inactivo' }}
+                {{ r.is_active ? 'Activo' : 'Dado de baja' }}
               </span>
             </td>
             <td style="display:flex;gap:0.4rem;flex-wrap:wrap;align-items:center;">
               <button class="btn-icon" title="Editar" (click)="openEditModal(r)">
                 <i class="pi pi-pencil"></i>
               </button>
-              <button *ngIf="r.is_active" class="btn-outline-danger" (click)="toggleRepuesto(r)" title="Desactivar">
-                <i class="pi pi-ban"></i> Desactivar
+              <button *ngIf="r.is_active" class="btn-outline-danger" (click)="toggleRepuesto(r)" title="Dar de baja">
+                <i class="pi pi-arrow-down"></i> Dar de baja
               </button>
-              <button *ngIf="!r.is_active" class="btn-outline-success" (click)="toggleRepuesto(r)" title="Activar">
-                <i class="pi pi-check"></i> Activar
+              <button *ngIf="!r.is_active" class="btn-outline-success" (click)="toggleRepuesto(r)" title="Restaurar a principal">
+                <i class="pi pi-refresh"></i> Restaurar
               </button>
             </td>
           </tr>
@@ -196,11 +199,8 @@
               <button class="btn-icon" title="Editar" (click)="openEditTipoModal(t)">
                 <i class="pi pi-pencil"></i>
               </button>
-              <button *ngIf="t.is_active" class="btn-outline-danger" (click)="toggleTipo(t)">
-                <i class="pi pi-ban"></i> Desactivar
-              </button>
-              <button *ngIf="!t.is_active" class="btn-outline-success" (click)="toggleTipo(t)">
-                <i class="pi pi-check"></i> Activar
+              <button class="btn-outline-danger" (click)="deleteTipo(t)" title="Eliminar Permanentemente">
+                <i class="pi pi-trash"></i> Eliminar
               </button>
             </td>
           </tr>

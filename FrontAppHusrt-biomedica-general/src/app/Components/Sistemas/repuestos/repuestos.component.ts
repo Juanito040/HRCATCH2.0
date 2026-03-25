@@ -24,7 +24,7 @@ export class SisRepuestosComponent implements OnInit {
   isLoading = false;
   error: string | null = null;
   searchTerm = '';
-  tabActual: 'repuestos' | 'tipos' = 'repuestos';
+  tabActual: 'repuestos' | 'inactivos' | 'tipos' = 'repuestos';
 
   // ─── Modal Repuesto ───────────────────────────────────────
   isRepuestoModalOpen = false;
@@ -67,16 +67,17 @@ export class SisRepuestosComponent implements OnInit {
       next: (res) => {
         if (res.success) {
           this.repuestos = Array.isArray(res.data) ? res.data : [res.data];
-          this.applyFilters();
         } else {
           this.error = res.message || 'Error al cargar repuestos';
           this.repuestos = [];
         }
+        this.applyFilters();
         this.isLoading = false;
       },
       error: () => {
         this.error = 'Error al conectar con el servidor. Verifica que el backend esté activo.';
         this.repuestos = [];
+        this.applyFilters();
         this.isLoading = false;
       }
     });
@@ -95,6 +96,14 @@ export class SisRepuestosComponent implements OnInit {
 
   applyFilters(): void {
     let filtered = this.repuestos;
+
+    // Diferenciar entre repuestos activos e inactivos según la pestaña seleccionada
+    if (this.tabActual === 'repuestos') {
+      filtered = filtered.filter(r => r.is_active === true || r.is_active === 1 as any);
+    } else if (this.tabActual === 'inactivos') {
+      filtered = filtered.filter(r => r.is_active === false || r.is_active === 0 as any);
+    }
+
     if (this.searchTerm.trim()) {
       const term = this.searchTerm.toLowerCase();
       filtered = filtered.filter(r =>
@@ -193,20 +202,21 @@ export class SisRepuestosComponent implements OnInit {
   // ─── Toggle activo/inactivo ───────────────────────────────
 
   toggleRepuesto(repuesto: SysRepuesto): void {
-    const accion = repuesto.is_active ? 'desactivar' : 'activar';
+    const accion = repuesto.is_active ? 'dar de baja al' : 'restaurar el';
+    const verboConfirmacion = repuesto.is_active ? 'Dar de baja' : 'Restaurar';
     Swal.fire({
-      title: `¿${accion.charAt(0).toUpperCase() + accion.slice(1)} repuesto?`,
-      text: `El repuesto "${repuesto.nombre}" será ${accion === 'activar' ? 'activado' : 'desactivado'}.`,
+      title: `¿${verboConfirmacion} repuesto?`,
+      text: `El repuesto "${repuesto.nombre}" será ${repuesto.is_active ? 'dado de baja y movido a la lista correspondiente' : 'restaurado a la lista principal'}.`,
       icon: 'question',
       showCancelButton: true,
-      confirmButtonText: 'Sí, confirmar',
+      confirmButtonText: `Sí, ${verboConfirmacion.toLowerCase()}`,
       cancelButtonText: 'Cancelar'
     }).then(result => {
       if (result.isConfirmed && repuesto.id_sysrepuesto) {
         this.repuestosService.toggleActivo(repuesto.id_sysrepuesto).subscribe({
           next: (res) => {
             if (res.success) {
-              const estado = repuesto.is_active ? 'desactivado' : 'activado';
+              const estado = repuesto.is_active ? 'dado de baja' : 'restaurado';
               Swal.fire({ icon: 'success', title: `Repuesto ${estado}`, timer: 1500, showConfirmButton: false });
               this.loadRepuestos();
             }
@@ -262,17 +272,28 @@ export class SisRepuestosComponent implements OnInit {
     });
   }
 
-  toggleTipo(tipo: SysTipoRepuesto): void {
+  deleteTipo(tipo: SysTipoRepuesto): void {
     if (!tipo.id_sys_tipo_repuesto) return;
-    this.tiposService.toggleActivo(tipo.id_sys_tipo_repuesto).subscribe({
-      next: (res) => {
-        if (res.success) {
-          const estado = tipo.is_active ? 'desactivado' : 'activado';
-          Swal.fire({ icon: 'success', title: `Tipo ${estado}`, timer: 1200, showConfirmButton: false });
-          this.loadTipos();
-        }
-      },
-      error: () => Swal.fire('Error', 'No se pudo cambiar el estado del tipo', 'error')
+    Swal.fire({
+      title: '¿Eliminar tipo permanentemente?',
+      text: `El tipo de repuesto "${tipo.nombre}" será eliminado por completo.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    }).then(result => {
+      if (result.isConfirmed) {
+        this.tiposService.deleteTipo(tipo.id_sys_tipo_repuesto!).subscribe({
+          next: (res) => {
+            if (res.success) {
+              Swal.fire({ icon: 'success', title: 'Eliminado', timer: 1200, showConfirmButton: false });
+              this.loadTipos();
+            }
+          },
+          error: (err) => Swal.fire('Error', err.error?.message || 'No se pudo eliminar el tipo (puede tener repuestos asociados)', 'error')
+        });
+      }
     });
   }
 
@@ -284,7 +305,12 @@ export class SisRepuestosComponent implements OnInit {
     return tipo?.nombre || '—';
   }
 
-  setTab(tab: 'repuestos' | 'tipos'): void {
+  setTab(tab: 'repuestos' | 'inactivos' | 'tipos'): void {
     this.tabActual = tab;
+    // Si la pestaña tiene listas paginadas (repuestos o inactivos), se reaplican filtros para actualizar la vista
+    if (tab === 'repuestos' || tab === 'inactivos') {
+       this.searchTerm = '';
+       this.applyFilters();
+    }
   }
 }

@@ -42,4 +42,8 @@ export class SysTipoRepuestosService {
   toggleActivo(id: number): Observable<SysTipoRepuestoResponse> {
     return this.http.patch<SysTipoRepuestoResponse>(`${this.apiUrl}/${id}/toggle`, {});
   }
+
+  deleteTipo(id: number): Observable<SysTipoRepuestoResponse> {
+    return this.http.delete<SysTipoRepuestoResponse>(`${this.apiUrl}/${id}`);
+  }
 }

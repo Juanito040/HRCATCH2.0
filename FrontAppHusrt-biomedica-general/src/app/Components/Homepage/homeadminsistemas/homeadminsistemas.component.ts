@@ -20,4 +20,5 @@ export class HomeadminsistemasComponent {
   irAMantenimientosEquipos() { this.router.navigate(['/adminsistemas/mantenimientos']); }
   irAMesa() { this.router.navigate(['/adminmesaservicios/casos']); }
   irAUsuarios() { this.router.navigate(['/admusuarios']); }
+  irARepuestos() { this.router.navigate(['/adminsistemas/repuestos']); }
 }
