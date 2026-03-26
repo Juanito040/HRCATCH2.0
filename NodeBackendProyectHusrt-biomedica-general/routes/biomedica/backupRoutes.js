@@ -113,8 +113,9 @@ router.get('/backups/todos/mes', checkToken, async (req, res) => {
 // GET /backups/:sistemaId — lista todos los backups del sistema
 router.get('/backups/:sistemaId', async (req, res) => {
     try {
+        const sistemaId = parseInt(req.params.sistemaId, 10);
         const backups = await BackupSistema.findAll({
-            where: { sistemaInformacionId: req.params.sistemaId },
+            where: { sistemaInformacionId: sistemaId },
             order: [['fecha', 'DESC']],
         });
         res.json(backups);
@@ -127,13 +128,15 @@ router.get('/backups/:sistemaId', async (req, res) => {
 router.get('/backups/:sistemaId/mes', async (req, res) => {
     try {
         const { mes, anio } = req.query;
+        const sistemaId = parseInt(req.params.sistemaId, 10);
+        const diasEnMes = new Date(anio, mes, 0).getDate();
         const backups = await BackupSistema.findAll({
             where: {
-                sistemaInformacionId: req.params.sistemaId,
+                sistemaInformacionId: sistemaId,
                 fecha: {
                     [Op.between]: [
                         `${anio}-${String(mes).padStart(2, '0')}-01`,
-                        `${anio}-${String(mes).padStart(2, '0')}-31`,
+                        `${anio}-${String(mes).padStart(2, '0')}-${String(diasEnMes).padStart(2, '0')}`,
                     ],
                 },
             },

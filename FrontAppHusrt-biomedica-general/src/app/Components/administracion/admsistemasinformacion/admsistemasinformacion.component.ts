@@ -53,6 +53,7 @@ export class AmdSistemasInformacionComponent implements OnInit {
     fechaBackup: Date = new Date();
     viewFormBackup: boolean = false;
     nuevoBackup: any = { fecha: null, tipo: 'Completo', estado: 'Pendiente', observacion: '' };
+    guardandoBackup: boolean = false;
 
     periodicidadOptions = [
         { label: 'Diario', value: 'Diario' },
@@ -200,11 +201,7 @@ export class AmdSistemasInformacionComponent implements OnInit {
 
     async cargarBackupsDelMes() {
         try {
-            const mes = this.fechaBackup.getMonth() + 1;
-            const anio = this.fechaBackup.getFullYear();
-            this.backupsDelMes = await this.backupService.getBackupsPorMes(
-                this.sistemaSeleccionado.id, mes, anio
-            );
+            this.backupsDelMes = await this.backupService.getBackupsPorSistema(this.sistemaSeleccionado.id);
         } catch (error) {
             console.error(error);
             this.backupsDelMes = [];
@@ -217,10 +214,12 @@ export class AmdSistemasInformacionComponent implements OnInit {
     }
 
     async guardarBackup() {
+        if (this.guardandoBackup) return;
         if (!this.nuevoBackup.fecha) {
             Swal.fire('Atención', 'Seleccione una fecha para el backup', 'warning');
             return;
         }
+        this.guardandoBackup = true;
         try {
             const fechaStr = this.nuevoBackup.fecha instanceof Date
                 ? this.nuevoBackup.fecha.toISOString().split('T')[0]
@@ -236,11 +235,15 @@ export class AmdSistemasInformacionComponent implements OnInit {
                 ? this.nuevoBackup.fecha
                 : new Date(this.nuevoBackup.fecha);
             this.viewFormBackup = false;
-            await this.cargarBackupsDelMes();
+            await Swal.fire('Éxito', 'Backup registrado correctamente', 'success');
         } catch (error) {
             console.error(error);
             Swal.fire('Error', 'No se pudo guardar el backup', 'error');
+            this.guardandoBackup = false;
+            return;
         }
+        this.guardandoBackup = false;
+        await this.cargarBackupsDelMes();
     }
 
     async eliminarBackup(backup: any) {

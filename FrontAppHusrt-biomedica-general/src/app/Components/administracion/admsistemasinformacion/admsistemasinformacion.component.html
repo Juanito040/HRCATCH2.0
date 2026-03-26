@@ -155,7 +155,7 @@
 
             <!-- Encabezado lista + botón agregar -->
             <div class="flex align-items-center justify-content-between">
-                <h5 class="m-0">Backups del mes</h5>
+                <h5 class="m-0">Backups asignados</h5>
                 <p-button label="Agregar Backup" icon="pi pi-plus" severity="primary" [raised]="true"
                     (onClick)="abrirFormBackup()"></p-button>
             </div>
@@ -191,7 +191,7 @@
                 </ng-template>
                 <ng-template pTemplate="emptymessage">
                     <tr>
-                        <td colspan="5" class="text-center p-3">No hay backups registrados para este mes.</td>
+                        <td colspan="5" class="text-center p-3">No hay backups registrados para este sistema.</td>
                     </tr>
                 </ng-template>
             </p-table>
@@ -241,6 +241,6 @@
     <ng-template pTemplate="footer">
         <p-button label="Cancelar" icon="pi pi-times" severity="secondary" [text]="true"
             (onClick)="viewFormBackup = false"></p-button>
-        <p-button label="Guardar" icon="pi pi-check" (onClick)="guardarBackup()"></p-button>
+        <p-button label="Guardar" icon="pi pi-check" (onClick)="guardarBackup()" [disabled]="guardandoBackup" [loading]="guardandoBackup"></p-button>
     </ng-template>
 </p-dialog>
