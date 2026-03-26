@@ -32,9 +32,8 @@ export class HomesuperadminComponent {
     this.router.navigate(['/adminmesaservicios']);
   }
 
-  // Futuros metodos para Sistemas y Mantenimiento
   viewGestionSistemas() {
-    // Ejemplo: this.router.navigate(['/sistemas/home']);
+    this.router.navigate(['/adminsistemas']);
   }
 
   viewGestionMantenimiento() {

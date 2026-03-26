@@ -62,6 +62,7 @@ import { AdmCargosComponent } from './Components/administracion/admcargos/adm-ca
 
 import { AdmResponsablesComponent } from './Components/administracion/admresponsables/admresponsables.component';
 import { AmdSistemasInformacionComponent } from './Components/administracion/admsistemasinformacion/admsistemasinformacion.component';
+import { CalendarioBackupsComponent } from './Components/administracion/calendario-backups/calendario-backups.component';
 import { AccessDeniedComponent } from './Components/access-denied/access-denied.component';
 import { ClasificacionResponsablesComponent } from './Components/userBiomedica/clasificacion-responsables/clasificacion-responsables.component';
 import { EquiposResponsableComponent } from './Components/userBiomedica/vista-Equipos/equipos-responsable/equipos-responsable.component';
@@ -152,6 +153,7 @@ export const routes: Routes = [
   { path: 'admin/responsables', component: AdmResponsablesComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'BIOMEDICAADMIN'] } },
   { path: 'admin/cargos', component: AdmCargosComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN'] } },
   { path: 'admin/sistemasinformacion', component: AmdSistemasInformacionComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'ADMINISTRADOR'] } },
+  { path: 'admin/sistemasinformacion/backups', component: CalendarioBackupsComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'ADMINISTRADOR'] } },
 
   // Equipos List - Unified
   { path: 'biomedica/adminequipos', component: ListaEquiposComponent, canActivate: [authGuard], data: { roles: ['BIOMEDICAADMIN', 'BIOMEDICAUSER', 'SUPERADMIN', 'BIOMEDICATECNICO'] } },

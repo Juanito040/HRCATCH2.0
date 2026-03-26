@@ -232,6 +232,9 @@ export class AmdSistemasInformacionComponent implements OnInit {
                 estado: this.nuevoBackup.estado,
                 observacion: this.nuevoBackup.observacion
             });
+            this.fechaBackup = this.nuevoBackup.fecha instanceof Date
+                ? this.nuevoBackup.fecha
+                : new Date(this.nuevoBackup.fecha);
             this.viewFormBackup = false;
             await this.cargarBackupsDelMes();
         } catch (error) {

@@ -45,6 +45,12 @@ export class BackupSistemaService {
         );
     }
 
+    getBackupsTodosMes(mes: number, anio: number) {
+        return firstValueFrom(
+            this.httpClient.get<any[]>(`${this.baseUrl}/backups/todos/mes?mes=${mes}&anio=${anio}`, this.createHeaders())
+        );
+    }
+
     createHeaders() {
         return {
             headers: new HttpHeaders({

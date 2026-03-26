@@ -1,1 +1,25 @@
-<p>homeadminsistemas works!</p>
+<div class="dashboard-container">
+
+    <div class="hero-section">
+        <div class="hero-content">
+            <h1>Gestión Sistemas</h1>
+            <p>Administre los sistemas de información y el calendario de backups institucional.</p>
+        </div>
+    </div>
+
+    <div class="cards-grid">
+
+        <!-- Calendario de Backups -->
+        <div class="dashboard-card" (click)="irACalendarioBackups()">
+            <div class="card-icon-container gradient-purple">
+                <i class="pi pi-calendar-times"></i>
+            </div>
+            <div class="card-content">
+                <h3>Calendario de Backups</h3>
+                <p>Visualice el estado de backups de todos los sistemas en el calendario mensual.</p>
+                <span class="card-action">Ver calendario <i class="pi pi-arrow-right"></i></span>
+            </div>
+        </div>
+
+    </div>
+</div>

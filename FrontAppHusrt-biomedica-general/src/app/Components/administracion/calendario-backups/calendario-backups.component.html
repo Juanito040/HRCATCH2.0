@@ -1,0 +1,71 @@
+<div class="calendario-container p-4">
+
+    <div class="flex align-items-center justify-content-between mb-4">
+        <h2 class="m-0">Calendario de Backups</h2>
+        <div class="flex align-items-center gap-3">
+            <p-datepicker
+                [(ngModel)]="fechaSeleccionada"
+                view="month"
+                dateFormat="mm/yy"
+                (onSelect)="onMesCambia($event)"
+                [showIcon]="true">
+            </p-datepicker>
+            <button pButton icon="pi pi-refresh" label="Actualizar"
+                    class="p-button-outlined"
+                    (click)="cargarBackupsDelMes()">
+            </button>
+        </div>
+    </div>
+
+    <!-- Leyenda -->
+    <div class="flex gap-4 mb-3">
+        <div class="flex align-items-center gap-2">
+            <div class="leyenda-color dia-completado"></div>
+            <span class="text-sm">Completado</span>
+        </div>
+        <div class="flex align-items-center gap-2">
+            <div class="leyenda-color dia-fallido"></div>
+            <span class="text-sm">Fallido</span>
+        </div>
+        <div class="flex align-items-center gap-2">
+            <div class="leyenda-color dia-pendiente"></div>
+            <span class="text-sm">Pendiente</span>
+        </div>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="loading" class="flex justify-content-center align-items-center" style="height: 300px;">
+        <p-progressSpinner></p-progressSpinner>
+    </div>
+
+    <!-- Calendario -->
+    <div *ngIf="!loading">
+        <!-- Cabecera días de semana -->
+        <div class="calendario-grid mb-1">
+            <div *ngFor="let dia of diasSemana"
+                 class="text-center font-bold text-sm py-2"
+                 style="color: var(--text-color-secondary)">
+                {{ dia }}
+            </div>
+        </div>
+
+        <!-- Semanas -->
+        <div class="calendario-grid">
+            <ng-container *ngFor="let semana of semanas">
+                <div *ngFor="let celda of semana"
+                     class="dia-cell"
+                     [ngClass]="celda.fecha ? getClaseDia(getBackupsDia(celda.fecha)) : 'dia-vacio'">
+                    <div *ngIf="celda.dia" class="dia-numero">{{ celda.dia }}</div>
+                    <ng-container *ngIf="celda.fecha">
+                        <div *ngFor="let backup of getBackupsDia(celda.fecha)"
+                             class="backup-nombre"
+                             [title]="backup.sistemaNombre">
+                            {{ backup.sistemaNombre }}
+                        </div>
+                    </ng-container>
+                </div>
+            </ng-container>
+        </div>
+    </div>
+
+</div>
