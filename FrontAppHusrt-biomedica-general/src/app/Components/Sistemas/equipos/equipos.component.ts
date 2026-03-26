@@ -1,7 +1,9 @@
 import { Component, OnInit, ViewChild, ElementRef, inject, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { SysequiposService, SysEquipo } from '../../../Services/appServices/sistemasServices/sysequipos/sysequipos.service';
+import { SysplanmantenimientoService } from '../../../Services/appServices/sistemasServices/sysplanmantenimiento/sysplanmantenimiento.service';
 import { SysEquipoModalComponent } from '../equipo-modal/equipo-modal.component';
 import { SysEquipoDetailModalComponent } from '../equipo-detail-modal/equipo-detail-modal.component';
 import { SysDeleteConfirmationDialogComponent, DeleteAction } from '../delete-confirmation-dialog/delete-confirmation-dialog.component';
@@ -16,6 +18,7 @@ import Swal from 'sweetalert2';
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     SysEquipoModalComponent,
     SysEquipoDetailModalComponent,
     SysDeleteConfirmationDialogComponent,
@@ -63,8 +66,39 @@ export class SisEquiposComponent implements OnInit {
   isHistorialModalOpen: boolean = false;
   equipoToHistorial: SysEquipo | null = null;
 
+  // ── Plan de Mantenimiento ──
+  isPlanDialogOpen = false;
+  currentEquipoPlan: any = null;
+  intervencionesAnuales = 1;
+  mesInicio = 1;
+  anioInicio = new Date().getFullYear();
+  selectedPlanes: { mes: number; ano: number }[] = [];
+  calculatedMonthsText = '';
+  isSavingPlan = false;
+
+  readonly intervencionOptions = [
+    { label: '1 vez al año (Anual)', value: 1 },
+    { label: '2 veces al año (Semestral)', value: 2 },
+    { label: '3 veces al año (Cuatrimestral)', value: 3 },
+    { label: '4 veces al año (Trimestral)', value: 4 }
+  ];
+
+  readonly monthOptions = [
+    { label: 'Enero', value: 1 }, { label: 'Febrero', value: 2 },
+    { label: 'Marzo', value: 3 }, { label: 'Abril', value: 4 },
+    { label: 'Mayo', value: 5 }, { label: 'Junio', value: 6 },
+    { label: 'Julio', value: 7 }, { label: 'Agosto', value: 8 },
+    { label: 'Septiembre', value: 9 }, { label: 'Octubre', value: 10 },
+    { label: 'Noviembre', value: 11 }, { label: 'Diciembre', value: 12 }
+  ];
+
+  readonly anioOptions = Array.from({ length: 11 }, (_, i) => new Date().getFullYear() + i);
+
+  private readonly MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private planService = inject(SysplanmantenimientoService);
 
   constructor(private sysequiposService: SysequiposService) {}
 
@@ -319,10 +353,11 @@ export class SisEquiposComponent implements OnInit {
     const opcionHistorial = { label: 'Ver Historial', icon: 'fas fa-history', command: () => this.openHistorialModal(equipo) };
     if (this.selectedView === 'all') {
       return [
-        { label: 'Ver Detalles',          icon: 'pi pi-eye',     command: () => this.openDetailModal(equipo) },
-        { label: 'Editar',                icon: 'pi pi-pencil',  command: () => this.openEditModal(equipo) },
+        { label: 'Ver Detalles',             icon: 'pi pi-eye',      command: () => this.openDetailModal(equipo) },
+        { label: 'Editar',                   icon: 'pi pi-pencil',   command: () => this.openEditModal(equipo) },
+        { label: 'Plan de Mantenimiento',    icon: 'pi pi-calendar', command: () => this.openPlanDialog(equipo) },
         opcionHistorial,
-        { label: 'Enviar a Bodega / Baja', icon: 'pi pi-trash',  command: () => this.confirmDelete(equipo) }
+        { label: 'Enviar a Bodega / Baja',   icon: 'pi pi-trash',    command: () => this.confirmDelete(equipo) }
       ];
     } else if (this.selectedView === 'bodega') {
       return [
@@ -451,6 +486,74 @@ export class SisEquiposComponent implements OnInit {
   closeReactivarModal() {
     this.isReactivarModalOpen = false;
     this.equipoToReactivar = null;
+  }
+
+  // ── Métodos de Plan de Mantenimiento ──
+
+  async openPlanDialog(equipo: any) {
+    this.currentEquipoPlan = equipo;
+    this.intervencionesAnuales = 1;
+    this.mesInicio = new Date().getMonth() + 1;
+    this.anioInicio = new Date().getFullYear();
+    this.selectedPlanes = [];
+    this.calculatedMonthsText = '';
+
+    try {
+      const planes = await this.planService.getByEquipo(equipo.id_sysequipo);
+      if (planes && planes.length > 0) {
+        this.intervencionesAnuales = planes.length;
+        this.mesInicio = planes[0].mes;
+        this.anioInicio = planes[0].ano;
+        this.selectedPlanes = planes.map(p => ({ mes: p.mes, ano: p.ano }));
+        this.updateCalculatedText();
+      } else {
+        this.calcularFechas();
+      }
+    } catch (e) {
+      this.calcularFechas();
+    }
+
+    this.isPlanDialogOpen = true;
+  }
+
+  closePlanDialog() {
+    this.isPlanDialogOpen = false;
+    this.currentEquipoPlan = null;
+  }
+
+  calcularFechas() {
+    if (!this.intervencionesAnuales || this.intervencionesAnuales <= 0) return;
+    const interval = 12 / this.intervencionesAnuales;
+    const nuevos: { mes: number; ano: number }[] = [];
+
+    for (let i = 0; i < this.intervencionesAnuales; i++) {
+      let calcMonth = this.mesInicio + i * interval;
+      const calcYear = this.anioInicio + Math.floor((calcMonth - 1) / 12);
+      calcMonth = ((calcMonth - 1) % 12) + 1;
+      nuevos.push({ mes: Math.floor(calcMonth), ano: calcYear });
+    }
+
+    this.selectedPlanes = nuevos;
+    this.updateCalculatedText();
+  }
+
+  updateCalculatedText() {
+    if (!this.selectedPlanes.length) { this.calculatedMonthsText = ''; return; }
+    this.calculatedMonthsText = this.selectedPlanes.map(p => `${this.MESES[p.mes - 1]} ${p.ano}`).join(' · ');
+  }
+
+  async savePlan() {
+    if (!this.currentEquipoPlan) return;
+    this.isSavingPlan = true;
+    try {
+      await this.planService.reemplazarPlanesEquipo(this.currentEquipoPlan.id_sysequipo, this.selectedPlanes);
+      Swal.fire({ icon: 'success', title: 'Plan actualizado', text: `Se programaron ${this.selectedPlanes.length} mantenimiento(s).`, timer: 2000, showConfirmButton: false });
+      this.closePlanDialog();
+    } catch (e) {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo guardar el plan de mantenimiento.' });
+    } finally {
+      this.isSavingPlan = false;
+    }
   }
 
   handleReactivarConfirm(data: ReactivarEquipoData) {

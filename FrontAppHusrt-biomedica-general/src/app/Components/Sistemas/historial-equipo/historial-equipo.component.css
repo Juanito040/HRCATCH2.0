@@ -79,6 +79,10 @@
 .evento-reactivacion .accion-badge { background:#dbeafe;color:#1e40af; }
 .evento-reactivacion .timeline-card { border-left:3px solid #2563eb; }
 
+.evento-plan .node-icon { background:#0891b2; }
+.evento-plan .accion-badge { background:#cffafe;color:#0e7490; }
+.evento-plan .timeline-card { border-left:3px solid #0891b2; }
+
 .evento-default .node-icon { background:var(--gray-500); }
 .evento-default .accion-badge { background:var(--gray-100);color:var(--gray-700); }
 .evento-default .timeline-card { border-left:3px solid var(--gray-300); }

@@ -20,6 +20,7 @@ export class HomeadminsistemasComponent {
   irAEquiposBaja() { this.router.navigate(['/adminsistemas/equipos'], { queryParams: { vista: 'baja' } }); }
   irATiposEquipos() { this.router.navigate(['/adminsistemas/tiposequipo']); }
   irAMantenimientosEquipos() { this.router.navigate(['/adminsistemas/mantenimientos']); }
+  irAProtocolos() { this.router.navigate(['/adminsistemas/protocolos']); }
   irAMesa() { this.router.navigate(['/adminmesaservicios/casos']); }
   irAUsuarios() { this.router.navigate(['/admusuarios']); }
 }

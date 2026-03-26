@@ -100,7 +100,8 @@ export class SysHistorialEquipoComponent implements OnChanges, OnDestroy {
       EDICION: 'fas fa-pencil-alt',
       BODEGA: 'fas fa-warehouse',
       BAJA: 'fas fa-ban',
-      REACTIVACION: 'fas fa-power-off'
+      REACTIVACION: 'fas fa-power-off',
+      PLAN_MANTENIMIENTO: 'fas fa-calendar-check'
     };
     return mapa[accion] || 'fas fa-circle';
   }
@@ -111,7 +112,8 @@ export class SysHistorialEquipoComponent implements OnChanges, OnDestroy {
       EDICION: 'evento-edicion',
       BODEGA: 'evento-bodega',
       BAJA: 'evento-baja',
-      REACTIVACION: 'evento-reactivacion'
+      REACTIVACION: 'evento-reactivacion',
+      PLAN_MANTENIMIENTO: 'evento-plan'
     };
     return mapa[accion] || 'evento-default';
   }
@@ -122,7 +124,8 @@ export class SysHistorialEquipoComponent implements OnChanges, OnDestroy {
       EDICION: 'Edición',
       BODEGA: 'Enviado a Bodega',
       BAJA: 'Dado de Baja',
-      REACTIVACION: 'Reactivado'
+      REACTIVACION: 'Reactivado',
+      PLAN_MANTENIMIENTO: 'Plan de Mantenimiento'
     };
     return mapa[accion] || accion;
   }

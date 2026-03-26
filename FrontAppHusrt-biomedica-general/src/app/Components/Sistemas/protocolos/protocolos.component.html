@@ -1,0 +1,203 @@
+<br>
+<div class="container" [attr.inert]="isDialogOpen ? '' : null">
+
+  <!-- Encabezado -->
+  <div class="page-header">
+    <div>
+      <h1>Protocolos Preventivos</h1>
+      <p class="subtitle">Define los pasos del protocolo de mantenimiento preventivo por tipo de equipo.</p>
+    </div>
+  </div>
+
+  <!-- Selector de Tipo de Equipo -->
+  <div class="selector-card">
+    <label class="selector-label">
+      <i class="pi pi-th-large"></i>
+      Tipo de Equipo
+    </label>
+    <div class="selector-row">
+      <select class="filter-select selector-input" [(ngModel)]="selectedTipoEquipoId" (change)="onTipoEquipoChange()" [disabled]="isLoading">
+        <option [ngValue]="null"> Selecciona un tipo </option>
+        @for (tipo of tiposEquipo; track tipo.id || tipo.id_tipo_equipo) {
+          <option [ngValue]="tipo.id || tipo.id_tipo_equipo">
+            {{ tipo.nombres || tipo.nombre }}
+          </option>
+        }
+      </select>
+      @if (selectedTipoEquipoId) {
+        <button class="btn btn-primary" (click)="openAddDialog()">
+          <i class="fas fa-plus"></i> Agregar Paso
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Estado de carga inicial -->
+  @if (isLoading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando tipos de equipo...</p>
+    </div>
+  }
+
+  <!-- Sin tipo seleccionado -->
+  @if (!isLoading && !selectedTipoEquipoId) {
+    <div class="empty-banner">
+      <p>Selecciona un tipo de equipo para ver y gestionar su checklist de protocolo.</p>
+    </div>
+  }
+
+  <!-- Cargando protocolos -->
+  @if (isLoadingProtocolos) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando pasos del protocolo...</p>
+    </div>
+  }
+
+  <!-- Checklist de protocolos -->
+  @if (!isLoadingProtocolos && selectedTipoEquipoId) {
+    <div class="checklist-section">
+
+      <!-- Header del checklist -->
+      <div class="checklist-header">
+        <div class="checklist-title">
+          <i class="fas fa-list-ol"></i>
+          <span>Checklist — <strong class="tipo-nombre">{{ getTipoNombre() }}</strong></span>
+        </div>
+        <div class="checklist-stats">
+          <span class="stat total-stat">
+            {{ protocolos.length }} pasos en total
+          </span>
+        </div>
+      </div>
+
+      <!-- Lista de pasos -->
+      @if (protocolos.length === 0) {
+        <div class="empty-checklist">
+          <div class="empty-icon-wrap">
+            <i class="fas fa-clipboard-list"></i>
+          </div>
+          <h3>Sin pasos definidos</h3>
+          <p>Este tipo de equipo aún no tiene protocolo. Agrega el primer paso para comenzar.</p>
+          <button class="btn btn-primary" (click)="openAddDialog()">
+            <i class="fas fa-plus"></i> Agregar primer paso
+          </button>
+        </div>
+      } @else {
+        <div class="checklist-list">
+          @for (protocolo of protocolos; track protocolo.id_sysprotocolo; let i = $index) {
+            <div class="checklist-item" [class.item-inactive]="!protocolo.estado">
+
+              <!-- Número del paso -->
+              <div class="step-number" [class.step-active]="protocolo.estado" [class.step-inactive]="!protocolo.estado">
+                {{ i + 1 }}
+              </div>
+
+              <!-- Contenido del paso -->
+              <div class="step-content">
+                <p class="step-text">{{ protocolo.paso }}</p>
+                @if (!protocolo.estado) {
+                  <span class="inactive-label"><i class="fas fa-eye-slash"></i> Paso inactivo — no se incluye en reportes</span>
+                }
+              </div>
+
+              <!-- Acciones -->
+              <div class="step-actions">
+                <button class="toggle-btn"
+                  [class.toggle-active]="protocolo.estado"
+                  [class.toggle-inactive]="!protocolo.estado"
+                  (click)="toggleEstado(protocolo)"
+                  [title]="protocolo.estado ? 'Desactivar paso' : 'Activar paso'">
+                  <i [class]="protocolo.estado ? 'fas fa-check-circle' : 'fas fa-circle'"></i>
+                  {{ protocolo.estado ? 'Activo' : 'Inactivo' }}
+                </button>
+                <button class="btn-icon btn-edit" (click)="openEditDialog(protocolo)" title="Editar paso">
+                  <i class="fas fa-pen"></i>
+                </button>
+                <button class="btn-icon btn-delete" (click)="deleteProtocolo(protocolo)" title="Eliminar paso">
+                  <i class="fas fa-trash-alt"></i>
+                </button>
+              </div>
+
+            </div>
+          }
+        </div>
+
+        <!-- Footer del checklist -->
+        <div class="checklist-footer">
+          <button class="btn btn-outline" (click)="openAddDialog()">
+            <i class="fas fa-plus"></i> Agregar otro paso
+          </button>
+        </div>
+      }
+<br>
+    </div>
+  }
+</div>
+
+<!-- Modal Agregar / Editar Protocolo -->
+@if (isDialogOpen) {
+  <div class="modal-overlay" (click)="closeDialog()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-header-content">
+          <div class="modal-icon">
+            <i [class]="isEditing ? 'fas fa-pen' : 'fas fa-plus'"></i>
+          </div>
+          <div>
+            <h2>{{ isEditing ? 'Editar Paso' : 'Nuevo Paso de Protocolo' }}</h2>
+            <p class="modal-subtitle">{{ getTipoNombre() }}</p>
+          </div>
+        </div>
+        <button class="modal-close" (click)="closeDialog()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        @if (dialogError) {
+          <div class="error-alert">
+            <i class="fas fa-exclamation-circle"></i> {{ dialogError }}
+          </div>
+        }
+
+        <div class="form-group">
+          <label>Descripción del paso <span class="required">*</span></label>
+          <textarea
+            class="form-control"
+            rows="4"
+            placeholder="Ej: Verificar el estado físico del equipo, revisar cables de alimentación..."
+            [(ngModel)]="currentProtocolo.paso"
+            [disabled]="isSaving">
+          </textarea>
+          <small class="hint"><i class="fas fa-info-circle"></i> Describe detalladamente la acción que debe realizar el técnico.</small>
+        </div>
+
+        <div class="form-group">
+          <label>Estado del paso</label>
+          <div class="estado-toggle-wrap" (click)="!isSaving && toggleCurrentEstado()">
+            <div class="estado-toggle-indicator" [class.on]="currentProtocolo.estado">
+              <div class="toggle-knob"></div>
+            </div>
+            <span class="toggle-text">
+              @if (currentProtocolo.estado) {
+                <span class="text-active"><i class="fas fa-check-circle"></i> Activo — se incluirá en los reportes</span>
+              } @else {
+                <span class="text-inactive"><i class="fas fa-times-circle"></i> Inactivo — no se incluirá en los reportes</span>
+              }
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeDialog()" [disabled]="isSaving">Cancelar</button>
+        <button class="btn btn-primary" (click)="saveProtocolo()" [disabled]="isSaving">
+          @if (isSaving) { <span class="btn-spinner"></span> Guardando... }
+          @else { <i class="fas fa-save"></i> Guardar paso }
+        </button>
+      </div>
+    </div>
+  </div>
+}

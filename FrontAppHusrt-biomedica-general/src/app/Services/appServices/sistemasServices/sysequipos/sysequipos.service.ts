@@ -90,4 +90,8 @@ export class SysequiposService {
   reactivarEquipo(id: number): Observable<SysEquipoResponse> {
     return this.http.patch<SysEquipoResponse>(`${this.apiUrl}/${id}/reactivar`, {});
   }
+
+  getTiposEquipoSistemas(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/tiposequipo`);
+  }
 }

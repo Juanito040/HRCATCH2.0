@@ -1,5 +1,5 @@
 <br>
-<div class="container" [attr.inert]="(isModalOpen || isDetailModalOpen || isHistorialModalOpen || isDeleteOptionsDialogOpen) ? '' : null">
+<div class="container" [attr.inert]="(isModalOpen || isDetailModalOpen || isHistorialModalOpen || isDeleteOptionsDialogOpen || isPlanDialogOpen) ? '' : null">
 
   <div class="page-header">
     <div class="header-left">
@@ -149,3 +149,70 @@
   (confirmed)="handleDeleteOptionsConfirm($event)"
   (closed)="closeDeleteOptionsDialog()"
 ></app-sys-delete-dialog>
+
+<!-- Modal Plan de Mantenimiento -->
+@if (isPlanDialogOpen) {
+  <div class="modal-overlay" (click)="closePlanDialog()">
+    <div class="plan-modal" (click)="$event.stopPropagation()">
+
+      <div class="plan-modal-header">
+        <div>
+          <h2><i class="pi pi-calendar"></i> Plan de Mantenimiento</h2>
+          <p class="plan-equipo-nombre">{{ currentEquipoPlan?.nombre_equipo }}</p>
+        </div>
+        <button class="modal-close-btn" (click)="closePlanDialog()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="plan-modal-body">
+        <div class="plan-field">
+          <label>Intervenciones por año</label>
+          <select [(ngModel)]="intervencionesAnuales" (change)="calcularFechas()">
+            @for (opt of intervencionOptions; track opt.value) {
+              <option [value]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="plan-row">
+          <div class="plan-field">
+            <label>Mes de inicio</label>
+            <select [(ngModel)]="mesInicio" (change)="calcularFechas()">
+              @for (m of monthOptions; track m.value) {
+                <option [value]="m.value">{{ m.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="plan-field">
+            <label>Año de inicio</label>
+            <select [(ngModel)]="anioInicio" (change)="calcularFechas()">
+              @for (a of anioOptions; track a) {
+                <option [value]="a">{{ a }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        @if (calculatedMonthsText) {
+          <div class="plan-cycle-banner">
+            <i class="pi pi-calendar-plus"></i>
+            <div>
+              <span class="plan-cycle-label">Ciclo calculado:</span>
+              <span class="plan-cycle-text">{{ calculatedMonthsText }}</span>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="plan-modal-footer">
+        <button class="btn btn-secondary" (click)="closePlanDialog()" [disabled]="isSavingPlan">Cancelar</button>
+        <button class="btn btn-primary" (click)="savePlan()" [disabled]="isSavingPlan || selectedPlanes.length === 0">
+          @if (isSavingPlan) { <span class="btn-spinner-sm"></span> Guardando... }
+          @else { <i class="pi pi-save"></i> Guardar Plan }
+        </button>
+      </div>
+
+    </div>
+  </div>
+}
