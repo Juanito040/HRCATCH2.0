@@ -186,6 +186,8 @@
                         </td>
                         <td>{{ backup.observacion }}</td>
                         <td>
+                            <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="secondary"
+                                (onClick)="editarBackup(backup)" pTooltip="Editar"></p-button>
                             <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger"
                                 (onClick)="eliminarBackup(backup)" pTooltip="Eliminar"></p-button>
                         </td>
@@ -207,8 +209,8 @@
     </ng-template>
 </p-dialog>
 
-<!-- Sub-modal: Agregar Backup -->
-<p-dialog [(visible)]="viewFormBackup" header="Agregar Backup" [modal]="true"
+<!-- Sub-modal: Agregar / Editar Backup -->
+<p-dialog [(visible)]="viewFormBackup" [header]="isEditingBackup ? 'Editar Backup' : 'Nuevo Backup'" [modal]="true"
     [style]="{ width: '450px' }" styleClass="p-fluid" appendTo="body">
     <ng-template pTemplate="content">
         <div class="flex flex-column gap-3">
@@ -250,6 +252,6 @@
     <ng-template pTemplate="footer">
         <p-button label="Cancelar" icon="pi pi-times" severity="secondary" [text]="true"
             (onClick)="viewFormBackup = false"></p-button>
-        <p-button label="Guardar" icon="pi pi-check" (onClick)="guardarBackup()" [disabled]="guardandoBackup" [loading]="guardandoBackup"></p-button>
+        <p-button [label]="isEditingBackup ? 'Guardar cambios' : 'Registrar Backup'" icon="pi pi-check" (onClick)="guardarBackup()" [disabled]="guardandoBackup" [loading]="guardandoBackup"></p-button>
     </ng-template>
 </p-dialog>

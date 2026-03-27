@@ -54,6 +54,8 @@ export class AmdSistemasInformacionComponent implements OnInit {
     viewFormBackup: boolean = false;
     nuevoBackup: any = { fecha: null, tipo: 'Completo', estado: 'Pendiente', frecuencia_backup: 'Mensual', observacion: '' };
     guardandoBackup: boolean = false;
+    isEditingBackup: boolean = false;
+    backupEditandoId: number | null = null;
 
     periodicidadOptions = [
         { label: 'Diario', value: 'Diario' },
@@ -216,7 +218,22 @@ export class AmdSistemasInformacionComponent implements OnInit {
     }
 
     abrirFormBackup() {
+        this.isEditingBackup = false;
+        this.backupEditandoId = null;
         this.nuevoBackup = { fecha: null, tipo: 'Completo', estado: 'Pendiente', frecuencia_backup: 'Mensual', observacion: '' };
+        this.viewFormBackup = true;
+    }
+
+    editarBackup(backup: any) {
+        this.isEditingBackup = true;
+        this.backupEditandoId = backup.id;
+        this.nuevoBackup = {
+            fecha: new Date(backup.fecha + 'T00:00:00'),
+            tipo: backup.tipo,
+            estado: backup.estado,
+            frecuencia_backup: backup.frecuencia_backup,
+            observacion: backup.observacion
+        };
         this.viewFormBackup = true;
     }
 
@@ -231,19 +248,26 @@ export class AmdSistemasInformacionComponent implements OnInit {
             const fechaStr = this.nuevoBackup.fecha instanceof Date
                 ? this.nuevoBackup.fecha.toISOString().split('T')[0]
                 : this.nuevoBackup.fecha;
-            await this.backupService.createBackup({
-                sistemaInformacionId: this.sistemaSeleccionado.id,
+            const payload = {
                 fecha: fechaStr,
                 tipo: this.nuevoBackup.tipo,
                 estado: this.nuevoBackup.estado,
                 frecuencia_backup: this.nuevoBackup.frecuencia_backup,
                 observacion: this.nuevoBackup.observacion
-            });
+            };
+            if (this.isEditingBackup) {
+                await this.backupService.updateBackup(this.backupEditandoId!, payload);
+            } else {
+                await this.backupService.createBackup({
+                    sistemaInformacionId: this.sistemaSeleccionado.id,
+                    ...payload
+                });
+            }
             this.fechaBackup = this.nuevoBackup.fecha instanceof Date
                 ? this.nuevoBackup.fecha
                 : new Date(this.nuevoBackup.fecha);
             this.viewFormBackup = false;
-            await Swal.fire('Éxito', 'Backup registrado correctamente', 'success');
+            await Swal.fire('Éxito', this.isEditingBackup ? 'Backup actualizado correctamente' : 'Backup registrado correctamente', 'success');
         } catch (error) {
             console.error(error);
             Swal.fire('Error', 'No se pudo guardar el backup', 'error');
