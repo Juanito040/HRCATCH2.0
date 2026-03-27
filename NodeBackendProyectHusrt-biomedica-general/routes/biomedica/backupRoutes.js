@@ -4,7 +4,7 @@ const { Op } = require('sequelize');
 const { BackupSistema, SistemaInformacion } = require('../../models/Biomedica');
 const { checkToken } = require('../../utilities/middleware');
 
-// GET /backups/alertas — evalúa estado de backups según periodicidad
+// GET /backups/alertas — evalúa estado de backups según frecuencia_backup individual
 router.get('/backups/alertas', checkToken, async (req, res) => {
     try {
         const sistemas = await SistemaInformacion.findAll({
@@ -19,54 +19,38 @@ router.get('/backups/alertas', checkToken, async (req, res) => {
             }]
         });
 
-        const hoy = new Date();
-        hoy.setHours(0, 0, 0, 0);
+        const limitePorFrecuencia = {
+            'Diario':  1,
+            'Semanal': 7,
+            'Mensual': 30,
+            'Anual':   365
+        };
+
         const alertas = [];
 
         for (const sistema of sistemas) {
-            const { periodicidad } = sistema;
-            if (periodicidad === 'Anual') continue;
-
             const ultimoBackup = sistema.backups && sistema.backups.length > 0 ? sistema.backups[0] : null;
             const ultimaFecha = ultimoBackup ? new Date(ultimoBackup.fecha) : null;
             const diasDesdeUltimo = ultimaFecha ? Math.floor((Date.now() - ultimaFecha) / 86400000) : null;
+            const frecuencia = ultimoBackup ? ultimoBackup.frecuencia_backup : null;
+            const limite = frecuencia ? limitePorFrecuencia[frecuencia] : null;
 
             let necesitaAlerta = false;
             let mensaje = '';
 
-            if (periodicidad === 'Diario') {
-                if (!ultimaFecha || diasDesdeUltimo >= 1) {
-                    necesitaAlerta = true;
-                    mensaje = ultimaFecha
-                        ? `Último backup hace ${diasDesdeUltimo} día(s). Se requiere backup diario.`
-                        : 'Sin backup completado. Se requiere backup diario.';
-                }
-            } else if (periodicidad === 'Semanal') {
-                if (!ultimaFecha || diasDesdeUltimo > 7) {
-                    necesitaAlerta = true;
-                    mensaje = ultimaFecha
-                        ? `Último backup hace ${diasDesdeUltimo} día(s). Se requiere backup semanal.`
-                        : 'Sin backup completado. Se requiere backup semanal.';
-                }
-            } else if (periodicidad === 'Mensual') {
-                const mesActual = hoy.getMonth();
-                const anioActual = hoy.getFullYear();
-                const mismoMes = ultimaFecha &&
-                    ultimaFecha.getMonth() === mesActual &&
-                    ultimaFecha.getFullYear() === anioActual;
-                if (!mismoMes) {
-                    necesitaAlerta = true;
-                    mensaje = ultimaFecha
-                        ? `Último backup: ${ultimoBackup.fecha}. Se requiere backup mensual.`
-                        : 'Sin backup completado. Se requiere backup mensual.';
-                }
+            if (!ultimoBackup) {
+                necesitaAlerta = true;
+                mensaje = 'Sin backup completado. Se requiere realizar un backup.';
+            } else if (limite !== null && diasDesdeUltimo > limite) {
+                necesitaAlerta = true;
+                mensaje = `Último backup hace ${diasDesdeUltimo} día(s). Se requiere backup ${frecuencia.toLowerCase()}.`;
             }
 
             if (necesitaAlerta) {
                 alertas.push({
                     sistemaId: sistema.id,
                     nombre: sistema.nombre,
-                    periodicidad,
+                    frecuencia_backup: frecuencia,
                     ultimoBackup: ultimaFecha ? ultimoBackup.fecha : null,
                     diasDesdeUltimo,
                     mensaje

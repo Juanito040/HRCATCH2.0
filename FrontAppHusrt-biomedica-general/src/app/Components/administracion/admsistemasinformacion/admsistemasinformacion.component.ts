@@ -17,6 +17,7 @@ import { SistemaInformacionService } from '../../../Services/appServices/biomedi
 import { ResponsableService } from '../../../Services/appServices/biomedicaServices/responsable/responsable.service';
 import { UserService } from '../../../Services/appServices/userServices/user.service';
 import { BackupSistemaService } from '../../../Services/appServices/biomedicaServices/backup/backup-sistema.service';
+import { NotificacionBackupService } from '../../../Services/appServices/biomedicaServices/backup/notificacion-backup.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -36,6 +37,7 @@ export class AmdSistemasInformacionComponent implements OnInit {
     responsableService = inject(ResponsableService);
     userService = inject(UserService);
     backupService = inject(BackupSistemaService);
+    notificacionService = inject(NotificacionBackupService);
     formBuilder = inject(FormBuilder);
 
     sistemas: any[] = [];
@@ -257,6 +259,9 @@ export class AmdSistemasInformacionComponent implements OnInit {
             };
             if (this.isEditingBackup) {
                 await this.backupService.updateBackup(this.backupEditandoId!, payload);
+                if (payload.estado === 'Completado') {
+                    this.notificacionService.eliminarAlertaPorSistema(this.sistemaSeleccionado.id);
+                }
             } else {
                 await this.backupService.createBackup({
                     sistemaInformacionId: this.sistemaSeleccionado.id,

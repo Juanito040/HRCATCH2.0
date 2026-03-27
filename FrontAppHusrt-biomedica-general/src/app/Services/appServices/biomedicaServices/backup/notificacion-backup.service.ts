@@ -28,6 +28,13 @@ export class NotificacionBackupService {
         this.pollingId = setInterval(() => this.cargarAlertas(), intervalMs);
     }
 
+    eliminarAlertaPorSistema(sistemaId: number): void {
+        const actuales = this._alertas$.getValue();
+        const nuevas = actuales.filter(a => a.sistemaId !== sistemaId);
+        this._alertas$.next(nuevas);
+        this.conteoAlertas = nuevas.length;
+    }
+
     detenerPolling(): void {
         clearInterval(this.pollingId);
     }
