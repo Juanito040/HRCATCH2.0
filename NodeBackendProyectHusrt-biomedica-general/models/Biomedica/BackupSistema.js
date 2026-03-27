@@ -21,6 +21,11 @@ const BackupSistema = sequelize.define('BackupSistema', {
     estado: {
         type: DataTypes.STRING
     },
+    frecuencia_backup: {
+        type: DataTypes.ENUM('Anual', 'Mensual', 'Semanal', 'Diario'),
+        allowNull: false,
+        defaultValue: 'Mensual'
+    },
     observacion: {
         type: DataTypes.TEXT
     }

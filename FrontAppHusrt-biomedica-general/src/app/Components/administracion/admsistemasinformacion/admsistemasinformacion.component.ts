@@ -52,7 +52,7 @@ export class AmdSistemasInformacionComponent implements OnInit {
     backupsDelMes: any[] = [];
     fechaBackup: Date = new Date();
     viewFormBackup: boolean = false;
-    nuevoBackup: any = { fecha: null, tipo: 'Completo', estado: 'Pendiente', observacion: '' };
+    nuevoBackup: any = { fecha: null, tipo: 'Completo', estado: 'Pendiente', frecuencia_backup: 'Mensual', observacion: '' };
     guardandoBackup: boolean = false;
 
     periodicidadOptions = [
@@ -72,6 +72,13 @@ export class AmdSistemasInformacionComponent implements OnInit {
         { label: 'Pendiente', value: 'Pendiente' },
         { label: 'Completado', value: 'Completado' },
         { label: 'Fallido', value: 'Fallido' }
+    ];
+
+    frecuenciaBackupOptions = [
+        { label: 'Anual',   value: 'Anual'   },
+        { label: 'Mensual', value: 'Mensual' },
+        { label: 'Semanal', value: 'Semanal' },
+        { label: 'Diario',  value: 'Diario'  }
     ];
 
     formGroup: FormGroup;
@@ -209,7 +216,7 @@ export class AmdSistemasInformacionComponent implements OnInit {
     }
 
     abrirFormBackup() {
-        this.nuevoBackup = { fecha: null, tipo: 'Completo', estado: 'Pendiente', observacion: '' };
+        this.nuevoBackup = { fecha: null, tipo: 'Completo', estado: 'Pendiente', frecuencia_backup: 'Mensual', observacion: '' };
         this.viewFormBackup = true;
     }
 
@@ -229,6 +236,7 @@ export class AmdSistemasInformacionComponent implements OnInit {
                 fecha: fechaStr,
                 tipo: this.nuevoBackup.tipo,
                 estado: this.nuevoBackup.estado,
+                frecuencia_backup: this.nuevoBackup.frecuencia_backup,
                 observacion: this.nuevoBackup.observacion
             });
             this.fechaBackup = this.nuevoBackup.fecha instanceof Date

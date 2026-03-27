@@ -166,6 +166,7 @@
                     <tr>
                         <th>Fecha</th>
                         <th>Tipo</th>
+                        <th>Frecuencia</th>
                         <th>Estado</th>
                         <th>Observación</th>
                         <th>Acciones</th>
@@ -175,6 +176,7 @@
                     <tr>
                         <td>{{ backup.fecha }}</td>
                         <td>{{ backup.tipo }}</td>
+                        <td>{{ backup.frecuencia_backup }}</td>
                         <td>
                             <p-select [options]="estadoBackupOptions" [(ngModel)]="backup.estado"
                                 optionLabel="label" optionValue="value"
@@ -191,7 +193,7 @@
                 </ng-template>
                 <ng-template pTemplate="emptymessage">
                     <tr>
-                        <td colspan="5" class="text-center p-3">No hay backups registrados para este sistema.</td>
+                        <td colspan="6" class="text-center p-3">No hay backups registrados para este sistema.</td>
                     </tr>
                 </ng-template>
             </p-table>
@@ -228,6 +230,13 @@
                 <p-select [options]="estadoBackupOptions" [(ngModel)]="nuevoBackup.estado"
                     optionLabel="label" optionValue="value" placeholder="Seleccione estado"
                     class="w-full" appendTo="body">
+                </p-select>
+            </div>
+            <div class="field">
+                <label>Frecuencia de Backup *</label>
+                <p-select [options]="frecuenciaBackupOptions" [(ngModel)]="nuevoBackup.frecuencia_backup"
+                    optionLabel="label" optionValue="value" placeholder="Seleccionar frecuencia"
+                    styleClass="w-full" appendTo="body">
                 </p-select>
             </div>
             <div class="field">

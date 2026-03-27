@@ -151,6 +151,10 @@ router.get('/backups/:sistemaId/mes', async (req, res) => {
 // POST /backups — crea un backup programado
 router.post('/backups', async (req, res) => {
     try {
+        const valoresFrecuencia = ['Anual', 'Mensual', 'Semanal', 'Diario'];
+        if (!req.body.frecuencia_backup || !valoresFrecuencia.includes(req.body.frecuencia_backup)) {
+            return res.status(400).json({ error: 'frecuencia_backup es obligatorio y debe ser: Anual, Mensual, Semanal o Diario' });
+        }
         const nuevoBackup = await BackupSistema.create(req.body);
         res.status(201).json(nuevoBackup);
     } catch (error) {
@@ -161,6 +165,10 @@ router.post('/backups', async (req, res) => {
 // PUT /backups/:id — actualiza estado del backup
 router.put('/backups/:id', async (req, res) => {
     try {
+        const valoresFrecuencia = ['Anual', 'Mensual', 'Semanal', 'Diario'];
+        if (req.body.frecuencia_backup !== undefined && !valoresFrecuencia.includes(req.body.frecuencia_backup)) {
+            return res.status(400).json({ error: 'frecuencia_backup debe ser: Anual, Mensual, Semanal o Diario' });
+        }
         const backup = await BackupSistema.findByPk(req.params.id);
         if (!backup) {
             return res.status(404).json({ error: 'Backup no encontrado' });
