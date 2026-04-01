@@ -1,5 +1,5 @@
 <br>
-<div class="container" [attr.inert]="(isDeleteOptionsDialogOpen || isModalOpen || isDetailModalOpen || isReactivarModalOpen || isHistorialModalOpen || isPlanDialogOpen) ? '' : null">
+<div class="container" [attr.inert]="(isDeleteOptionsDialogOpen || isModalOpen || isDetailModalOpen || isReactivarModalOpen || isHistorialModalOpen || isPlanDialogOpen || isReporteFormOpen || isReportesListOpen) ? '' : null">
   <div class="page-header">
     <div>
       <h1>Gestión de Equipos en bodega y dados de baja</h1>
@@ -193,6 +193,21 @@
   [equipo]="equipoToHistorial"
   (closed)="closeHistorialModal()"
 ></app-sys-historial-equipo>
+
+<!-- Modal Reporte de Entrega -->
+<app-sys-reporte-form
+  [isOpen]="isReporteFormOpen"
+  [equipo]="equipoForReporte"
+  (closed)="closeReporteForm()"
+  (saved)="closeReporteForm()"
+></app-sys-reporte-form>
+
+<!-- Modal Ver Reportes del Equipo -->
+<app-sys-reportes-equipo
+  [isOpen]="isReportesListOpen"
+  [equipo]="equipoForReportesList"
+  (closed)="closeReportesList()"
+></app-sys-reportes-equipo>
 
 <!-- Modal Plan de Mantenimiento -->
 @if (isPlanDialogOpen) {

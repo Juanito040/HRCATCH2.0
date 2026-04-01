@@ -96,36 +96,39 @@ export class SysHistorialEquipoComponent implements OnChanges, OnDestroy {
 
   getIconClase(accion: string): string {
     const mapa: Record<string, string> = {
-      CREACION: 'fas fa-plus-circle',
-      EDICION: 'fas fa-pencil-alt',
-      BODEGA: 'fas fa-warehouse',
-      BAJA: 'fas fa-ban',
-      REACTIVACION: 'fas fa-power-off',
-      PLAN_MANTENIMIENTO: 'fas fa-calendar-check'
+      CREACION:          'fas fa-plus-circle',
+      EDICION:           'fas fa-pencil-alt',
+      BODEGA:            'fas fa-warehouse',
+      BAJA:              'fas fa-ban',
+      REACTIVACION:      'fas fa-power-off',
+      PLAN_MANTENIMIENTO:'fas fa-calendar-check',
+      REPORTE_ENTREGA:   'fas fa-file-export'
     };
     return mapa[accion] || 'fas fa-circle';
   }
 
   getColorClase(accion: string): string {
     const mapa: Record<string, string> = {
-      CREACION: 'evento-creacion',
-      EDICION: 'evento-edicion',
-      BODEGA: 'evento-bodega',
-      BAJA: 'evento-baja',
-      REACTIVACION: 'evento-reactivacion',
-      PLAN_MANTENIMIENTO: 'evento-plan'
+      CREACION:          'evento-creacion',
+      EDICION:           'evento-edicion',
+      BODEGA:            'evento-bodega',
+      BAJA:              'evento-baja',
+      REACTIVACION:      'evento-reactivacion',
+      PLAN_MANTENIMIENTO:'evento-plan',
+      REPORTE_ENTREGA:   'evento-reporte'
     };
     return mapa[accion] || 'evento-default';
   }
 
   getEtiqueta(accion: string): string {
     const mapa: Record<string, string> = {
-      CREACION: 'Creación',
-      EDICION: 'Edición',
-      BODEGA: 'Enviado a Bodega',
-      BAJA: 'Dado de Baja',
-      REACTIVACION: 'Reactivado',
-      PLAN_MANTENIMIENTO: 'Plan de Mantenimiento'
+      CREACION:          'Creación',
+      EDICION:           'Edición',
+      BODEGA:            'Enviado a Bodega',
+      BAJA:              'Dado de Baja',
+      REACTIVACION:      'Reactivado',
+      PLAN_MANTENIMIENTO:'Plan de Mantenimiento',
+      REPORTE_ENTREGA:   'Reporte de Entrega'
     };
     return mapa[accion] || accion;
   }

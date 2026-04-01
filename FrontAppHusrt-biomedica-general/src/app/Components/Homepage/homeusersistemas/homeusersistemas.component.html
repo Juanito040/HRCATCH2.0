@@ -1,1 +1,77 @@
-<p>homeusersistemas works!</p>
+<div class="dashboard-container">
+
+  <div class="hero-section" style="margin-bottom: 3rem;">
+    <div class="hero-content">
+      <h1>Gestión de Sistemas</h1>
+      <p>Bienvenido al sistema de gestión de equipos e infraestructura tecnológica.</p>
+    </div>
+  </div>
+
+  <div class="cards-grid" style="justify-content: center; max-width: 1500px; margin: 0 auto;">
+
+    <!-- Inventario -->
+    <div class="dashboard-card inventario-card">
+      <div class="card-icon-container gradient-blue">
+        <i class="pi pi-box" style="font-size: 4rem;"></i>
+      </div>
+      <div class="card-content">
+        <h3>Inventario</h3>
+        <p>Gestión de equipos, tipos y control del inventario de sistemas.</p>
+        <div class="sub-actions">
+          <button class="sub-action-btn" (click)="irATiposEquipos()">
+            <i class="pi pi-th-large"></i>
+            <span>Tipos de Equipo</span>
+            <i class="pi pi-arrow-right sub-arrow"></i>
+          </button>
+          <button class="sub-action-btn" (click)="irAEquiposBodega()">
+            <i class="fas fa-warehouse"></i>
+            <span>Equipos en Bodega</span>
+            <i class="pi pi-arrow-right sub-arrow"></i>
+          </button>
+          <button class="sub-action-btn" (click)="irAEquiposBaja()">
+            <i class="pi pi-ban"></i>
+            <span>Dados de Baja</span>
+            <i class="pi pi-arrow-right sub-arrow"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gestión de mantenimientos -->
+    <div class="dashboard-card" (click)="irAMantenimientosEquipos()">
+      <div class="card-icon-container gradient-blue">
+        <i class="pi pi-briefcase" style="font-size: 4rem;"></i>
+      </div>
+      <div class="card-content">
+        <h3>Mantenimiento</h3>
+        <p>Gestión de mantenimientos de equipos de sistemas.</p>
+        <span class="card-action">Acceder <i class="pi pi-arrow-right"></i></span>
+      </div>
+    </div>
+
+    <!-- Gestión de Backups -->
+    <div class="dashboard-card" (click)="irAEquipos()">
+      <div class="card-icon-container gradient-blue">
+        <i class="pi pi-database" style="font-size: 4rem;"></i>
+      </div>
+      <div class="card-content">
+        <h3>Backups</h3>
+        <p>Gestión de backups de equipos de sistemas.</p>
+        <span class="card-action">Acceder <i class="pi pi-arrow-right"></i></span>
+      </div>
+    </div>
+
+    <!-- Gestión de indicadores -->
+    <div class="dashboard-card" (click)="irAEquipos()">
+      <div class="card-icon-container gradient-blue">
+        <i class="pi pi-chart-bar" style="font-size: 4rem;"></i>
+      </div>
+      <div class="card-content">
+        <h3>Indicadores</h3>
+        <p>Visualiza indicadores de equipos de sistemas.</p>
+        <span class="card-action">Acceder <i class="pi pi-arrow-right"></i></span>
+      </div>
+    </div>
+
+  </div>
+</div>

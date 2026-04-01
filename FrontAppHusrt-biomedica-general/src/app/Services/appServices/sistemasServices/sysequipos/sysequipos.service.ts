@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, firstValueFrom } from 'rxjs';
 import { API_URL } from '../../../../constantes';
 
 export interface SysEquipo {
@@ -93,5 +93,14 @@ export class SysequiposService {
 
   getTiposEquipoSistemas(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/tiposequipo`);
+  }
+
+  exportarInventario(tipo: 'todos' | 'bodega'): Promise<Blob> {
+    return firstValueFrom(
+      this.http.get(`${this.apiUrl}/exportar`, {
+        params: { tipo },
+        responseType: 'blob'
+      })
+    );
   }
 }

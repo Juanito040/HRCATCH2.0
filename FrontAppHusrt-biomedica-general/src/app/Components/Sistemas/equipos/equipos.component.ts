@@ -9,6 +9,9 @@ import { SysEquipoDetailModalComponent } from '../equipo-detail-modal/equipo-det
 import { SysDeleteConfirmationDialogComponent, DeleteAction } from '../delete-confirmation-dialog/delete-confirmation-dialog.component';
 import { SysReactivarEquipoModalComponent, ReactivarEquipoData } from '../reactivar-equipo-modal/reactivar-equipo-modal.component';
 import { SysHistorialEquipoComponent } from '../historial-equipo/historial-equipo.component';
+import { SysReporteFormComponent } from '../sys-reporte-form/sys-reporte-form.component';
+import { SysReportesEquipoComponent } from '../sys-reportes-equipo/sys-reportes-equipo.component';
+import { SysReporteService } from '../../../Services/appServices/sistemasServices/sysreporte/sysreporte.service';
 import { getDecodedAccessToken } from '../../../utilidades';
 import { MenuItem } from 'primeng/api';
 import Swal from 'sweetalert2';
@@ -23,7 +26,9 @@ import Swal from 'sweetalert2';
     SysEquipoDetailModalComponent,
     SysDeleteConfirmationDialogComponent,
     SysReactivarEquipoModalComponent,
-    SysHistorialEquipoComponent
+    SysHistorialEquipoComponent,
+    SysReporteFormComponent,
+    SysReportesEquipoComponent
   ],
   templateUrl: './equipos.component.html',
   styleUrls: ['./equipos.component.css']
@@ -66,6 +71,12 @@ export class SisEquiposComponent implements OnInit {
   isHistorialModalOpen: boolean = false;
   equipoToHistorial: SysEquipo | null = null;
 
+  isReporteFormOpen: boolean = false;
+  equipoForReporte: any = null;
+
+  isReportesListOpen: boolean = false;
+  equipoForReportesList: any = null;
+
   // ── Plan de Mantenimiento ──
   isPlanDialogOpen = false;
   currentEquipoPlan: any = null;
@@ -99,6 +110,7 @@ export class SisEquiposComponent implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private planService = inject(SysplanmantenimientoService);
+  private reporteService = inject(SysReporteService);
 
   constructor(private sysequiposService: SysequiposService) {}
 
@@ -350,12 +362,16 @@ export class SisEquiposComponent implements OnInit {
   }
 
   private buildOpciones(equipo: SysEquipo): MenuItem[] {
-    const opcionHistorial = { label: 'Ver Historial', icon: 'fas fa-history', command: () => this.openHistorialModal(equipo) };
+    const opcionHistorial  = { label: 'Ver Historial',     icon: 'fas fa-history',       command: () => this.openHistorialModal(equipo) };
+    const opcionReporte    = { label: 'Reporte de Entrega',icon: 'fas fa-file-export',   command: () => this.openReporteForm(equipo) };
+    const opcionVerReportes= { label: 'Ver Reportes',      icon: 'fas fa-clipboard-list',command: () => this.openReportesList(equipo) };
     if (this.selectedView === 'all') {
       return [
         { label: 'Ver Detalles',             icon: 'pi pi-eye',      command: () => this.openDetailModal(equipo) },
         { label: 'Editar',                   icon: 'pi pi-pencil',   command: () => this.openEditModal(equipo) },
         { label: 'Plan de Mantenimiento',    icon: 'pi pi-calendar', command: () => this.openPlanDialog(equipo) },
+        opcionReporte,
+        opcionVerReportes,
         opcionHistorial,
         { label: 'Enviar a Bodega / Baja',   icon: 'pi pi-trash',    command: () => this.confirmDelete(equipo) }
       ];
@@ -363,12 +379,17 @@ export class SisEquiposComponent implements OnInit {
       return [
         { label: 'Ver Detalles', icon: 'pi pi-eye',       command: () => this.openDetailModal(equipo) },
         { label: 'Reactivar',    icon: 'pi pi-power-off', command: () => this.reactivarEquipo(equipo) },
+        opcionReporte,
+        opcionVerReportes,
         opcionHistorial,
         { label: 'Dar de Baja',  icon: 'pi pi-trash',     command: () => this.confirmDelete(equipo) }
       ];
     } else {
       return [
-        { label: 'Ver Detalles', icon: 'pi pi-eye', command: () => this.openDetailModal(equipo) },
+        { label: 'Ver Detalles',       icon: 'pi pi-eye',         command: () => this.openDetailModal(equipo) },
+        opcionReporte,
+        opcionVerReportes,
+        { label: 'Descargar PDF Baja', icon: 'fas fa-file-pdf',   command: () => this.descargarPdfBaja(equipo) },
         opcionHistorial
       ];
     }
@@ -382,6 +403,45 @@ export class SisEquiposComponent implements OnInit {
   closeHistorialModal() {
     this.isHistorialModalOpen = false;
     this.equipoToHistorial = null;
+  }
+
+  openReporteForm(equipo: any) {
+    this.equipoForReporte = equipo;
+    this.isReporteFormOpen = true;
+  }
+
+  closeReporteForm() {
+    this.isReporteFormOpen = false;
+    this.equipoForReporte = null;
+  }
+
+  openReportesList(equipo: any) {
+    this.equipoForReportesList = equipo;
+    this.isReportesListOpen = true;
+  }
+
+  closeReportesList() {
+    this.isReportesListOpen = false;
+    this.equipoForReportesList = null;
+  }
+
+  async descargarPdfBaja(equipo: any) {
+    const bajaId = equipo.baja?.id_sysbaja;
+    if (!bajaId) {
+      Swal.fire('Sin datos', 'No se encontró el registro de baja para este equipo.', 'warning');
+      return;
+    }
+    try {
+      const blob = await this.reporteService.descargarPdfBaja(bajaId);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Baja_${equipo.nombre_equipo || bajaId}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      Swal.fire('Error', 'No se pudo generar el PDF de baja.', 'error');
+    }
   }
 
   private withOpciones(equipos: SysEquipo[]): any[] {

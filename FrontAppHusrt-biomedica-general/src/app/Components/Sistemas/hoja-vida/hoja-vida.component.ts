@@ -25,9 +25,10 @@ export class SysHojaVidaComponent implements OnInit {
   hojaVida: SysHojaVida | null = null;
   equipo: any = null;
 
-  isLoading = true;
-  isSaving  = false;
-  isEditing = false;
+  isLoading     = true;
+  isSaving      = false;
+  isEditing     = false;
+  isDownloading = false;
   error: string | null = null;
   isNew = false;
 
@@ -118,5 +119,22 @@ export class SysHojaVidaComponent implements OnInit {
 
   goBack() {
     this.router.navigate(['/adminsistemas/equipos']);
+  }
+
+  async descargarPdf() {
+    this.isDownloading = true;
+    try {
+      const blob = await this.svc.descargarPdf(this.equipoId);
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = `HojaVida_${this.equipo?.placa_inventario ?? this.equipoId}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo generar el PDF' });
+    } finally {
+      this.isDownloading = false;
+    }
   }
 }

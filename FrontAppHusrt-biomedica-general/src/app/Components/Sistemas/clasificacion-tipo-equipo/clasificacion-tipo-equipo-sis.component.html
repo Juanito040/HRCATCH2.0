@@ -6,6 +6,25 @@
       <p class="subtitle">Selecciona un tipo para ver sus equipos registrados</p>
     </div>
     <div class="header-actions">
+      <div class="export-dropdown-wrap">
+        <button class="btn btn-success" (click)="toggleExportMenu($event)" [disabled]="isExporting">
+          @if (isExporting) {
+            <span class="btn-spinner-sm"></span> Exportando...
+          } @else {
+            <i class="fas fa-file-excel"></i> Descargar <i class="fas fa-chevron-down" style="font-size:0.7rem;margin-left:2px"></i>
+          }
+        </button>
+        @if (isExportMenuOpen) {
+          <div class="export-dropdown-menu">
+            <button class="export-dropdown-item" (click)="descargarInventario('todos')">
+              <i class="fas fa-list"></i> Todos los equipos
+            </button>
+            <button class="export-dropdown-item" (click)="descargarInventario('bodega')">
+              <i class="fas fa-warehouse"></i> En Bodega
+            </button>
+          </div>
+        }
+      </div>
       <button class="btn btn-primary" (click)="openCreateModal()">
         <i class="pi pi-plus-circle"></i> Crear Equipo
       </button>

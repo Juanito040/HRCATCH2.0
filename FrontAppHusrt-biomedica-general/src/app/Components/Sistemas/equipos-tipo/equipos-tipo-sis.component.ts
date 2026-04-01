@@ -9,6 +9,9 @@ import { SysEquipoModalComponent } from '../equipo-modal/equipo-modal.component'
 import { SysEquipoDetailModalComponent } from '../equipo-detail-modal/equipo-detail-modal.component';
 import { SysHistorialEquipoComponent } from '../historial-equipo/historial-equipo.component';
 import { SysDeleteConfirmationDialogComponent, DeleteAction } from '../delete-confirmation-dialog/delete-confirmation-dialog.component';
+import { SysReporteFormComponent } from '../sys-reporte-form/sys-reporte-form.component';
+import { SysReportesEquipoComponent } from '../sys-reportes-equipo/sys-reportes-equipo.component';
+import { SysReporteService } from '../../../Services/appServices/sistemasServices/sysreporte/sysreporte.service';
 import { getDecodedAccessToken } from '../../../utilidades';
 import { MenuItem } from 'primeng/api';
 import Swal from 'sweetalert2';
@@ -16,7 +19,7 @@ import Swal from 'sweetalert2';
 @Component({
   selector: 'app-equipos-tipo-sis',
   standalone: true,
-  imports: [CommonModule, FormsModule, SysEquipoModalComponent, SysEquipoDetailModalComponent, SysHistorialEquipoComponent, SysDeleteConfirmationDialogComponent],
+  imports: [CommonModule, FormsModule, SysEquipoModalComponent, SysEquipoDetailModalComponent, SysHistorialEquipoComponent, SysDeleteConfirmationDialogComponent, SysReporteFormComponent, SysReportesEquipoComponent],
   templateUrl: './equipos-tipo-sis.component.html',
   styleUrl: './equipos-tipo-sis.component.css'
 })
@@ -44,6 +47,12 @@ export class EquiposTipoSisComponent implements OnInit {
 
   isHistorialModalOpen: boolean = false;
   equipoToHistorial: SysEquipo | null = null;
+
+  isReporteFormOpen: boolean = false;
+  equipoForReporte: any = null;
+
+  isReportesListOpen: boolean = false;
+  equipoForReportesList: any = null;
 
   isDeleteOptionsDialogOpen: boolean = false;
   equipoToDeleteWithOptions: SysEquipo | null = null;
@@ -83,6 +92,7 @@ export class EquiposTipoSisComponent implements OnInit {
   private sysequiposService = inject(SysequiposService);
   private tipoEquipoService = inject(TipoEquipoService);
   private planService = inject(SysplanmantenimientoService);
+  private reporteService = inject(SysReporteService);
 
   get isAdmin(): boolean {
     const decoded = getDecodedAccessToken();
@@ -159,12 +169,14 @@ export class EquiposTipoSisComponent implements OnInit {
 
   private buildOpciones(equipo: SysEquipo): MenuItem[] {
     return [
-      { label: 'Ver Detalles',         icon: 'pi pi-eye',      command: () => this.openDetailModal(equipo) },
-      { label: 'Editar',               icon: 'pi pi-pencil',   command: () => this.openEditModal(equipo) },
-      { label: 'Plan de Mantenimiento',icon: 'pi pi-calendar', command: () => this.openPlanDialog(equipo) },
-      { label: 'Ver Historial',        icon: 'fas fa-history', command: () => this.openHistorialModal(equipo) },
-      { label: 'Enviar a Bodega',      icon: 'fas fa-warehouse', command: () => this.confirmBodega(equipo) },
-      { label: 'Dar de Baja',          icon: 'pi pi-ban',      command: () => this.confirmBaja(equipo) },
+      { label: 'Ver Detalles',          icon: 'pi pi-eye',          command: () => this.openDetailModal(equipo) },
+      { label: 'Editar',                icon: 'pi pi-pencil',       command: () => this.openEditModal(equipo) },
+      { label: 'Plan de Mantenimiento', icon: 'pi pi-calendar',     command: () => this.openPlanDialog(equipo) },
+      { label: 'Reporte de Entrega',    icon: 'fas fa-file-export', command: () => this.openReporteForm(equipo) },
+      { label: 'Ver Reportes',          icon: 'fas fa-clipboard-list', command: () => this.openReportesList(equipo) },
+      { label: 'Ver Historial',         icon: 'fas fa-history',     command: () => this.openHistorialModal(equipo) },
+      { label: 'Enviar a Bodega',       icon: 'fas fa-warehouse',   command: () => this.confirmBodega(equipo) },
+      { label: 'Dar de Baja',           icon: 'pi pi-ban',          command: () => this.confirmBaja(equipo) },
     ];
   }
 
@@ -257,6 +269,26 @@ export class EquiposTipoSisComponent implements OnInit {
   closeHistorialModal() {
     this.isHistorialModalOpen = false;
     this.equipoToHistorial = null;
+  }
+
+  openReporteForm(equipo: any) {
+    this.equipoForReporte = equipo;
+    this.isReporteFormOpen = true;
+  }
+
+  closeReporteForm() {
+    this.isReporteFormOpen = false;
+    this.equipoForReporte = null;
+  }
+
+  openReportesList(equipo: any) {
+    this.equipoForReportesList = equipo;
+    this.isReportesListOpen = true;
+  }
+
+  closeReportesList() {
+    this.isReportesListOpen = false;
+    this.equipoForReportesList = null;
   }
 
   private withOpciones(equipos: SysEquipo[]): any[] {

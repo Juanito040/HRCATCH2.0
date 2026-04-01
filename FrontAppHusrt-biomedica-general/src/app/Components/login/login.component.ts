@@ -43,6 +43,8 @@ export class LoginComponent implements OnInit {
         sessionStorage.setItem('utoken', response.token);
         if (this.getDecodedAccessToken(sessionStorage.getItem('utoken')!).rol === 'SYSTEMADMIN') {
           this.router.navigate(['/adminsistemas']);
+        } else if (this.getDecodedAccessToken(sessionStorage.getItem('utoken')!).rol === 'SYSTEMUSER') {
+          this.router.navigate(['/adminsistemas']);
         } else if (this.getDecodedAccessToken(sessionStorage.getItem('utoken')!).rol === 'SUPERADMIN') {
           this.router.navigate(['/superadmin']);
         } else if (this.getDecodedAccessToken(sessionStorage.getItem('utoken')!).rol === 'MANTENIMIENTOADMIN') {

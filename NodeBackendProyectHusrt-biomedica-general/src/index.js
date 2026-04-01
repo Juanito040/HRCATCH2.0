@@ -90,18 +90,21 @@ require('../models/Sistemas/SysRepuesto');
 require('../models/Sistemas/SysTrazabilidad');
 require('../models/Sistemas/SysProtocoloPreventivo');
 require('../models/Sistemas/SysPlanMantenimiento');
+require('../models/Sistemas/SysReporte');
 const sysEquipoRoutes = require('./../routes/sistemas/sysEquipoRoutes');
 const sysMantenimientoRoutes = require('./../routes/sistemas/sysMantenimientoRoutes');
 const sysHojaVidaRoutes = require('./../routes/sistemas/sysHojaVidaRoutes');
 const sysTrazabilidadRoutes = require('./../routes/sistemas/sysTrazabilidadRoutes');
 const sysProtocoloPreventivoRoutes = require('./../routes/sistemas/sysProtocoloPreventivoRoutes');
 const sysPlanMantenimientoRoutes = require('./../routes/sistemas/sysPlanMantenimientoRoutes');
+const sysReporteRoutes = require('./../routes/sistemas/sysReporteRoutes');
 app.use('/sysequipo', checkToken, sysEquipoRoutes);
 app.use('/sysmantenimiento', checkToken, sysMantenimientoRoutes);
 app.use('/syshojavida', checkToken, sysHojaVidaRoutes);
 app.use('/systrazabilidad', checkToken, sysTrazabilidadRoutes);
 app.use('/sysprotocolo', checkToken, sysProtocoloPreventivoRoutes);
 app.use('/sysplanmantenimiento', checkToken, sysPlanMantenimientoRoutes);
+app.use('/sysreporte', checkToken, sysReporteRoutes);
 
 
 const cargoRoutes = require('./../routes/generales/cargoRoutes');

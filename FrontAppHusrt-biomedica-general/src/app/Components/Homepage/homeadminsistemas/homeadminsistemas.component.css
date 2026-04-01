@@ -1,3 +1,10 @@
+/* Cards más anchas en el selector de módulos */
+:host .dashboard-card {
+  min-width: 340px;
+  max-width: 480px;
+  flex: 1 1 340px;
+}
+
 /* Inventario card no es clickable en el root */
 .inventario-card { cursor: default; }
 .inventario-card:hover { transform: none; box-shadow: var(--shadow-sm); }
