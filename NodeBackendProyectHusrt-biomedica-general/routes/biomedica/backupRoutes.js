@@ -83,6 +83,7 @@ router.get('/backups/todos/mes', checkToken, async (req, res) => {
             fecha: b.fecha,
             tipo: b.tipo,
             estado: b.estado,
+            frecuencia_backup: b.frecuencia_backup,
             observacion: b.observacion,
             sistemaId: b.sistemaInformacionId,
             sistemaNombre: b.sistema ? b.sistema.nombre : null

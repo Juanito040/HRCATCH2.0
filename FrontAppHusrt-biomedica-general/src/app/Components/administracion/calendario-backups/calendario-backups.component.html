@@ -1,8 +1,16 @@
 <div class="calendario-container p-4">
 
-    <div class="flex align-items-center justify-content-between mb-4">
+    <!-- Cabecera principal -->
+    <div class="flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
         <h2 class="m-0">Calendario de Backups</h2>
-        <div class="flex align-items-center gap-3">
+        <div class="flex align-items-center gap-2">
+            <p-button icon="pi pi-chevron-left" [text]="true" [rounded]="true"
+                      (onClick)="mesAnterior()">
+            </p-button>
+            <span class="titulo-mes">{{ tituloMes }}</span>
+            <p-button icon="pi pi-chevron-right" [text]="true" [rounded]="true"
+                      (onClick)="mesSiguiente()">
+            </p-button>
             <p-datepicker
                 [(ngModel)]="fechaSeleccionada"
                 view="month"
@@ -10,27 +18,17 @@
                 (onSelect)="onMesCambia($event)"
                 [showIcon]="true">
             </p-datepicker>
-            <button pButton icon="pi pi-refresh" label="Actualizar"
-                    class="p-button-outlined"
-                    (click)="cargarBackupsDelMes()">
-            </button>
+            <p-button icon="pi pi-refresh" [outlined]="true" label="Actualizar"
+                      (onClick)="cargarBackupsDelMes()">
+            </p-button>
         </div>
     </div>
 
     <!-- Leyenda -->
-    <div class="flex gap-4 mb-3">
-        <div class="flex align-items-center gap-2">
-            <div class="leyenda-color dia-completado"></div>
-            <span class="text-sm">Completado</span>
-        </div>
-        <div class="flex align-items-center gap-2">
-            <div class="leyenda-color dia-fallido"></div>
-            <span class="text-sm">Fallido</span>
-        </div>
-        <div class="flex align-items-center gap-2">
-            <div class="leyenda-color dia-pendiente"></div>
-            <span class="text-sm">Pendiente</span>
-        </div>
+    <div class="flex gap-3 mb-3 flex-wrap">
+        <div class="backup-chip backup-chip-completado leyenda-chip">Completado</div>
+        <div class="backup-chip backup-chip-fallido leyenda-chip">Fallido</div>
+        <div class="backup-chip backup-chip-pendiente leyenda-chip">Pendiente</div>
     </div>
 
     <!-- Loading -->
@@ -41,10 +39,8 @@
     <!-- Calendario -->
     <div *ngIf="!loading">
         <!-- Cabecera días de semana -->
-        <div class="calendario-grid mb-1">
-            <div *ngFor="let dia of diasSemana"
-                 class="text-center font-bold text-sm py-2"
-                 style="color: var(--text-color-secondary)">
+        <div class="calendario-grid mb-2">
+            <div *ngFor="let dia of diasSemana" class="dia-semana-header-cell">
                 {{ dia }}
             </div>
         </div>
@@ -56,13 +52,15 @@
                      class="dia-cell"
                      [ngClass]="celda.fecha ? getClaseDia(getBackupsDia(celda.fecha)) : 'dia-vacio'">
                     <div *ngIf="celda.dia" class="dia-numero">{{ celda.dia }}</div>
-                    <ng-container *ngIf="celda.fecha">
+                    <div class="chips-container" *ngIf="celda.fecha">
                         <div *ngFor="let backup of getBackupsDia(celda.fecha)"
-                             class="backup-nombre"
-                             [title]="backup.sistemaNombre">
+                             class="backup-chip"
+                             [ngClass]="getClaseChip(backup.estado)"
+                             [pTooltip]="getTextoTooltip(backup)"
+                             tooltipPosition="top">
                             {{ backup.sistemaNombre }}
                         </div>
-                    </ng-container>
+                    </div>
                 </div>
             </ng-container>
         </div>

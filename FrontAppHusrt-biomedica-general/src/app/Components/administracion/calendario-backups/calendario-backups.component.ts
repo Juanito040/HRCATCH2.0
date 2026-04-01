@@ -3,13 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DatePickerModule } from 'primeng/datepicker';
 import { ButtonModule } from 'primeng/button';
+import { TooltipModule } from 'primeng/tooltip';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { BackupSistemaService } from '../../../Services/appServices/biomedicaServices/backup/backup-sistema.service';
 
 @Component({
     selector: 'app-calendario-backups',
     standalone: true,
-    imports: [CommonModule, DatePickerModule, ButtonModule, FormsModule, ProgressSpinnerModule],
+    imports: [CommonModule, DatePickerModule, ButtonModule, TooltipModule, FormsModule, ProgressSpinnerModule],
     templateUrl: './calendario-backups.component.html',
     styleUrl: './calendario-backups.component.css'
 })
@@ -25,6 +26,26 @@ export class CalendarioBackupsComponent implements OnInit {
     readonly diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
     ngOnInit(): void {
+        this.cargarBackupsDelMes();
+    }
+
+    get tituloMes(): string {
+        const titulo = new Intl.DateTimeFormat('es-CO', { month: 'long', year: 'numeric' })
+            .format(this.fechaSeleccionada);
+        return titulo.charAt(0).toUpperCase() + titulo.slice(1);
+    }
+
+    mesAnterior(): void {
+        const d = new Date(this.fechaSeleccionada);
+        d.setMonth(d.getMonth() - 1);
+        this.fechaSeleccionada = d;
+        this.cargarBackupsDelMes();
+    }
+
+    mesSiguiente(): void {
+        const d = new Date(this.fechaSeleccionada);
+        d.setMonth(d.getMonth() + 1);
+        this.fechaSeleccionada = d;
         this.cargarBackupsDelMes();
     }
 
@@ -86,9 +107,16 @@ export class CalendarioBackupsComponent implements OnInit {
     }
 
     getClaseDia(backups: any[]): string {
-        if (backups.some(b => b.estado === 'Fallido')) return 'dia-fallido';
-        if (backups.some(b => b.estado === 'Pendiente')) return 'dia-pendiente';
-        if (backups.some(b => b.estado === 'Completado')) return 'dia-completado';
-        return '';
+        return backups.length > 0 ? 'dia-con-backups' : '';
+    }
+
+    getTextoTooltip(backup: any): string {
+        return `Sistema: ${backup.sistemaNombre}\nEstado: ${backup.estado}\nFrecuencia: ${backup.frecuencia_backup ?? '—'}\nFecha: ${backup.fecha}`;
+    }
+
+    getClaseChip(estado: string): string {
+        if (estado === 'Completado') return 'backup-chip-completado';
+        if (estado === 'Fallido') return 'backup-chip-fallido';
+        return 'backup-chip-pendiente';
     }
 }
