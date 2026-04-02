@@ -57,7 +57,8 @@
                              class="backup-chip"
                              [ngClass]="getClaseChip(backup.estado)"
                              [pTooltip]="getTextoTooltip(backup)"
-                             tooltipPosition="top">
+                             tooltipPosition="top"
+                             (click)="abrirDetalle(backup)">
                             {{ backup.sistemaNombre }}
                         </div>
                     </div>
@@ -67,3 +68,61 @@
     </div>
 
 </div>
+
+<!-- Modal detalle de backup -->
+<p-dialog
+    [(visible)]="modalVisible"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [style]="{ width: '480px' }"
+    appendTo="body"
+    (onHide)="cerrarDetalle()">
+
+    <ng-template pTemplate="header">
+        <div class="modal-header-content" *ngIf="backupSeleccionado">
+            <span class="modal-titulo-nombre">{{ backupSeleccionado.sistemaNombre }}</span>
+            <span class="modal-separador"> — Estado:&nbsp;</span>
+            <span class="modal-estado" [ngClass]="getClaseEstadoModal(backupSeleccionado.estado)">
+                {{ backupSeleccionado.estado }}
+            </span>
+        </div>
+    </ng-template>
+
+    <ng-template pTemplate="content">
+        <div class="modal-body" *ngIf="backupSeleccionado">
+            <div class="detalle-fila">
+                <span class="detalle-label">Sistema de información</span>
+                <span class="detalle-valor">{{ backupSeleccionado.sistemaNombre ?? '—' }}</span>
+            </div>
+            <div class="detalle-fila">
+                <span class="detalle-label">Tipo</span>
+                <span class="detalle-valor">{{ backupSeleccionado.tipo ?? '—' }}</span>
+            </div>
+            <div class="detalle-fila">
+                <span class="detalle-label">Estado</span>
+                <span class="detalle-valor detalle-estado" [ngClass]="getClaseEstadoModal(backupSeleccionado.estado)">
+                    {{ backupSeleccionado.estado ?? '—' }}
+                </span>
+            </div>
+            <div class="detalle-fila">
+                <span class="detalle-label">Frecuencia</span>
+                <span class="detalle-valor">{{ backupSeleccionado.frecuencia_backup ?? '—' }}</span>
+            </div>
+            <div class="detalle-fila">
+                <span class="detalle-label">Fecha</span>
+                <span class="detalle-valor">{{ backupSeleccionado.fecha ?? '—' }}</span>
+            </div>
+            <div class="detalle-fila" *ngIf="backupSeleccionado.observacion">
+                <span class="detalle-label">Observación</span>
+                <span class="detalle-valor">{{ backupSeleccionado.observacion }}</span>
+            </div>
+        </div>
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+        <p-button label="Cerrar" icon="pi pi-times" [outlined]="true" (onClick)="cerrarDetalle()"></p-button>
+    </ng-template>
+
+</p-dialog>

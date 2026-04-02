@@ -5,12 +5,13 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { DialogModule } from 'primeng/dialog';
 import { BackupSistemaService } from '../../../Services/appServices/biomedicaServices/backup/backup-sistema.service';
 
 @Component({
     selector: 'app-calendario-backups',
     standalone: true,
-    imports: [CommonModule, DatePickerModule, ButtonModule, TooltipModule, FormsModule, ProgressSpinnerModule],
+    imports: [CommonModule, DatePickerModule, ButtonModule, TooltipModule, FormsModule, ProgressSpinnerModule, DialogModule],
     templateUrl: './calendario-backups.component.html',
     styleUrl: './calendario-backups.component.css'
 })
@@ -22,6 +23,9 @@ export class CalendarioBackupsComponent implements OnInit {
     backupsDelMes: any[] = [];
     semanas: { fecha: string | null, dia: number | null }[][] = [];
     loading: boolean = false;
+
+    backupSeleccionado: any = null;
+    modalVisible: boolean = false;
 
     readonly diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
@@ -118,5 +122,21 @@ export class CalendarioBackupsComponent implements OnInit {
         if (estado === 'Completado') return 'backup-chip-completado';
         if (estado === 'Fallido') return 'backup-chip-fallido';
         return 'backup-chip-pendiente';
+    }
+
+    abrirDetalle(backup: any): void {
+        this.backupSeleccionado = backup;
+        this.modalVisible = true;
+    }
+
+    cerrarDetalle(): void {
+        this.modalVisible = false;
+        this.backupSeleccionado = null;
+    }
+
+    getClaseEstadoModal(estado: string): string {
+        if (estado === 'Completado') return 'estado-completado';
+        if (estado === 'Fallido') return 'estado-fallido';
+        return 'estado-pendiente';
     }
 }

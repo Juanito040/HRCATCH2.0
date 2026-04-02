@@ -103,6 +103,80 @@
     color: var(--text-color, #333333);
 }
 
+/* ── Modal detalle ── */
+
+.modal-header-content {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 2px;
+    font-size: 1rem;
+}
+
+.modal-titulo-nombre {
+    font-weight: 700;
+    color: var(--text-color, #333333);
+}
+
+.modal-separador {
+    color: var(--text-secondary, #6c757d);
+    font-weight: 400;
+}
+
+.modal-estado {
+    font-weight: 700;
+}
+
+.estado-completado {
+    color: #16a34a;
+}
+
+.estado-fallido {
+    color: #b91c1c;
+}
+
+.estado-pendiente {
+    color: #854d0e;
+}
+
+.modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.detalle-fila {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 10px 0;
+    border-bottom: 1px solid #f1f3f5;
+    gap: 16px;
+}
+
+.detalle-fila:last-child {
+    border-bottom: none;
+}
+
+.detalle-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-secondary, #6c757d);
+    min-width: 160px;
+    flex-shrink: 0;
+}
+
+.detalle-valor {
+    font-size: 0.9rem;
+    color: var(--text-color, #333333);
+    text-align: right;
+    word-break: break-word;
+}
+
+.detalle-estado.estado-completado { color: #16a34a; font-weight: 600; }
+.detalle-estado.estado-fallido    { color: #b91c1c; font-weight: 600; }
+.detalle-estado.estado-pendiente  { color: #854d0e; font-weight: 600; }
+
 /* ── Responsividad ── */
 
 /* Criterio 1: tablet (768px – 1024px) */
