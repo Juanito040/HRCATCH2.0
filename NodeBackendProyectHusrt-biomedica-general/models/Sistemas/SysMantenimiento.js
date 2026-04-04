@@ -10,7 +10,18 @@ const SysMantenimiento = sequelize.define('SysMantenimiento', {
     autoIncrement: true
   },
   numero_reporte: { type: DataTypes.STRING(255), allowNull: true },
-  fecha: { type: DataTypes.DATEONLY, allowNull: true },
+  añoProgramado: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  mesProgramado: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  fecha: {
+    type: DataTypes.DATEONLY,
+    allowNull: true
+  },
   hora_llamado: { type: DataTypes.TIME, allowNull: true },
   hora_inicio: { type: DataTypes.TIME, allowNull: true },
   hora_terminacion: { type: DataTypes.TIME, allowNull: true },

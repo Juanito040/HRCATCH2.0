@@ -145,8 +145,8 @@ exports.getDashboard = async (req, res) => {
             data: {
                 total,
                 estadisticasTipo: [
-                    { tipo: 'Preventivo', cantidad: preventivos },
                     { tipo: 'Correctivo', cantidad: correctivos },
+                    { tipo: 'Preventivo', cantidad: preventivos },
                     { tipo: 'Predictivo', cantidad: predictivos },
                     { tipo: 'Otro', cantidad: otros }
                 ],

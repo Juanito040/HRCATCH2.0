@@ -87,9 +87,16 @@ require('../models/Sistemas/SysHojaVida');
 require('../models/Sistemas/SysBaja');
 require('../models/Sistemas/SysMantenimiento');
 require('../models/Sistemas/SysRepuesto');
+require('../models/Sistemas/SysPlanMantenimiento'); 
+require('../models/Sistemas/SysProgramacionPreventivoMes');
+require('../models/Sistemas/sysCumplimientoProtocoloPreventivo'); // Importar modelo para asegurar su creación en DB
 const sysEquipoRoutes = require('./../routes/sistemas/sysEquipoRoutes');
 const sysMantenimientoRoutes = require('./../routes/sistemas/sysMantenimientoRoutes');
 const sysHojaVidaRoutes = require('./../routes/sistemas/sysHojaVidaRoutes');
+const sysProgramacionRoutes = require('./../routes/sistemas/sysProgramacionPreventivoRoutes');
+const sysCumplimientoProtocoloPreventivoRoutes = require('./../routes/sistemas/sysCumplimientoProtocoloPreventivo');
+app.use('/syscumplimiento', checkToken, sysCumplimientoProtocoloPreventivoRoutes);
+app.use('/sysprogramacion', checkToken, sysProgramacionRoutes); 
 app.use('/sysequipo', checkToken, sysEquipoRoutes);
 app.use('/sysmantenimiento', checkToken, sysMantenimientoRoutes);
 app.use('/syshojavida', checkToken, sysHojaVidaRoutes);

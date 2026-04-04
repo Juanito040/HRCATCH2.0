@@ -7,11 +7,6 @@
       <h1>Mantenimientos de Sistemas</h1>
       <p class="subtitle">Registra y gestiona los mantenimientos del área de sistemas</p>
     </div>
-    <div class="header-actions">
-      <button class="btn btn-primary" (click)="openCreateModal()">
-        <span>+ Nuevo Mantenimiento</span>
-      </button>
-    </div>
   </div>
 
   <!-- View filters -->
@@ -20,7 +15,7 @@
       <i class="pi pi-list"></i>
       <span>Lista</span>
       @if (filteredMantenimientos.length > 0) {
-        <span class="badge-count">{{ filteredMantenimientos.length }}</span>
+      <span class="badge-count">{{ filteredMantenimientos.length }}</span>
       }
     </button>
     <button class="view-filter-btn" [class.active]="activeView === 'dashboard'" (click)="switchView('dashboard')">
@@ -33,8 +28,8 @@
   <div class="toolbar">
     <div class="search-box">
       <span class="search-icon"><i class="pi pi-search"></i></span>
-      <input type="text" placeholder="Buscar por reporte, equipo, técnico..."
-        (input)="onSearch($event)" [value]="searchTerm" />
+      <input type="text" placeholder="Buscar por reporte, equipo, técnico..." (input)="onSearch($event)"
+        [value]="searchTerm" />
     </div>
     <div class="filters">
       <select class="filter-select" [(ngModel)]="filterTipo">
@@ -50,244 +45,168 @@
 
   <!-- Error -->
   @if (error && !isLoading) {
-    <div class="error-state">
-      <div class="error-icon"><i class="pi pi-exclamation-triangle"></i></div>
-      <p>{{ error }}</p>
-      <button class="btn btn-primary" (click)="loadMantenimientos()">Reintentar</button>
-    </div>
+  <div class="error-state">
+    <div class="error-icon"><i class="pi pi-exclamation-triangle"></i></div>
+    <p>{{ error }}</p>
+    <button class="btn btn-primary" (click)="loadMantenimientos()">Reintentar</button>
+  </div>
   }
 
   <!-- Loading -->
   @if (isLoading) {
-    <div class="loading-state">
-      <div class="spinner"></div>
-      <p>Cargando mantenimientos...</p>
-    </div>
+  <div class="loading-state">
+    <div class="spinner"></div>
+    <p>Cargando mantenimientos...</p>
+  </div>
   }
 
   <!-- ===== LIST VIEW ===== -->
   @if (!isLoading && activeView === 'list') {
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Reporte</th>
+          <th>Fecha</th>
+          <th>Equipo</th>
+          <th>Placa</th>
+          <th>Tipo</th>
+          <th>Tipo de Falla</th>
+          <th>Técnico</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (m of filteredMantenimientos; track m.id_sysmtto) {
+        <tr>
+          <td>{{ m.id_sysmtto }}</td>
+          <td><code class="reporte-badge">{{ m.numero_reporte || 'N/A' }}</code></td>
+          <td>
+            @if (m.fecha) {
+            {{ m.fecha }}
+            } @else if (m.mesProgramado) {
+            {{ getMesProgramado(m.mesProgramado) }}
+            } @else {
+            <span class="text-muted">—</span>
+            }
+          </td>
+          <td>
+            @if (m.equipo) {
+            <strong>{{ m.equipo.nombre_equipo }}</strong>
+            } @else {
+            <span class="text-muted">N/A</span>
+            }
+          </td>
+          <td>
+            @if (m.equipo?.placa_inventario) {
+            <code class="serie-badge">{{ m.equipo!.placa_inventario }}</code>
+            } @else {
+            <span class="text-muted">—</span>
+            }
+          </td>
+          <td>
+            <span [class]="getTipoBadgeClass(m.tipo_mantenimiento)">{{ getLabelTipo(m.tipo_mantenimiento) }}</span>
+          </td>
+          <td>{{ getLabelFalla(m.tipo_falla) }}</td>
+          <td>
+            @if (m.usuario) {
+            {{ m.usuario.nombres }} {{ m.usuario.apellidos }}
+            } @else {
+            {{ m.autor_realizado || 'N/A' }}
+            }
+          </td>
+          <td>
+            <div class="action-buttons">
+              <button
+                class="btn btn-icon"
+                title="Editar"
+                (click)="editarMantenimiento(m.equipo!.id_sysequipo, m.id_sysmtto, getLabelTipo(m.tipo_mantenimiento))"
+                *ngIf="m.equipo?.id_sysequipo && m.id_sysmtto">
+                <i class="pi pi-pencil"></i>
+              </button>
+              <button class="btn btn-icon btn-danger" title="Eliminar" (click)="confirmDelete(m)">
+                <i class="pi pi-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        } @empty {
+        <tr>
+          <td colspan="9" class="empty-state">
+            <div class="empty-icon"><i class="pi pi-inbox"></i></div>
+            <p>No se encontraron mantenimientos</p>
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  }
+
+  <!-- ===== DASHBOARD VIEW ===== -->
+  @if (activeView === 'dashboard') {
+  @if (isDashboardLoading) {
+  <div class="loading-state">
+    <div class="spinner"></div>
+    <p>Cargando dashboard...</p>
+  </div>
+  }
+  @if (!isDashboardLoading && dashboardData) {
+  <div class="dashboard-grid">
+    <div class="stat-card stat-total">
+      <div class="stat-icon"><i class="pi pi-chart-line"></i></div>
+      <div class="stat-value">{{ dashboardData.total }}</div>
+      <div class="stat-label">Total en período</div>
+    </div>
+    @for (est of dashboardData.estadisticasTipo; track est.tipo) {
+    <div class="stat-card" [ngClass]="'stat-' + est.tipo.toLowerCase()">
+      <div class="stat-icon"><i class="pi pi-wrench"></i></div>
+      <div class="stat-value">{{ est.cantidad }}</div>
+      <div class="stat-label">{{ est.tipo }}</div>
+    </div>
+    }
+  </div>
+
+  @if (dashboardData.mantenimientosRecientes?.length > 0) {
+  <div class="recientes-section">
+    <h5>Mantenimientos Recientes</h5>
     <div class="table-container">
       <table>
         <thead>
           <tr>
-            <th>#</th>
             <th>Reporte</th>
             <th>Fecha</th>
             <th>Equipo</th>
             <th>Placa</th>
             <th>Tipo</th>
-            <th>Tipo de Falla</th>
-            <th>Técnico</th>
-            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
-          @for (m of filteredMantenimientos; track m.id_sysmtto) {
-            <tr>
-              <td>{{ m.id_sysmtto }}</td>
-              <td><code class="reporte-badge">{{ m.numero_reporte || 'N/A' }}</code></td>
-              <td>{{ m.fecha || 'N/A' }}</td>
-              <td>
-                @if (m.equipo) {
-                  <strong>{{ m.equipo.nombre_equipo }}</strong>
-                } @else {
-                  <span class="text-muted">N/A</span>
-                }
-              </td>
-              <td>
-                @if (m.equipo?.placa_inventario) {
-                  <code class="serie-badge">{{ m.equipo!.placa_inventario }}</code>
-                } @else {
-                  <span class="text-muted">—</span>
-                }
-              </td>
-              <td>
-                <span [class]="getTipoBadgeClass(m.tipo_mantenimiento)">{{ getLabelTipo(m.tipo_mantenimiento) }}</span>
-              </td>
-              <td>{{ getLabelFalla(m.tipo_falla) }}</td>
-              <td>
-                @if (m.usuario) {
-                  {{ m.usuario.nombres }} {{ m.usuario.apellidos }}
-                } @else {
-                  {{ m.autor_realizado || 'N/A' }}
-                }
-              </td>
-              <td>
-                <div class="action-buttons">
-                  <button class="btn btn-icon" title="Editar" (click)="openEditModal(m)">
-                    <i class="pi pi-pencil"></i>
-                  </button>
-                  <button class="btn btn-icon btn-danger" title="Eliminar" (click)="confirmDelete(m)">
-                    <i class="pi pi-trash"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          } @empty {
-            <tr>
-              <td colspan="9" class="empty-state">
-                <div class="empty-icon"><i class="pi pi-inbox"></i></div>
-                <p>No se encontraron mantenimientos</p>
-              </td>
-            </tr>
+          @for (m of dashboardData.mantenimientosRecientes; track m.id_sysmtto) {
+          <tr>
+            <td><code class="reporte-badge">{{ m.numero_reporte || '#' + m.id_sysmtto }}</code></td>
+            <td>{{ m.fecha }}</td>
+            <td>{{ m.equipo?.nombre_equipo || 'N/A' }}</td>
+            <td>
+              @if (m.equipo?.placa_inventario) {
+              <code class="serie-badge">{{ m.equipo.placa_inventario }}</code>
+              } @else {
+              <span class="text-muted">—</span>
+              }
+            </td>
+            <td>
+              <span [class]="getTipoBadgeClass(m.tipo_mantenimiento)">{{ getLabelTipo(m.tipo_mantenimiento) }}</span>
+            </td>
+          </tr>
           }
         </tbody>
       </table>
     </div>
+  </div>
   }
-
-  <!-- ===== DASHBOARD VIEW ===== -->
-  @if (activeView === 'dashboard') {
-    @if (isDashboardLoading) {
-      <div class="loading-state">
-        <div class="spinner"></div>
-        <p>Cargando dashboard...</p>
-      </div>
-    }
-    @if (!isDashboardLoading && dashboardData) {
-      <div class="dashboard-grid">
-        <div class="stat-card stat-total">
-          <div class="stat-icon"><i class="pi pi-chart-line"></i></div>
-          <div class="stat-value">{{ dashboardData.total }}</div>
-          <div class="stat-label">Total en período</div>
-        </div>
-        @for (est of dashboardData.estadisticasTipo; track est.tipo) {
-          <div class="stat-card" [ngClass]="'stat-' + est.tipo.toLowerCase()">
-            <div class="stat-icon"><i class="pi pi-wrench"></i></div>
-            <div class="stat-value">{{ est.cantidad }}</div>
-            <div class="stat-label">{{ est.tipo }}</div>
-          </div>
-        }
-      </div>
-
-      @if (dashboardData.mantenimientosRecientes?.length > 0) {
-        <div class="recientes-section">
-          <h5>Mantenimientos Recientes</h5>
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Reporte</th>
-                  <th>Fecha</th>
-                  <th>Equipo</th>
-                  <th>Placa</th>
-                  <th>Tipo</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (m of dashboardData.mantenimientosRecientes; track m.id_sysmtto) {
-                  <tr>
-                    <td><code class="reporte-badge">{{ m.numero_reporte || '#' + m.id_sysmtto }}</code></td>
-                    <td>{{ m.fecha }}</td>
-                    <td>{{ m.equipo?.nombre_equipo || 'N/A' }}</td>
-                    <td>
-                      @if (m.equipo?.placa_inventario) {
-                        <code class="serie-badge">{{ m.equipo.placa_inventario }}</code>
-                      } @else {
-                        <span class="text-muted">—</span>
-                      }
-                    </td>
-                    <td>
-                      <span [class]="getTipoBadgeClass(m.tipo_mantenimiento)">{{ getLabelTipo(m.tipo_mantenimiento) }}</span>
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-        </div>
-      }
-    }
+  }
   }
 
 </div>
 <br>
-
-<!-- ===== MODAL ===== -->
-<div class="modal-overlay" *ngIf="isModalOpen" (click)="closeModal()">
-  <div class="modal-card" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h4>{{ isEditing ? 'Editar Mantenimiento' : 'Nuevo Mantenimiento' }}</h4>
-      <button class="btn-close" (click)="closeModal()"></button>
-    </div>
-    <div class="modal-body">
-      <div class="form-grid">
-        <div class="form-group full-width">
-          <label>Equipo *</label>
-          <select class="form-select form-select-sm" [(ngModel)]="formData.id_sysequipo_fk">
-            <option value="">Seleccione un equipo</option>
-            <option *ngFor="let e of equipos" [value]="e.id_sysequipo">
-              {{ e.nombre_equipo }} — {{ e.placa_inventario || e.serie || 'S/N' }}
-            </option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Número de Reporte</label>
-          <input type="text" class="form-control form-control-sm" [(ngModel)]="formData.numero_reporte" />
-        </div>
-        <div class="form-group">
-          <label>Fecha</label>
-          <input type="date" class="form-control form-control-sm" [(ngModel)]="formData.fecha" />
-        </div>
-        <div class="form-group">
-          <label>Tipo de Mantenimiento</label>
-          <select class="form-select form-select-sm" [(ngModel)]="formData.tipo_mantenimiento">
-            <option value="">Seleccione...</option>
-            <option *ngFor="let t of tiposMantenimiento" [value]="t.value">{{ t.label }}</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Tipo de Falla</label>
-          <select class="form-select form-select-sm" [(ngModel)]="formData.tipo_falla">
-            <option value="">Seleccione...</option>
-            <option *ngFor="let f of tiposFalla" [value]="f.value">{{ f.label }}</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Hora Llamado</label>
-          <input type="time" class="form-control form-control-sm" [(ngModel)]="formData.hora_llamado" />
-        </div>
-        <div class="form-group">
-          <label>Hora Inicio</label>
-          <input type="time" class="form-control form-control-sm" [(ngModel)]="formData.hora_inicio" />
-        </div>
-        <div class="form-group">
-          <label>Hora Terminación</label>
-          <input type="time" class="form-control form-control-sm" [(ngModel)]="formData.hora_terminacion" />
-        </div>
-        <div class="form-group">
-          <label>Tiempo Fuera de Servicio (min)</label>
-          <input type="number" class="form-control form-control-sm" [(ngModel)]="formData.tiempo_fuera_servicio" />
-        </div>
-        <div class="form-group">
-          <label>Autor / Realizado por</label>
-          <input type="text" class="form-control form-control-sm" [(ngModel)]="formData.autor_realizado" />
-        </div>
-        <div class="form-group">
-          <label>Recibido por</label>
-          <input type="text" class="form-control form-control-sm" [(ngModel)]="formData.autor_recibido" />
-        </div>
-        <div class="form-group full-width">
-          <label>Observaciones Hardware</label>
-          <textarea class="form-control form-control-sm" rows="2" [(ngModel)]="formData.observacionesh"></textarea>
-        </div>
-        <div class="form-group full-width">
-          <label>Observaciones Software</label>
-          <textarea class="form-control form-control-sm" rows="2" [(ngModel)]="formData.observacioness"></textarea>
-        </div>
-        <div class="form-group checkboxes">
-          <label><input type="checkbox" [(ngModel)]="formData.mphardware" /> Mantenimiento Hardware</label>
-          <label><input type="checkbox" [(ngModel)]="formData.mpsoftware" /> Mantenimiento Software</label>
-          <label><input type="checkbox" [(ngModel)]="formData.dano" /> Con Daño</label>
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
-      <button class="btn btn-primary" (click)="saveMantenimiento()">
-        {{ isEditing ? 'Actualizar' : 'Guardar' }}
-      </button>
-    </div>
-  </div>
-</div>

@@ -1,0 +1,274 @@
+<div class="title-container">
+  <h2><strong> REPORTE DE MANTENIMINETO {{convertirMayusculas(tipoMantenimiento)}}</strong></h2>
+</div>
+
+<div class="title-container">
+  <h4><strong> DATOS DEL EQUIPO </strong></h4>
+</div>
+
+<div class="custom-grid" style="width: 94%; margin-left: 3%; margin-right: 3%;">
+
+  <div class="form-item">
+    <label>Nombre Equipo</label>
+    <input pInputText type="text" placeholder="{{equipo?.nombre_equipo}}" disabled />
+  </div>
+
+  <div class="form-item">
+    <label>Marca</label>
+    <input pInputText type="text" placeholder="{{equipo?.marca}}" disabled />
+  </div>
+
+  <div class="form-item">
+    <label>Modelo</label>
+    <input pInputText type="text" placeholder="{{equipo?.modelo}}" disabled />
+  </div>
+
+  <div class="form-item">
+    <label>Serie</label>
+    <input pInputText type="text" placeholder="{{equipo?.serie}}" disabled />
+  </div>
+
+  <div class="form-item">
+    <label>Servicio</label>
+    <input pInputText type="text" placeholder="{{equipo?.servicio?.nombres}}" disabled />
+  </div>
+
+  <div class="form-item">
+    <label>Ubicaci&oacute;n</label>
+    <input pInputText type="text" placeholder="{{equipo?.ubicacion}}" disabled />
+  </div>
+
+  <div class="form-item">
+    <label>Ubicaci&oacute;n especifica</label>
+    <input pInputText type="text" placeholder="{{equipo?.ubicacion_especifica}}" disabled />
+  </div>
+</div>
+
+<div class="title-container">
+  <h4><strong> DATOS DEL REPORTE </strong></h4>
+</div>
+
+<div class="form-container">
+  <p-card>
+    <form [formGroup]="mantenimientoForm" (ngSubmit)="onSubmit()">
+      <div class="custom-grid">
+
+        <div class="form-item">
+          <label>Fecha Inicio</label>
+          <p-datePicker formControlName="fechaRealizado" inputId="fechaRealizado" showIcon dateFormat="yy-mm-dd" />
+        </div>
+
+        <div class="form-item">
+          <label>Hora Inicio</label>
+          <input pInputText type="time" formControlName="horaInicio" />
+        </div>
+
+        <div class="form-item">
+          <label>Fecha Fin</label>
+          <p-datePicker formControlName="fechaFin" inputId="fechaFin" showIcon dateFormat="yy-mm-dd" />
+        </div>
+
+        <div class="form-item">
+          <label>Hora Terminación</label>
+          <input pInputText type="time" formControlName="horaTerminacion" />
+        </div>
+
+        <div class="form-item">
+          <label>Hora Total</label>
+          <input pInputText type="text" formControlName="horaTotal" readonly />
+        </div>
+
+        <div class="form-item">
+          <label>Tipo de Mantenimiento</label>
+          <p-select [options]="tiposMantenimiento" formControlName="tipoMantenimiento"
+            placeholder="tipoMantenimiento"></p-select>
+        </div>
+
+        <div class="form-item">
+          <label>Tipo de Falla</label>
+          <p-select [options]="tiposFalla" formControlName="tipoFalla" placeholder="Seleccione"></p-select>
+        </div>
+
+        <div class="form-item">
+          <label>Estado Operativo</label>
+          <p-select [options]="estadosOperativos" formControlName="estadoOperativo" placeholder="Seleccione"></p-select>
+        </div>
+
+
+
+        <div class="form-item">
+          <label>Calificaci&oacute;n (1-5)</label>
+          <input pInputText type="number" formControlName="calificacion" min="1" max="5" />
+        </div>
+
+        <div class="form-item">
+          <label>Nombre Realizo</label>
+          <input pInputText placeholder="{{nombreUsuario?.nombreCompleto}}" type="nombreRealizo" disabled />
+        </div>
+
+        <div class="form-item">
+          <label>Identificacion Realizo</label>
+          <input pInputText placeholder="{{nombreUsuario?.numeroId}}" type="nombreRealizo" disabled />
+        </div>
+
+        <div class="form-item">
+          <label>Nombre Recibió</label>
+          <input pInputText formControlName="nombreRecibio" appUppercase />
+        </div>
+
+        <div class="form-item">
+          <label>Cédula Recibió</label>
+          <input pInputText formControlName="cedulaRecibio" appUppercase />
+        </div>
+
+      </div>
+      <div style="margin-top: 3%;"></div>
+      <div class="custom-grid">
+        <div class="form-item">
+          <label>Motivo</label>
+          <textarea pInputTextarea rows="3" formControlName="motivo" appUppercase></textarea>
+        </div>
+        <div class="form-item">
+          <label>Trabajo Realizado</label>
+          <textarea pInputTextarea rows="3" formControlName="trabajoRealizado" appUppercase></textarea>
+        </div>
+        <div class="form-item">
+          <label>Observaciones</label>
+          <textarea pInputTextarea rows="3" formControlName="observaciones" appUppercase></textarea>
+        </div>
+      </div>
+
+      <div style="margin-top: 3%;"></div>
+
+      <!-- Equipo Patron Section -->
+  
+
+      <!-- Initial Conditions Section (Global) -->
+      <div class="title-container"
+        *ngIf="mantenimientoForm.get('tipoMantenimiento')?.value === 'Preventivo' && condicionesInicialesFormArray.controls.length > 0">
+        <h4><strong> CONDICIONES INICIALES </strong></h4>
+        <H6>Verifique las condiciones iniciales del equipo</H6>
+      </div>
+
+      <div
+        *ngIf="mantenimientoForm.get('tipoMantenimiento')?.value === 'Preventivo' && condicionesInicialesFormArray.controls.length > 0"
+        class="mb-5">
+        <div formArrayName="condicionesIniciales" class="w-full px-3">
+          <p-table [value]="condicionesInicialesFormArray.controls" responsiveLayout="scroll" [scrollable]="true"
+            scrollHeight="400px" styleClass="p-datatable-sm" [showCurrentPageReport]="true"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros">
+            <ng-template pTemplate="header">
+              <tr>
+                <th style="width: 20%" class="text-center">Cumple</th>
+                <th style="width: 50%">Condición</th>
+                <th style="width: 30%">Observaciones</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-grupo let-i="rowIndex">
+              <tr [formGroupName]="i">
+                <td class="text-center">
+                  <p-select [options]="opcionesCumplimiento" formControlName="cumple" optionLabel="label"
+                    optionValue="value" appendTo="body" [style]="{'width':'150px'}"></p-select>
+                </td>
+                <td>
+                  {{ grupo.get('descripcion')?.value }}
+                </td>
+                <td>
+                  <input pInputText formControlName="observacion" class="w-full" placeholder="Ingrese observación..."
+                    appUppercase />
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </div>
+
+      <div class="title-container" *ngIf="mantenimientoForm.get('tipoMantenimiento')?.value === 'Preventivo'">
+        <h4><strong> PROTOCOLO PREVENTIVO </strong></h4>
+        <H6>Seleccione los pasos realizados en el mantenimiento</H6>
+      </div>
+      <div *ngIf="mantenimientoForm.get('tipoMantenimiento')?.value === 'Preventivo'">
+        <div formArrayName="cumplimientoProtocolo" class="w-full px-3">
+          <p-table [value]="cumplimientoProtocoloFormArray.controls" responsiveLayout="scroll" [scrollable]="true"
+            scrollHeight="400px" styleClass="p-datatable-sm" [showCurrentPageReport]="true"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros">
+            <ng-template pTemplate="header">
+              <tr>
+                <th style="width: 20%" class="text-center">Cumple</th>
+                <th style="width: 50%">Paso</th>
+                <th style="width: 40%">Observaciones</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-grupo let-i="rowIndex">
+              <tr [formGroupName]="i">
+                <td class="text-center">
+                  <p-select [options]="opcionesCumplimiento" formControlName="cumple" optionLabel="label"
+                    optionValue="value" appendTo="body" [style]="{'width':'150px'}"></p-select>
+                </td>
+                <td>
+                  <label [for]="'chk-' + i" class="cursor-pointer">{{ grupo.get('paso')?.value }}</label>
+                </td>
+                <td>
+                  <input pInputText formControlName="observaciones" class="w-full" placeholder="Ingrese observación..."
+                    appUppercase />
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </div>
+
+      <div class="title-container" *ngIf="repuestosFormArray">
+        <h4><strong> INSUMOS / REPUESTOS </strong></h4>
+        <H6>Registre los repuestos o insumos utilizados en el mantenimiento</H6>
+      </div>
+      <div>
+        <div formArrayName="repuestos" class="w-full px-3">
+          <p-table [value]="repuestosFormArray.controls" responsiveLayout="scroll" [scrollable]="true"
+            scrollHeight="300px" styleClass="p-datatable-sm" [showCurrentPageReport]="true"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros">
+            <ng-template pTemplate="header">
+              <tr>
+                <th style="width: 30%">Nombre Insumo</th>
+                <th style="width: 20%">Cantidad</th>
+                <th style="width: 30%">Comprobante Egreso</th>
+                <th style="width: 10%">Acci&oacute;n</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-repuesto let-i="rowIndex">
+              <tr [formGroupName]="i">
+                <td><input pInputText formControlName="nombreInsumo" class="w-full" placeholder="Nombre" appUppercase />
+                </td>
+                <td><input pInputText formControlName="cantidad" class="w-full" placeholder="Cant." appUppercase /></td>
+                <td><input pInputText formControlName="comprobanteEgreso" class="w-full"
+                    placeholder="Ref. / Comprobante" appUppercase /></td>
+                <td class="text-center">
+                  <button pButton type="button" icon="pi pi-trash"
+                    class="p-button-danger p-button-rounded p-button-text" (click)="eliminarRepuesto(i)"></button>
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="footer">
+              <tr>
+                <td colspan="4" class="text-right">
+                  <button pButton label="Agregar Insumo" icon="pi pi-plus" class="p-button-sm p-button-outlined"
+                    (click)="agregarRepuesto()" type="button"></button>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </div>
+
+
+      <div style="margin-top: 3%;"></div>
+
+      <div class="custom-grid">
+        <button type="submit" class="btn btn-dark">Guardar</button>
+        <button type="button" class="btn btn-secondary" (click)="goBack()">Cancelar</button>
+        <div></div>
+        <div></div>
+      </div>
+    </form>
+  </p-card>
+</div>

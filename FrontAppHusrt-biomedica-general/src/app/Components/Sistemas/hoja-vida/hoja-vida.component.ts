@@ -2,7 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { forkJoin, of } from 'rxjs';
+import { forkJoin, of, from } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { SysHojaVidaService, SysHojaVida } from '../../../Services/appServices/sistemasServices/syshojavida/syshojavida.service';
 import { SysequiposService } from '../../../Services/appServices/sistemasServices/sysequipos/sysequipos.service';
@@ -54,7 +54,7 @@ export class SysHojaVidaComponent implements OnInit {
 
     // Carga el equipo y la hoja de vida en paralelo
     forkJoin({
-      equipo: this.equipoSvc.getEquipoById(this.equipoId).pipe(catchError(() => of(null))),
+      equipo: from(this.equipoSvc.getEquipoById(this.equipoId)).pipe(catchError(() => of(null))),
       hoja:   this.svc.getByEquipo(this.equipoId).pipe(catchError(err => of({ _err: err.status })))
     }).subscribe(({ equipo, hoja }) => {
 

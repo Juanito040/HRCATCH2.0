@@ -1,11 +1,13 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 import { API_URL } from '../../../../constantes';
 
 export interface SysMantenimiento {
   id_sysmtto?: number;
   numero_reporte?: string;
+  mesProgramado?: number;
+  añoProgramado?: number;
   fecha?: string;
   hora_llamado?: string;
   hora_inicio?: string;
@@ -73,8 +75,10 @@ export class SysmantenimientoService {
     return this.http.get<SysMantenimientoResponse>(this.apiUrl, { params });
   }
 
-  getById(id: number): Observable<SysMantenimientoResponse> {
-    return this.http.get<SysMantenimientoResponse>(`${this.apiUrl}/${id}`);
+  async getById(id: any) {
+    return firstValueFrom(
+          this.http.get<any>(`${API_URL}/sysmantenimiento/${id}`)
+        )
   }
 
   getByEquipo(idEquipo: number): Observable<SysMantenimientoResponse> {

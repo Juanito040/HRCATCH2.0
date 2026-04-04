@@ -82,6 +82,7 @@ import { SisMantenimientosComponent } from './Components/Sistemas/mantenimientos
 import { SysHojaVidaComponent } from './Components/Sistemas/hoja-vida/hoja-vida.component';
 import { ClasificacionTipoEquipoSisComponent } from './Components/Sistemas/clasificacion-tipo-equipo/clasificacion-tipo-equipo-sis.component';
 import { EquiposTipoSisComponent } from './Components/Sistemas/equipos-tipo/equipos-tipo-sis.component';
+import { CrearMantenimientoComponent } from './Components/Sistemas/reporteMantenimiento/reporte-mantenimiento.component';
 
 export const routes: Routes = [
 
@@ -178,6 +179,7 @@ export const routes: Routes = [
   { path: 'adminsistemas/equipostipo', component: EquiposTipoSisComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'ADMINISTRADOR', 'AG'] } },
   { path: 'adminsistemas/equipos', component: SisEquiposComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'ADMINISTRADOR', 'AG'] } },
   { path: 'adminsistemas/mantenimientos', component: SisMantenimientosComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'ADMINISTRADOR', 'AG'] } },
+    { path: 'adminsistemas/reporteMantenimiento/:id', component: CrearMantenimientoComponent, canActivate: [authGuard], data: { roles: ['BIOMEDICAADMIN', 'BIOMEDICAUSER', 'BIOMEDICATECNICO', 'SUPERADMIN'] } },
   { path: 'adminsistemas/hojavida/:equipoId', component: SysHojaVidaComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'ADMINISTRADOR', 'AG'] } },
 
   { path: 'intranet', component: IntranetComponent }
