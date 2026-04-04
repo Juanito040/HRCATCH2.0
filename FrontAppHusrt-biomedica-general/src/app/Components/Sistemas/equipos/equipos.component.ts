@@ -1,11 +1,17 @@
 import { Component, OnInit, ViewChild, ElementRef, inject, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { Router, ActivatedRoute } from '@angular/router';
 import { SysequiposService, SysEquipo } from '../../../Services/appServices/sistemasServices/sysequipos/sysequipos.service';
+import { SysplanmantenimientoService } from '../../../Services/appServices/sistemasServices/sysplanmantenimiento/sysplanmantenimiento.service';
 import { SysEquipoModalComponent } from '../equipo-modal/equipo-modal.component';
 import { SysEquipoDetailModalComponent } from '../equipo-detail-modal/equipo-detail-modal.component';
 import { SysDeleteConfirmationDialogComponent, DeleteAction } from '../delete-confirmation-dialog/delete-confirmation-dialog.component';
 import { SysReactivarEquipoModalComponent, ReactivarEquipoData } from '../reactivar-equipo-modal/reactivar-equipo-modal.component';
+import { SysHistorialEquipoComponent } from '../historial-equipo/historial-equipo.component';
+import { SysReporteFormComponent } from '../sys-reporte-form/sys-reporte-form.component';
+import { SysReportesEquipoComponent } from '../sys-reportes-equipo/sys-reportes-equipo.component';
+import { SysReporteService } from '../../../Services/appServices/sistemasServices/sysreporte/sysreporte.service';
 import { getDecodedAccessToken } from '../../../utilidades';
 import { MenuItem } from 'primeng/api';
 import Swal from 'sweetalert2';
@@ -15,10 +21,14 @@ import Swal from 'sweetalert2';
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     SysEquipoModalComponent,
     SysEquipoDetailModalComponent,
     SysDeleteConfirmationDialogComponent,
-    SysReactivarEquipoModalComponent
+    SysReactivarEquipoModalComponent,
+    SysHistorialEquipoComponent,
+    SysReporteFormComponent,
+    SysReportesEquipoComponent
   ],
   templateUrl: './equipos.component.html',
   styleUrls: ['./equipos.component.css']
@@ -58,13 +68,65 @@ export class SisEquiposComponent implements OnInit {
   isReactivarModalOpen: boolean = false;
   equipoToReactivar: SysEquipo | null = null;
 
+  isHistorialModalOpen: boolean = false;
+  equipoToHistorial: SysEquipo | null = null;
+
+  isReporteFormOpen: boolean = false;
+  equipoForReporte: any = null;
+
+  isReportesListOpen: boolean = false;
+  equipoForReportesList: any = null;
+
+  // ── Plan de Mantenimiento ──
+  isPlanDialogOpen = false;
+  currentEquipoPlan: any = null;
+  intervencionesAnuales = 1;
+  mesInicio = 1;
+  anioInicio = new Date().getFullYear();
+  selectedPlanes: { mes: number; ano: number }[] = [];
+  calculatedMonthsText = '';
+  isSavingPlan = false;
+
+  readonly intervencionOptions = [
+    { label: '1 vez al año (Anual)', value: 1 },
+    { label: '2 veces al año (Semestral)', value: 2 },
+    { label: '3 veces al año (Cuatrimestral)', value: 3 },
+    { label: '4 veces al año (Trimestral)', value: 4 }
+  ];
+
+  readonly monthOptions = [
+    { label: 'Enero', value: 1 }, { label: 'Febrero', value: 2 },
+    { label: 'Marzo', value: 3 }, { label: 'Abril', value: 4 },
+    { label: 'Mayo', value: 5 }, { label: 'Junio', value: 6 },
+    { label: 'Julio', value: 7 }, { label: 'Agosto', value: 8 },
+    { label: 'Septiembre', value: 9 }, { label: 'Octubre', value: 10 },
+    { label: 'Noviembre', value: 11 }, { label: 'Diciembre', value: 12 }
+  ];
+
+  readonly anioOptions = Array.from({ length: 11 }, (_, i) => new Date().getFullYear() + i);
+
+  private readonly MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private planService = inject(SysplanmantenimientoService);
+  private reporteService = inject(SysReporteService);
 
   constructor(private sysequiposService: SysequiposService) {}
 
   ngOnInit() {
-    this.loadEquipos();
     this.loadCounters();
+    const params = this.route.snapshot.queryParams;
+    if (params['vista'] === 'bodega') {
+      this.changeView('bodega');
+    } else if (params['vista'] === 'baja') {
+      this.changeView('baja');
+    } else {
+      this.changeView('bodega');
+      if (params['action'] === 'crear') {
+        this.openCreateModal();
+      }
+    }
   }
 
   get isAdmin(): boolean {
@@ -300,22 +362,85 @@ export class SisEquiposComponent implements OnInit {
   }
 
   private buildOpciones(equipo: SysEquipo): MenuItem[] {
+    const opcionHistorial  = { label: 'Ver Historial',     icon: 'fas fa-history',       command: () => this.openHistorialModal(equipo) };
+    const opcionReporte    = { label: 'Reporte de Entrega',icon: 'fas fa-file-export',   command: () => this.openReporteForm(equipo) };
+    const opcionVerReportes= { label: 'Ver Reportes',      icon: 'fas fa-clipboard-list',command: () => this.openReportesList(equipo) };
     if (this.selectedView === 'all') {
       return [
-        { label: 'Ver Detalles',    icon: 'pi pi-eye',     command: () => this.openDetailModal(equipo) },
-        { label: 'Editar',          icon: 'pi pi-pencil',  command: () => this.openEditModal(equipo) },
-        { label: 'Enviar a Bodega / Baja', icon: 'pi pi-trash', command: () => this.confirmDelete(equipo) }
+        { label: 'Ver Detalles',             icon: 'pi pi-eye',      command: () => this.openDetailModal(equipo) },
+        { label: 'Editar',                   icon: 'pi pi-pencil',   command: () => this.openEditModal(equipo) },
+        { label: 'Plan de Mantenimiento',    icon: 'pi pi-calendar', command: () => this.openPlanDialog(equipo) },
+        opcionReporte,
+        opcionVerReportes,
+        opcionHistorial,
+        { label: 'Enviar a Bodega / Baja',   icon: 'pi pi-trash',    command: () => this.confirmDelete(equipo) }
       ];
     } else if (this.selectedView === 'bodega') {
       return [
         { label: 'Ver Detalles', icon: 'pi pi-eye',       command: () => this.openDetailModal(equipo) },
         { label: 'Reactivar',    icon: 'pi pi-power-off', command: () => this.reactivarEquipo(equipo) },
+        opcionReporte,
+        opcionVerReportes,
+        opcionHistorial,
         { label: 'Dar de Baja',  icon: 'pi pi-trash',     command: () => this.confirmDelete(equipo) }
       ];
     } else {
       return [
-        { label: 'Ver Detalles', icon: 'pi pi-eye', command: () => this.openDetailModal(equipo) }
+        { label: 'Ver Detalles',       icon: 'pi pi-eye',         command: () => this.openDetailModal(equipo) },
+        opcionReporte,
+        opcionVerReportes,
+        { label: 'Descargar PDF Baja', icon: 'fas fa-file-pdf',   command: () => this.descargarPdfBaja(equipo) },
+        opcionHistorial
       ];
+    }
+  }
+
+  openHistorialModal(equipo: SysEquipo) {
+    this.equipoToHistorial = equipo;
+    this.isHistorialModalOpen = true;
+  }
+
+  closeHistorialModal() {
+    this.isHistorialModalOpen = false;
+    this.equipoToHistorial = null;
+  }
+
+  openReporteForm(equipo: any) {
+    this.equipoForReporte = equipo;
+    this.isReporteFormOpen = true;
+  }
+
+  closeReporteForm() {
+    this.isReporteFormOpen = false;
+    this.equipoForReporte = null;
+  }
+
+  openReportesList(equipo: any) {
+    this.equipoForReportesList = equipo;
+    this.isReportesListOpen = true;
+  }
+
+  closeReportesList() {
+    this.isReportesListOpen = false;
+    this.equipoForReportesList = null;
+  }
+
+  async descargarPdfBaja(equipo: any) {
+    const bajaId = equipo.baja?.id_sysbaja;
+    if (!bajaId) {
+      Swal.fire('Sin datos', 'No se encontró el registro de baja para este equipo.', 'warning');
+      return;
+    }
+    try {
+      const blob = await this.reporteService.descargarPdfBaja(bajaId);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Baja_${equipo.nombre_equipo || bajaId}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      Swal.fire('Error', 'No se pudo generar el PDF de baja.', 'error');
     }
   }
 
@@ -421,6 +546,74 @@ export class SisEquiposComponent implements OnInit {
   closeReactivarModal() {
     this.isReactivarModalOpen = false;
     this.equipoToReactivar = null;
+  }
+
+  // ── Métodos de Plan de Mantenimiento ──
+
+  async openPlanDialog(equipo: any) {
+    this.currentEquipoPlan = equipo;
+    this.intervencionesAnuales = 1;
+    this.mesInicio = new Date().getMonth() + 1;
+    this.anioInicio = new Date().getFullYear();
+    this.selectedPlanes = [];
+    this.calculatedMonthsText = '';
+
+    try {
+      const planes = await this.planService.getByEquipo(equipo.id_sysequipo);
+      if (planes && planes.length > 0) {
+        this.intervencionesAnuales = planes.length;
+        this.mesInicio = planes[0].mes;
+        this.anioInicio = planes[0].ano;
+        this.selectedPlanes = planes.map(p => ({ mes: p.mes, ano: p.ano }));
+        this.updateCalculatedText();
+      } else {
+        this.calcularFechas();
+      }
+    } catch (e) {
+      this.calcularFechas();
+    }
+
+    this.isPlanDialogOpen = true;
+  }
+
+  closePlanDialog() {
+    this.isPlanDialogOpen = false;
+    this.currentEquipoPlan = null;
+  }
+
+  calcularFechas() {
+    if (!this.intervencionesAnuales || this.intervencionesAnuales <= 0) return;
+    const interval = 12 / this.intervencionesAnuales;
+    const nuevos: { mes: number; ano: number }[] = [];
+
+    for (let i = 0; i < this.intervencionesAnuales; i++) {
+      let calcMonth = this.mesInicio + i * interval;
+      const calcYear = this.anioInicio + Math.floor((calcMonth - 1) / 12);
+      calcMonth = ((calcMonth - 1) % 12) + 1;
+      nuevos.push({ mes: Math.floor(calcMonth), ano: calcYear });
+    }
+
+    this.selectedPlanes = nuevos;
+    this.updateCalculatedText();
+  }
+
+  updateCalculatedText() {
+    if (!this.selectedPlanes.length) { this.calculatedMonthsText = ''; return; }
+    this.calculatedMonthsText = this.selectedPlanes.map(p => `${this.MESES[p.mes - 1]} ${p.ano}`).join(' · ');
+  }
+
+  async savePlan() {
+    if (!this.currentEquipoPlan) return;
+    this.isSavingPlan = true;
+    try {
+      await this.planService.reemplazarPlanesEquipo(this.currentEquipoPlan.id_sysequipo, this.selectedPlanes);
+      Swal.fire({ icon: 'success', title: 'Plan actualizado', text: `Se programaron ${this.selectedPlanes.length} mantenimiento(s).`, timer: 2000, showConfirmButton: false });
+      this.closePlanDialog();
+    } catch (e) {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo guardar el plan de mantenimiento.' });
+    } finally {
+      this.isSavingPlan = false;
+    }
   }
 
   handleReactivarConfirm(data: ReactivarEquipoData) {

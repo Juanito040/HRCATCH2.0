@@ -19,6 +19,9 @@
     </div>
     <div class="header-actions">
       @if (!isEditing && hojaVida) {
+        <button class="btn btn-secondary" (click)="descargarPdf()" [disabled]="isDownloading">
+          <i class="fas fa-file-pdf"></i> {{ isDownloading ? 'Generando...' : 'Descargar PDF' }}
+        </button>
         <button class="btn btn-primary" (click)="startEditing()">
           <i class="fas fa-edit"></i> Editar
         </button>

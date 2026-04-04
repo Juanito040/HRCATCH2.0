@@ -33,7 +33,11 @@ export class HomesuperadminComponent {
   }
 
   viewGestionSistemas() {
-    this.router.navigate(['/adminsistemas']);
+    this.router.navigate(['/adminsistemas/gestion']);
+  }
+
+  viewParametrizacionSIS() {
+    this.router.navigate(['/adminsistemas/parametrizacion']);
   }
 
   viewGestionMantenimiento() {

@@ -7,6 +7,7 @@ import { AvatarModule } from 'primeng/avatar';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
 import { ThemeService } from '../../../Services/theme/theme.service';
+import { getDecodedAccessToken } from '../../../utilidades';
 
 @Component({
   selector: 'app-sistemasadminnavbar',
@@ -19,48 +20,39 @@ export class SistemasadminnavbarComponent implements OnInit {
 
   items: MenuItem[] | undefined;
   themeService = inject(ThemeService);
+  isSystemUser: boolean = false;
 
-  constructor(private router: Router) { }
+  constructor(private router: Router) {
+    const decoded = getDecodedAccessToken();
+    this.isSystemUser = decoded?.rol === 'SYSTEMUSER';
+  }
 
   ngOnInit() {
-    this.items = [
-      {
-        label: 'Inicio',
-        icon: 'pi pi-home',
-        routerLink: '/adminsistemas'
-      },
-      {
-        label: 'Mesa de Servicios',
-        icon: 'pi pi-briefcase',
-        routerLink: '/adminmesaservicios/casos'
-      },
-      {
-        label: 'Usuarios',
-        icon: 'pi pi-users',
-        routerLink: '/admusuarios'
-      },
-      {
-        label: 'Tipos de Equipo',
-        icon: 'pi pi-th-large',
-        routerLink: '/adminsistemas/tiposequipo'
-      },
-      {
-        label: 'Equipos de Sistemas',
-        icon: 'pi pi-desktop',
-        routerLink: '/adminsistemas/equipos'
-      },
-      {
-        label: 'Mantenimientos',
-        icon: 'pi pi-wrench',
-        routerLink: '/adminsistemas/mantenimientos'
-      },
+    const inventarioItemsUser: MenuItem[] = [
+      { label: 'Tipos de Equipo',  icon: 'pi pi-th-large',    routerLink: '/adminsistemas/tiposequipo' },
+      { label: 'Equipos en Bodega', icon: 'pi pi-inbox',       routerLink: '/adminsistemas/equipos', queryParams: { vista: 'bodega' } },
+      { label: 'Dados de Baja',     icon: 'pi pi-ban',         routerLink: '/adminsistemas/equipos', queryParams: { vista: 'baja' } },
     ];
+
+    const itemsAdmin: MenuItem[] = [
+      { label: 'Inicio',           icon: 'pi pi-home',     routerLink: '/adminsistemas' },
+      { label: 'Mesa de Servicios', icon: 'pi pi-briefcase', routerLink: '/adminmesaservicios/casos' },
+    ];
+
+    const itemsUser: MenuItem[] = [
+      { label: 'Inicio',         icon: 'pi pi-home',   routerLink: '/adminsistemas' },
+      { label: 'Inventario',     icon: 'pi pi-box',    items: inventarioItemsUser },
+      { label: 'Mantenimientos', icon: 'pi pi-wrench', routerLink: '/adminsistemas/mantenimientos' },
+      { label: 'Trazabilidad',   icon: 'pi pi-history', routerLink: '/adminsistemas/trazabilidad' },
+    ];
+
+    this.items = this.isSystemUser ? itemsUser : itemsAdmin;
   }
 
   navigateToAbout() {
     if (typeof sessionStorage !== 'undefined') {
-      sessionStorage.setItem('utoken', "");
+      sessionStorage.setItem('utoken', '');
     }
-    this.router.navigate(['/login'])
+    this.router.navigate(['/login']);
   }
 }

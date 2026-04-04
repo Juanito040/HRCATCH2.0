@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, firstValueFrom } from 'rxjs';
 import { API_URL } from '../../../../constantes';
 
 export interface SysHojaVida {
@@ -61,5 +61,11 @@ export class SysHojaVidaService {
 
   delete(id: number): Observable<any> {
     return this.http.delete(`${this.base}/${id}`);
+  }
+
+  descargarPdf(equipoId: number): Promise<Blob> {
+    return firstValueFrom(
+      this.http.get(`${this.base}/equipo/${equipoId}/pdf`, { responseType: 'blob' })
+    );
   }
 }

@@ -4,9 +4,29 @@ const sequelize = require('../../config/configDb');
 const SysEquipo = require('../../models/Sistemas/SysEquipo');
 const SysHojaVida = require('../../models/Sistemas/SysHojaVida');
 const SysBaja = require('../../models/Sistemas/SysBaja');
+const SysTrazabilidad = require('../../models/Sistemas/SysTrazabilidad');
 const Servicio = require('../../models/generales/Servicio');
 const TipoEquipo = require('../../models/generales/TipoEquipo');
 const Usuario = require('../../models/generales/Usuario');
+
+const CAMPOS_AUDITADOS = [
+    'nombre_equipo', 'marca', 'modelo', 'serie', 'placa_inventario',
+    'codigo', 'ubicacion', 'ubicacion_especifica', 'activo',
+    'id_servicio_fk', 'id_tipo_equipo_fk', 'id_usuario_fk'
+];
+
+async function registrarTrazabilidad({ accion, detalles, equipoId, usuarioId, transaction }) {
+    try {
+        await SysTrazabilidad.create({
+            accion,
+            detalles: typeof detalles === 'object' ? JSON.stringify(detalles) : detalles,
+            id_sysequipo_fk: equipoId,
+            id_sysusuario_fk: usuarioId || null
+        }, transaction ? { transaction } : {});
+    } catch (e) {
+        console.error('Error al registrar trazabilidad:', e.message);
+    }
+}
 
 const INCLUDES_BASE = [
     { model: Servicio, as: 'servicio', attributes: ['id', 'nombres', 'ubicacion'] },
@@ -94,6 +114,14 @@ exports.createSysEquipo = async (req, res) => {
         await t.commit();
 
         const equipoCompleto = await SysEquipo.findByPk(equipo.id_sysequipo, { include: INCLUDES_FULL });
+
+        await registrarTrazabilidad({
+            accion: 'CREACION',
+            detalles: `Equipo "${equipoCompleto.nombre_equipo}" creado`,
+            equipoId: equipo.id_sysequipo,
+            usuarioId: req.user?.id
+        });
+
         res.status(201).json({ success: true, message: 'Equipo creado exitosamente', data: equipoCompleto });
     } catch (error) {
         await t.rollback();
@@ -108,6 +136,13 @@ exports.updateSysEquipo = async (req, res) => {
     try {
         const { id } = req.params;
         const { hojaVida, ...equipoData } = req.body;
+
+        // Capturar valores anteriores para auditoría
+        const equipoAnterior = await SysEquipo.findByPk(id);
+        if (!equipoAnterior) {
+            await t.rollback();
+            return res.status(404).json({ success: false, message: 'Equipo no encontrado' });
+        }
 
         // Convertir booleanos
         ['activo', 'estado_baja', 'administrable', 'preventivo_s'].forEach(field => {
@@ -130,6 +165,26 @@ exports.updateSysEquipo = async (req, res) => {
         }
 
         await t.commit();
+
+        // Detectar y registrar campos cambiados
+        const cambios = CAMPOS_AUDITADOS
+            .filter(campo => equipoData[campo] !== undefined &&
+                String(equipoData[campo]) !== String(equipoAnterior.dataValues[campo] ?? ''))
+            .map(campo => ({
+                campo,
+                anterior: equipoAnterior.dataValues[campo],
+                nuevo: equipoData[campo]
+            }));
+
+        if (cambios.length > 0) {
+            await registrarTrazabilidad({
+                accion: 'EDICION',
+                detalles: cambios,
+                equipoId: id,
+                usuarioId: req.user?.id
+            });
+        }
+
         const equipo = await SysEquipo.findByPk(id, { include: INCLUDES_FULL });
         res.json({ success: true, message: 'Equipo actualizado exitosamente', data: equipo });
     } catch (error) {
@@ -155,6 +210,13 @@ exports.deleteSysEquipo = async (req, res) => {
             ubicacion_especifica: motivo || 'Enviado a bodega',
             estado_baja: 0
         }, { where: { id_sysequipo: id } });
+
+        await registrarTrazabilidad({
+            accion: 'BODEGA',
+            detalles: motivo || 'Enviado a bodega',
+            equipoId: id,
+            usuarioId: req.user?.id
+        });
 
         const actualizado = await SysEquipo.findByPk(id);
         res.json({ success: true, message: 'Equipo enviado a bodega exitosamente', data: actualizado });
@@ -204,6 +266,14 @@ exports.hardDeleteSysEquipo = async (req, res) => {
             id_sysusuario_fk: id_usuario || req.user.id
         }, { transaction: t });
 
+        await registrarTrazabilidad({
+            accion: 'BAJA',
+            detalles: justificacion_baja || 'No especificada',
+            equipoId: id,
+            usuarioId: id_usuario || req.user.id,
+            transaction: t
+        });
+
         await t.commit();
         res.json({ success: true, message: `Equipo "${equipo.nombre_equipo}" dado de baja permanentemente` });
     } catch (error) {
@@ -222,6 +292,14 @@ exports.reactivarSysEquipo = async (req, res) => {
             { where: { id_sysequipo: id } }
         );
         if (affected === 0) return res.status(404).json({ success: false, message: 'Equipo no encontrado' });
+
+        await registrarTrazabilidad({
+            accion: 'REACTIVACION',
+            detalles: 'Equipo reactivado desde bodega',
+            equipoId: id,
+            usuarioId: req.user?.id
+        });
+
         const equipo = await SysEquipo.findByPk(id);
         res.json({ success: true, message: 'Equipo reactivado exitosamente', data: equipo });
     } catch (error) {
