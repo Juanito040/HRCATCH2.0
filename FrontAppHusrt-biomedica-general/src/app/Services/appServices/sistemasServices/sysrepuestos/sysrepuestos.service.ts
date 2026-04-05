@@ -14,7 +14,14 @@ export interface SysRepuesto {
   proveedor?: string;
   cantidad_stock?: number;
   ubicacion_fisica?: string;
+  garantia_inicio?: string;
+  garantia_fin?: string;
+  fecha_ingreso?: string;
+  costo_unitario?: number;
+  estado?: string;
   is_active?: boolean;
+  fecha_inactivacion?: string;
+  usuario_inactivacion?: string;
   tipoRepuesto?: { id_sys_tipo_repuesto: number; nombre: string };
   createdAt?: string;
   updatedAt?: string;
@@ -44,15 +51,15 @@ export class SysRepuestosService {
     return this.http.get<SysRepuestoResponse>(`${this.apiUrl}/${id}`);
   }
 
-  createRepuesto(repuesto: Partial<SysRepuesto>): Observable<SysRepuestoResponse> {
+  createRepuesto(repuesto: Partial<SysRepuesto> & { observacion?: string }): Observable<SysRepuestoResponse> {
     return this.http.post<SysRepuestoResponse>(this.apiUrl, repuesto);
   }
 
-  updateRepuesto(id: number, repuesto: Partial<SysRepuesto>): Observable<SysRepuestoResponse> {
+  updateRepuesto(id: number, repuesto: Partial<SysRepuesto> & { observacion?: string }): Observable<SysRepuestoResponse> {
     return this.http.patch<SysRepuestoResponse>(`${this.apiUrl}/${id}`, repuesto);
   }
 
-  toggleActivo(id: number): Observable<SysRepuestoResponse> {
-    return this.http.patch<SysRepuestoResponse>(`${this.apiUrl}/${id}/toggle`, {});
+  toggleActivo(id: number, observacion?: string): Observable<SysRepuestoResponse> {
+    return this.http.patch<SysRepuestoResponse>(`${this.apiUrl}/${id}/toggle`, { observacion });
   }
 }

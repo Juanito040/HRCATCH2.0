@@ -72,6 +72,14 @@ const SysRepuesto = sequelize.define('SysRepuesto', {
     type: DataTypes.BOOLEAN,
     defaultValue: true,
     allowNull: false
+  },
+  fecha_inactivacion: {
+    type: DataTypes.DATE,
+    allowNull: true
+  },
+  usuario_inactivacion: {
+    type: DataTypes.STRING(150),
+    allowNull: true
   }
 }, {
   tableName: 'SysRepuesto',

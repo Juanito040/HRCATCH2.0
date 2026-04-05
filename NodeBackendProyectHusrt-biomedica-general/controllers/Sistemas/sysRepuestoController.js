@@ -1,12 +1,42 @@
 const { Op } = require('sequelize');
 const SysRepuesto = require('../../models/Sistemas/SysRepuesto');
 const SysTipoRepuesto = require('../../models/Sistemas/SysTipoRepuesto');
+const SysAuditoriaRepuesto = require('../../models/Sistemas/SysAuditoriaRepuesto');
+const Usuario = require('../../models/generales/Usuario');
 
 const INCLUDES_BASE = [
   { model: SysTipoRepuesto, as: 'tipoRepuesto', attributes: ['id_sys_tipo_repuesto', 'nombre'] }
 ];
 
-// Obtener todos los repuestos
+// Helper para registrar auditoría
+async function registrarAuditoria({ id_registro, req, accion, observacion, nombre_item }) {
+  try {
+    let nombreUsuarioAudit = req.user?.nombreUsuario || req.user?.nombre;
+    
+    // Si el JWT no contiene el nombre (solo el id), lo buscamos en BD
+    if (!nombreUsuarioAudit && req.user?.id) {
+      const u = await Usuario.findByPk(req.user.id);
+      if (u) {
+        nombreUsuarioAudit = u.nombreUsuario;
+      }
+    }
+
+    await SysAuditoriaRepuesto.create({
+      tabla_origen: 'SysRepuesto',
+      id_registro,
+      nombre_item: nombre_item || null,
+      usuario: nombreUsuarioAudit || 'desconocido',
+      rol: req.user?.rol || null,
+      accion,
+      observacion: observacion || null,
+      fecha_hora: new Date()
+    });
+  } catch (err) {
+    console.error('Error al registrar auditoría repuesto:', err.message);
+  }
+}
+
+// ─── Obtener todos los repuestos ──────────────────────────────────────────────
 exports.getAll = async (req, res) => {
   try {
     const { is_active, search } = req.query;
@@ -38,7 +68,7 @@ exports.getAll = async (req, res) => {
   }
 };
 
-// Obtener repuesto por ID
+// ─── Obtener repuesto por ID ──────────────────────────────────────────────────
 exports.getById = async (req, res) => {
   try {
     const repuesto = await SysRepuesto.findByPk(req.params.id, { include: INCLUDES_BASE });
@@ -49,14 +79,15 @@ exports.getById = async (req, res) => {
   }
 };
 
-// Crear repuesto
+// ─── Crear repuesto ───────────────────────────────────────────────────────────
 exports.create = async (req, res) => {
   try {
     const {
       nombre, descripcion_tecnica, numero_parte, numero_serie,
       id_sys_tipo_repuesto_fk, modelo_asociado, proveedor,
       cantidad_stock, ubicacion_fisica, garantia_inicio,
-      garantia_fin, estado, fecha_ingreso, costo_unitario
+      garantia_fin, estado, fecha_ingreso, costo_unitario,
+      observacion
     } = req.body;
 
     if (!nombre) return res.status(400).json({ success: false, message: 'El nombre es obligatorio' });
@@ -68,6 +99,14 @@ exports.create = async (req, res) => {
       garantia_inicio, garantia_fin, estado, fecha_ingreso, costo_unitario
     });
 
+    await registrarAuditoria({
+      id_registro: repuesto.id_sysrepuesto,
+      req,
+      accion: 'creacion',
+      observacion,
+      nombre_item: repuesto.nombre
+    });
+
     const repuestoCompleto = await SysRepuesto.findByPk(repuesto.id_sysrepuesto, { include: INCLUDES_BASE });
     res.status(201).json({ success: true, message: 'Repuesto creado exitosamente', data: repuestoCompleto });
   } catch (error) {
@@ -76,7 +115,7 @@ exports.create = async (req, res) => {
   }
 };
 
-// Actualizar repuesto
+// ─── Actualizar repuesto ──────────────────────────────────────────────────────
 exports.update = async (req, res) => {
   try {
     const { id } = req.params;
@@ -84,7 +123,8 @@ exports.update = async (req, res) => {
       nombre, descripcion_tecnica, numero_parte, numero_serie,
       id_sys_tipo_repuesto_fk, modelo_asociado, proveedor,
       cantidad_stock, ubicacion_fisica, garantia_inicio,
-      garantia_fin, estado, fecha_ingreso, costo_unitario
+      garantia_fin, estado, fecha_ingreso, costo_unitario,
+      observacion
     } = req.body;
 
     const [affected] = await SysRepuesto.update({
@@ -96,6 +136,14 @@ exports.update = async (req, res) => {
 
     if (affected === 0) return res.status(404).json({ success: false, message: 'Repuesto no encontrado' });
 
+    await registrarAuditoria({
+      id_registro: parseInt(id, 10),
+      req,
+      accion: 'edicion',
+      observacion,
+      nombre_item: nombre
+    });
+
     const repuesto = await SysRepuesto.findByPk(id, { include: INCLUDES_BASE });
     res.json({ success: true, message: 'Repuesto actualizado exitosamente', data: repuesto });
   } catch (error) {
@@ -104,15 +152,43 @@ exports.update = async (req, res) => {
   }
 };
 
-// Activar / Desactivar repuesto (sin eliminar)
+// ─── Activar / Desactivar repuesto ────────────────────────────────────────────
 exports.toggleActive = async (req, res) => {
   try {
     const { id } = req.params;
+    const { observacion } = req.body;
     const repuesto = await SysRepuesto.findByPk(id);
     if (!repuesto) return res.status(404).json({ success: false, message: 'Repuesto no encontrado' });
 
-    await repuesto.update({ is_active: !repuesto.is_active });
-    const msg = repuesto.is_active ? 'activado' : 'desactivado';
+    const nuevoEstado = !repuesto.is_active;
+    const updateData = { is_active: nuevoEstado };
+
+    if (!nuevoEstado) {
+      updateData.fecha_inactivacion = new Date();
+      
+      // Intentar obtener el nombre del usuario
+      let username = req.user?.nombreUsuario || req.user?.nombre;
+      if (!username && req.user?.id) {
+        const u = await Usuario.findByPk(req.user.id);
+        if (u) username = u.nombreUsuario || u.nombres;
+      }
+      updateData.usuario_inactivacion = username || 'desconocido';
+    } else {
+      updateData.fecha_inactivacion = null;
+      updateData.usuario_inactivacion = null;
+    }
+
+    await repuesto.update(updateData);
+
+    await registrarAuditoria({
+      id_registro: parseInt(id, 10),
+      req,
+      accion: nuevoEstado ? 'activacion' : 'inactivacion',
+      observacion,
+      nombre_item: repuesto.nombre
+    });
+
+    const msg = nuevoEstado ? 'activado' : 'desactivado';
     const repuestoCompleto = await SysRepuesto.findByPk(id, { include: INCLUDES_BASE });
     res.json({ success: true, message: `Repuesto ${msg} exitosamente`, data: repuestoCompleto });
   } catch (error) {

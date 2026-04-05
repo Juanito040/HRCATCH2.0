@@ -8,6 +8,8 @@ export interface SysTipoRepuesto {
   nombre: string;
   descripcion?: string;
   is_active?: boolean;
+  fecha_inactivacion?: string;
+  usuario_inactivacion?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -23,27 +25,25 @@ export class SysTipoRepuestosService {
   private http = inject(HttpClient);
   private apiUrl = `${API_URL}/systiporepuesto`;
 
-  getTipos(): Observable<SysTipoRepuestoResponse> {
-    return this.http.get<SysTipoRepuestoResponse>(this.apiUrl);
+  getTipos(filters?: { is_active?: boolean }): Observable<SysTipoRepuestoResponse> {
+    let params = new HttpParams();
+    if (filters?.is_active !== undefined) params = params.set('is_active', filters.is_active.toString());
+    return this.http.get<SysTipoRepuestoResponse>(this.apiUrl, { params });
   }
 
   getById(id: number): Observable<SysTipoRepuestoResponse> {
     return this.http.get<SysTipoRepuestoResponse>(`${this.apiUrl}/${id}`);
   }
 
-  createTipo(tipo: Partial<SysTipoRepuesto>): Observable<SysTipoRepuestoResponse> {
+  createTipo(tipo: Partial<SysTipoRepuesto> & { observacion?: string }): Observable<SysTipoRepuestoResponse> {
     return this.http.post<SysTipoRepuestoResponse>(this.apiUrl, tipo);
   }
 
-  updateTipo(id: number, tipo: Partial<SysTipoRepuesto>): Observable<SysTipoRepuestoResponse> {
+  updateTipo(id: number, tipo: Partial<SysTipoRepuesto> & { observacion?: string }): Observable<SysTipoRepuestoResponse> {
     return this.http.patch<SysTipoRepuestoResponse>(`${this.apiUrl}/${id}`, tipo);
   }
 
-  toggleActivo(id: number): Observable<SysTipoRepuestoResponse> {
-    return this.http.patch<SysTipoRepuestoResponse>(`${this.apiUrl}/${id}/toggle`, {});
-  }
-
-  deleteTipo(id: number): Observable<SysTipoRepuestoResponse> {
-    return this.http.delete<SysTipoRepuestoResponse>(`${this.apiUrl}/${id}`);
+  toggleActivo(id: number, observacion?: string): Observable<SysTipoRepuestoResponse> {
+    return this.http.patch<SysTipoRepuestoResponse>(`${this.apiUrl}/${id}/toggle`, { observacion });
   }
 }

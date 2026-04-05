@@ -22,14 +22,17 @@
     <i class="pi pi-tags mr-1"></i> Tipos de Repuesto
   </button>
   <button class="tab-btn" [class.active]="tabActual === 'inactivos'" (click)="setTab('inactivos')">
-    <i class="pi pi-ban mr-1"></i> Repuestos Dados de Baja
+    <i class="pi pi-ban mr-1"></i> Dados de Baja y Activos o Inactivos
+  </button>
+  <button class="tab-btn" [class.active]="tabActual === 'registros'" (click)="setTab('registros')">
+    <i class="pi pi-history mr-1"></i> Registro de Cambios
   </button>
 </div>
 
 <!-- ══════════════════════════════════════════════════════
      TAB: REPUESTOS
 ═══════════════════════════════════════════════════════ -->
-<div *ngIf="tabActual === 'repuestos' || tabActual === 'inactivos'">
+<div *ngIf="tabActual === 'repuestos'">
 
   <!-- Toolbar -->
   <div class="toolbar">
@@ -37,7 +40,7 @@
       <i class="pi pi-search"></i>
       <input type="text" placeholder="Buscar por nombre, tipo, N° parte..." (input)="onSearch($event)" />
     </div>
-    <button *ngIf="tabActual === 'repuestos'" class="btn-primary" (click)="openCreateModal()">
+    <button *ngIf="isAdmin" class="btn-primary" (click)="openCreateModal()">
       <i class="pi pi-plus"></i> Nuevo Repuesto
     </button>
   </div>
@@ -48,7 +51,7 @@
       <table>
         <thead>
           <tr>
-            <th>Código (ID)</th>
+            <th>Código</th>
             <th>Nombre</th>
             <th>Tipo</th>
             <th>N° Parte</th>
@@ -60,7 +63,6 @@
           </tr>
         </thead>
         <tbody>
-
           <!-- Loading -->
           <tr *ngIf="isLoading">
             <td colspan="9">
@@ -70,7 +72,6 @@
               </div>
             </td>
           </tr>
-
           <!-- Error -->
           <tr *ngIf="!isLoading && error">
             <td colspan="9">
@@ -80,7 +81,6 @@
               </div>
             </td>
           </tr>
-
           <!-- Empty -->
           <tr *ngIf="!isLoading && !error && pagedRepuestos.length === 0">
             <td colspan="9">
@@ -90,7 +90,6 @@
               </div>
             </td>
           </tr>
-
           <!-- Data rows -->
           <tr *ngFor="let r of pagedRepuestos">
             <td><span class="code-badge">#{{ r.id_sysrepuesto }}</span></td>
@@ -110,15 +109,14 @@
               <button class="btn-icon" title="Editar" (click)="openEditModal(r)">
                 <i class="pi pi-pencil"></i>
               </button>
-              <button *ngIf="r.is_active" class="btn-outline-danger" (click)="toggleRepuesto(r)" title="Dar de baja">
+              <button *ngIf="r.is_active && isAdmin" class="btn-outline-danger" (click)="toggleRepuesto(r)" title="Dar de baja">
                 <i class="pi pi-arrow-down"></i> Dar de baja
               </button>
-              <button *ngIf="!r.is_active" class="btn-outline-success" (click)="toggleRepuesto(r)" title="Restaurar a principal">
+              <button *ngIf="!r.is_active && isAdmin" class="btn-outline-success" (click)="toggleRepuesto(r)" title="Restaurar">
                 <i class="pi pi-refresh"></i> Restaurar
               </button>
             </td>
           </tr>
-
         </tbody>
       </table>
     </div>
@@ -156,10 +154,11 @@
 <div *ngIf="tabActual === 'tipos'">
 
   <div class="toolbar">
-    <span style="font-size:0.9rem;color:var(--text-color-secondary)">
-      Crea primero un tipo, luego podés asignarlo a un repuesto.
-    </span>
-    <button class="btn-primary" (click)="openCreateTipoModal()">
+    <div class="search-box">
+      <i class="pi pi-search"></i>
+      <input type="text" placeholder="BUSCAR TIPOS..." (input)="onSearchTipos($event)" />
+    </div>
+    <button *ngIf="isAdmin" class="btn-primary" (click)="openCreateTipoModal()">
       <i class="pi pi-plus"></i> Nuevo Tipo
     </button>
   </div>
@@ -178,14 +177,14 @@
         </thead>
         <tbody>
           <tr *ngIf="tipos.length === 0">
-            <td colspan="5">
+            <td colspan="7">
               <div class="state-box">
                 <i class="pi pi-tags"></i>
-                <p>No hay tipos registrados. Crea el primero.</p>
+                <p>No hay tipos de repuestos activos. Crea el primero.</p>
               </div>
             </td>
           </tr>
-          <tr *ngFor="let t of tipos">
+          <tr *ngFor="let t of (searchTipos ? filteredTiposGrid : activosTipos)">
             <td><span class="code-badge">#{{ t.id_sys_tipo_repuesto }}</span></td>
             <td><strong>{{ t.nombre }}</strong></td>
             <td>{{ t.descripcion || '—' }}</td>
@@ -199,8 +198,11 @@
               <button class="btn-icon" title="Editar" (click)="openEditTipoModal(t)">
                 <i class="pi pi-pencil"></i>
               </button>
-              <button class="btn-outline-danger" (click)="deleteTipo(t)" title="Eliminar Permanentemente">
-                <i class="pi pi-trash"></i> Eliminar
+              <button *ngIf="t.is_active && isAdmin" class="btn-outline-danger" (click)="toggleTipo(t)" title="Inactivar">
+                <i class="pi pi-ban"></i> Inactivar
+              </button>
+              <button *ngIf="!t.is_active && isAdmin" class="btn-outline-success" (click)="toggleTipo(t)" title="Activar">
+                <i class="pi pi-check"></i> Activar
               </button>
             </td>
           </tr>
@@ -208,6 +210,305 @@
       </table>
     </div>
   </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     TAB: DADOS DE BAJA
+═══════════════════════════════════════════════════════ -->
+<div *ngIf="tabActual === 'inactivos'">
+  <div class="toolbar" style="margin-bottom: 0.5rem; border: none; padding-bottom: 0;">
+    <span style="font-size:0.85rem;color:var(--text-color-secondary)">
+      <i class="pi pi-info-circle mr-1"></i> Aquí puedes restaurar elementos que fueron dados de baja.
+    </span>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+    <!-- Lado Izquierdo: Repuestos inactivos -->
+    <div class="table-card">
+      <div class="section-header">
+        <h3><i class="pi pi-box mr-1"></i> Repuestos</h3>
+        <div class="search-box compact">
+          <i class="pi pi-search"></i>
+          <input type="text" placeholder="BUSCAR REPUESTOS..." (input)="onSearchInactivosRepuestos($event)" />
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Tipo</th>
+              <th>N° Parte</th>
+              <th>Inactivado por</th>
+              <th>Fecha</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="!isLoading && pagedInactivosRepuestos.length === 0">
+              <td colspan="6">
+                <div class="state-box">
+                  <i class="pi pi-inbox"></i>
+                  <p>No hay repuestos dados de baja.</p>
+                </div>
+              </td>
+            </tr>
+            <tr *ngFor="let r of pagedInactivosRepuestos">
+              <td><strong>{{ r.nombre }}</strong></td>
+              <td>{{ r.tipoRepuesto?.nombre || getTipoNombre(r.id_sys_tipo_repuesto_fk) }}</td>
+              <td>{{ r.numero_parte || '—' }}</td>
+              <td><span class="user-badge"><i class="pi pi-user"></i>{{ r.usuario_inactivacion || '—' }}</span></td>
+              <td><span style="font-size:0.82rem;color:#6b7280;font-weight:500;">{{ r.fecha_inactivacion | date:'dd/MM/yyyy' }}</span></td>
+              <td>
+                <button *ngIf="isAdmin" class="btn-outline-success" (click)="toggleRepuesto(r)" title="Restaurar">
+                  <i class="pi pi-refresh"></i> Restaurar
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Paginación para repuestos inactivos -->
+      <div class="pagination-bar" *ngIf="!isLoading && filteredInactivosRepuestos.length > 0">
+        <div class="pagination-btns" style="margin:0 auto">
+          <button class="pg-btn" (click)="goToInactivosPage(1)" [disabled]="inactivosCurrentPage === 1">
+            <i class="pi pi-angle-double-left"></i>
+          </button>
+          <button class="pg-btn" (click)="goToInactivosPage(inactivosCurrentPage - 1)" [disabled]="inactivosCurrentPage === 1">
+            <i class="pi pi-angle-left"></i>
+          </button>
+          <button *ngFor="let p of getInactivosPagesArray()" class="pg-btn" [class.active]="p === inactivosCurrentPage" (click)="goToInactivosPage(p)">
+            {{ p }}
+          </button>
+          <button class="pg-btn" (click)="goToInactivosPage(inactivosCurrentPage + 1)" [disabled]="inactivosCurrentPage === inactivosTotalPages">
+            <i class="pi pi-angle-right"></i>
+          </button>
+          <button class="pg-btn" (click)="goToInactivosPage(inactivosTotalPages)" [disabled]="inactivosCurrentPage === inactivosTotalPages">
+            <i class="pi pi-angle-double-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lado Derecho: Tipos Inactivos -->
+    <div class="table-card">
+      <div class="section-header">
+        <h3><i class="pi pi-tags mr-1"></i> Tipos de Repuesto</h3>
+        <div class="search-box compact">
+          <i class="pi pi-search"></i>
+          <input type="text" placeholder="BUSCAR TIPOS..." (input)="onSearchInactivosTipos($event)" />
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Descripción</th>
+              <th>Inactivado por</th>
+              <th>Fecha</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="inactivosTipos.length === 0">
+              <td colspan="5">
+                <div class="state-box">
+                  <i class="pi pi-inbox"></i>
+                  <p>No hay tipos de repuesto inactivados.</p>
+                </div>
+              </td>
+            </tr>
+            <tr *ngFor="let t of inactivosTipos">
+              <td><strong>{{ t.nombre }}</strong></td>
+              <td>{{ t.descripcion || '—' }}</td>
+              <td><span class="user-badge"><i class="pi pi-user"></i>{{ t.usuario_inactivacion || '—' }}</span></td>
+              <td><span style="font-size:0.82rem;color:#6b7280;font-weight:500;">{{ t.fecha_inactivacion | date:'dd/MM/yyyy' }}</span></td>
+              <td>
+                <button *ngIf="isAdmin" class="btn-outline-success" (click)="toggleTipo(t)" title="Activar">
+                  <i class="pi pi-check"></i> Activar
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     TAB: REGISTRO DE CAMBIOS
+═══════════════════════════════════════════════════════ -->
+<div *ngIf="tabActual === 'registros'">
+
+  <div class="toolbar">
+    <span style="font-size:0.85rem;color:var(--text-color-secondary)">
+      <i class="pi pi-history mr-1"></i> Historial detallado de todas las acciones realizadas.
+    </span>
+    <button class="btn-secondary" (click)="loadAuditoria()">
+      <i class="pi pi-refresh"></i> Actualizar
+    </button>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+    
+    <!-- Lado Izquierdo: Cambios en Repuestos -->
+    <div class="table-card">
+      <div class="section-header">
+        <h3><i class="pi pi-box mr-1"></i> Cambios en Repuestos</h3>
+        <div class="search-box compact">
+          <i class="pi pi-search"></i>
+          <input type="text" placeholder="BUSCAR EN ESTA TABLA..." (input)="onSearchAuditRepuestos($event)" />
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha / Hora</th>
+              <th>Usuario</th>
+              <th>Ítem</th>
+              <th>Acción</th>
+              <th>Motivo</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Loading -->
+            <tr *ngIf="isLoadingAudit">
+              <td colspan="4">
+                <div class="state-box">
+                  <i class="pi pi-spin pi-spinner"></i>
+                  <p>Cargando registros...</p>
+                </div>
+              </td>
+            </tr>
+            <!-- Empty -->
+            <tr *ngIf="!isLoadingAudit && pagedAuditoriaRepuestos.length === 0">
+              <td colspan="4">
+                <div class="state-box">
+                  <i class="pi pi-inbox"></i>
+                  <p>No hay registros en Repuestos.</p>
+                </div>
+              </td>
+            </tr>
+            <!-- Data rows -->
+            <tr *ngFor="let a of pagedAuditoriaRepuestos">
+              <td style="white-space:nowrap;font-size:0.82rem;">{{ a.fecha_hora | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td><span class="user-badge"><i class="pi pi-user"></i>{{ a.usuario }}</span></td>
+              <td style="max-width:180px;font-size:0.9rem;"><strong>{{ a.nombre_item || '—' }}</strong></td>
+              <td>
+                <span class="badge" [ngClass]="getAccionClass(a.accion)">
+                  {{ getAccionLabel(a.accion) }}
+                </span>
+              </td>
+              <td style="max-width:200px;font-size:0.85rem;">{{ a.observacion || '—' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paginación Repuestos Audit -->
+      <div class="pagination-bar" *ngIf="!isLoadingAudit && pagedAuditoriaRepuestos.length > 0">
+        <div class="pagination-btns">
+          <button class="pg-btn" (click)="goToAuditPageRepuestos(1)" [disabled]="auditPageRepuestos === 1">
+            <i class="pi pi-angle-double-left"></i>
+          </button>
+          <button class="pg-btn" (click)="goToAuditPageRepuestos(auditPageRepuestos - 1)" [disabled]="auditPageRepuestos === 1">
+            <i class="pi pi-angle-left"></i>
+          </button>
+          <button *ngFor="let p of getAuditPagesArray(auditTotalPagesRepuestos, auditPageRepuestos)" class="pg-btn" [class.active]="p === auditPageRepuestos" (click)="goToAuditPageRepuestos(p)">
+            {{ p }}
+          </button>
+          <button class="pg-btn" (click)="goToAuditPageRepuestos(auditPageRepuestos + 1)" [disabled]="auditPageRepuestos === auditTotalPagesRepuestos">
+            <i class="pi pi-angle-right"></i>
+          </button>
+          <button class="pg-btn" (click)="goToAuditPageRepuestos(auditTotalPagesRepuestos)" [disabled]="auditPageRepuestos === auditTotalPagesRepuestos">
+            <i class="pi pi-angle-double-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lado Derecho: Cambios en Tipos de Repuesto -->
+    <div class="table-card">
+      <div class="section-header">
+        <h3><i class="pi pi-tags mr-1"></i> Cambios en Tipos</h3>
+        <div class="search-box compact">
+          <i class="pi pi-search"></i>
+          <input type="text" placeholder="BUSCAR EN ESTA TABLA..." (input)="onSearchAuditTipos($event)" />
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha / Hora</th>
+              <th>Usuario</th>
+              <th>Ítem</th>
+              <th>Acción</th>
+              <th>Motivo</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Loading -->
+            <tr *ngIf="isLoadingAudit">
+              <td colspan="4">
+                <div class="state-box">
+                  <i class="pi pi-spin pi-spinner"></i>
+                  <p>Cargando registros...</p>
+                </div>
+              </td>
+            </tr>
+            <!-- Empty -->
+            <tr *ngIf="!isLoadingAudit && pagedAuditoriaTipos.length === 0">
+              <td colspan="4">
+                <div class="state-box">
+                  <i class="pi pi-inbox"></i>
+                  <p>No hay registros en Tipos.</p>
+                </div>
+              </td>
+            </tr>
+            <!-- Data rows -->
+            <tr *ngFor="let a of pagedAuditoriaTipos">
+              <td style="white-space:nowrap;font-size:0.82rem;">{{ a.fecha_hora | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td><span class="user-badge"><i class="pi pi-user"></i>{{ a.usuario }}</span></td>
+              <td style="max-width:180px;font-size:0.9rem;"><strong>{{ a.nombre_item || '—' }}</strong></td>
+              <td>
+                <span class="badge" [ngClass]="getAccionClass(a.accion)">
+                  {{ getAccionLabel(a.accion) }}
+                </span>
+              </td>
+              <td style="max-width:200px;font-size:0.85rem;">{{ a.observacion || '—' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paginación Tipos Audit -->
+      <div class="pagination-bar" *ngIf="!isLoadingAudit && pagedAuditoriaTipos.length > 0">
+        <div class="pagination-btns">
+          <button class="pg-btn" (click)="goToAuditPageTipos(1)" [disabled]="auditPageTipos === 1">
+            <i class="pi pi-angle-double-left"></i>
+          </button>
+          <button class="pg-btn" (click)="goToAuditPageTipos(auditPageTipos - 1)" [disabled]="auditPageTipos === 1">
+            <i class="pi pi-angle-left"></i>
+          </button>
+          <button *ngFor="let p of getAuditPagesArray(auditTotalPagesTipos, auditPageTipos)" class="pg-btn" [class.active]="p === auditPageTipos" (click)="goToAuditPageTipos(p)">
+            {{ p }}
+          </button>
+          <button class="pg-btn" (click)="goToAuditPageTipos(auditPageTipos + 1)" [disabled]="auditPageTipos === auditTotalPagesTipos">
+            <i class="pi pi-angle-right"></i>
+          </button>
+          <button class="pg-btn" (click)="goToAuditPageTipos(auditTotalPagesTipos)" [disabled]="auditPageTipos === auditTotalPagesTipos">
+            <i class="pi pi-angle-double-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
 </div>
 
 
@@ -234,7 +535,7 @@
           <label>Tipo de Repuesto</label>
           <select [(ngModel)]="formRepuesto.id_sys_tipo_repuesto_fk">
             <option [ngValue]="undefined">— Sin tipo —</option>
-            <option *ngFor="let t of tipos" [ngValue]="t.id_sys_tipo_repuesto">{{ t.nombre }}</option>
+            <option *ngFor="let t of activosTipos" [ngValue]="t.id_sys_tipo_repuesto">{{ t.nombre }}</option>
           </select>
         </div>
 
@@ -268,6 +569,24 @@
           <input type="text" [(ngModel)]="formRepuesto.modelo_asociado" placeholder="Modelo del equipo" />
         </div>
 
+        <!-- Fecha Ingreso -->
+        <div class="form-group">
+          <label>Fecha de Ingreso</label>
+          <input type="date" [(ngModel)]="formRepuesto.fecha_ingreso" />
+        </div>
+
+        <!-- Garantía Inicio -->
+        <div class="form-group">
+          <label>Garantía — Inicio</label>
+          <input type="date" [(ngModel)]="formRepuesto.garantia_inicio" />
+        </div>
+
+        <!-- Garantía Fin -->
+        <div class="form-group">
+          <label>Garantía — Fin</label>
+          <input type="date" [(ngModel)]="formRepuesto.garantia_fin" />
+        </div>
+
         <!-- Ubicación Física -->
         <div class="form-group full-width">
           <label>Ubicación Física</label>
@@ -278,6 +597,16 @@
         <div class="form-group full-width">
           <label>Descripción Técnica</label>
           <textarea [(ngModel)]="formRepuesto.descripcion_tecnica" placeholder="Descripción detallada..."></textarea>
+        </div>
+
+        <!-- Observación (auditoría) -->
+        <div class="form-group full-width">
+          <label style="color:var(--primary-color,#6366f1)">
+            <i class="pi pi-info-circle"></i> Observación / Motivo del cambio {{ (isEditMode || isTipoEditMode) ? '*' : '(opcional)' }}
+          </label>
+          <textarea [(ngModel)]="formRepuesto.observacion"
+            [placeholder]="isEditMode ? 'Explique el motivo de esta acción (requerido para auditoría)...' : 'Opcional: Detalles adicionales para el registro...'"
+            style="min-height:70px;border-color:var(--primary-color,#6366f1);"></textarea>
         </div>
 
       </div>
@@ -297,20 +626,28 @@
      MODAL — CREAR / EDITAR TIPO
 ═══════════════════════════════════════════════════════ -->
 <div class="modal-overlay" *ngIf="isTipoModalOpen" (click)="closeTipoModal()">
-  <div class="modal-card" style="max-width:420px" (click)="$event.stopPropagation()">
+  <div class="modal-card" style="max-width:520px" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <h3>{{ isTipoEditMode ? 'Editar Tipo' : 'Nuevo Tipo de Repuesto' }}</h3>
       <button class="btn-close" (click)="closeTipoModal()"><i class="pi pi-times"></i></button>
     </div>
     <div class="modal-body">
-      <div class="form-grid" style="grid-template-columns:1fr">
-        <div class="form-group">
+      <div class="form-grid">
+        <div class="form-group full-width">
           <label>Nombre *</label>
           <input type="text" [(ngModel)]="formTipo.nombre" placeholder="Ej. Electrónico, Mecánico..." />
         </div>
-        <div class="form-group">
+        <div class="form-group full-width">
           <label>Descripción</label>
           <textarea [(ngModel)]="formTipo.descripcion" placeholder="Descripción del tipo (opcional)"></textarea>
+        </div>
+        <div class="form-group full-width">
+          <label style="color:var(--primary-color,#6366f1)">
+            <i class="pi pi-info-circle"></i> Observación / Motivo del cambio {{ (isEditMode || isTipoEditMode) ? '*' : '(opcional)' }}
+          </label>
+          <textarea [(ngModel)]="formTipo.observacion"
+            [placeholder]="isTipoEditMode ? 'Explique el motivo de esta acción (requerido para auditoría)...' : 'Opcional: Detalles adicionales para el registro...'"
+            style="min-height:70px;border-color:var(--primary-color,#6366f1);"></textarea>
         </div>
       </div>
     </div>
