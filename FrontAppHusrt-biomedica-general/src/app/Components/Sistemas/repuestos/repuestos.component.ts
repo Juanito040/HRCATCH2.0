@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { SysRepuestosService, SysRepuesto } from '../../../Services/appServices/sistemasServices/sysrepuestos/sysrepuestos.service';
 import { SysTipoRepuestosService, SysTipoRepuesto } from '../../../Services/appServices/sistemasServices/systiporepuestos/systiporepuestos.service';
 import { SysAuditoriaRepuestoService, SysAuditoriaRepuesto } from '../../../Services/appServices/sistemasServices/sysauditoriarepuesto/sysauditoriarepuesto.service';
+import { SysMovimientosStockService, SysMovimientoStock } from '../../../Services/appServices/sistemasServices/sysmovimientosstock/sysmovimientosstock.service';
 import { getDecodedAccessToken } from '../../../utilidades';
 import Swal from 'sweetalert2';
 
@@ -25,10 +26,14 @@ export class SisRepuestosComponent implements OnInit {
   filteredTiposGrid: SysTipoRepuesto[] = [];
   auditoria: SysAuditoriaRepuesto[] = [];
   filteredAuditoria: SysAuditoriaRepuesto[] = [];
+  movimientos: SysMovimientoStock[] = [];
+  filteredMovimientos: SysMovimientoStock[] = [];
+  alertasStockBajo: SysRepuesto[] = [];
 
   // ─── Estado UI ────────────────────────────────────────────
   isLoading = false;
   isLoadingAudit = false;
+  isLoadingMovimientos = false;
   error: string | null = null;
   searchTerm = '';
   searchTipos = '';
@@ -36,7 +41,12 @@ export class SisRepuestosComponent implements OnInit {
   searchInactivosTipos = '';
   searchAuditRepuestos = '';
   searchAuditTipos = '';
-  tabActual: 'repuestos' | 'inactivos' | 'tipos' | 'registros' = 'repuestos';
+  searchMovimientos = '';
+  filtroTipoMovimiento: '' | 'ingreso' | 'egreso' = '';
+  filtroFechaDesde = '';
+  filtroFechaHasta = '';
+  tabActual: 'repuestos' | 'inactivos' | 'tipos' | 'registros' | 'stockMovimientos' = 'repuestos';
+  showAlertasPanel = true;
 
   // ─── Modal Repuesto ───────────────────────────────────────
   isRepuestoModalOpen = false;
@@ -45,11 +55,23 @@ export class SisRepuestosComponent implements OnInit {
   selectedRepuesto: SysRepuesto | null = null;
   formRepuesto: Partial<SysRepuesto> & { observacion?: string } = {};
 
+  // ─── Modal Detalles ───────────────────────────────────────
+  isDetallesModalOpen = false;
+  repuestoDetalle: SysRepuesto | null = null;
+
   // ─── Modal Tipo ───────────────────────────────────────────
   isTipoModalOpen = false;
   isTipoEditMode = false;
   selectedTipo: SysTipoRepuesto | null = null;
   formTipo: Partial<SysTipoRepuesto> & { observacion?: string } = {};
+
+  // ─── Modal Movimiento Stock ───────────────────────────────
+  isMovimientoModalOpen = false;
+  isSavingMovimiento = false;
+  repuestoParaMovimiento: SysRepuesto | null = null;
+  formMovimiento: { tipo: 'ingreso' | 'egreso'; cantidad: number; motivo: string; referencia: string } = {
+    tipo: 'ingreso', cantidad: 1, motivo: '', referencia: ''
+  };
 
   // ─── Paginación Repuestos ─────────────────────────────────
   readonly pageSize = 12;
@@ -61,6 +83,7 @@ export class SisRepuestosComponent implements OnInit {
   inactivosCurrentPage = 1;
   inactivosTotalPages = 1;
   pagedInactivosRepuestos: SysRepuesto[] = [];
+  filteredInactivosRepuestos: SysRepuesto[] = [];
 
   // ─── Paginación Registro Cambios (Repuestos) ──────────────
   auditPageRepuestos = 1;
@@ -72,19 +95,22 @@ export class SisRepuestosComponent implements OnInit {
   auditTotalPagesTipos = 1;
   pagedAuditoriaTipos: SysAuditoriaRepuesto[] = [];
 
+  // ─── Paginación Movimientos Stock ─────────────────────────
+  movPage = 1;
+  movTotalPages = 1;
+  pagedMovimientos: SysMovimientoStock[] = [];
+
   private repuestosService = inject(SysRepuestosService);
   private tiposService = inject(SysTipoRepuestosService);
   private auditoriaService = inject(SysAuditoriaRepuestoService);
+  private movimientosService = inject(SysMovimientosStockService);
 
   // ─── Permisos ─────────────────────────────────────────────
   get hasAccess(): boolean {
     const decoded = getDecodedAccessToken();
     return ROLES_PERMITIDOS.includes(decoded?.rol);
   }
-
-  get isAdmin(): boolean {
-    return this.hasAccess;
-  }
+  get isAdmin(): boolean { return this.hasAccess; }
 
   // ─── Tipos Computados ─────────────────────────────────────
   get activosTipos(): SysTipoRepuesto[] {
@@ -95,8 +121,8 @@ export class SisRepuestosComponent implements OnInit {
     let list = this.tipos.filter(t => t.is_active === false || (t.is_active as any) === 0);
     if (this.searchInactivosTipos) {
       const term = this.searchInactivosTipos.toLowerCase();
-      list = list.filter(t => 
-        t.nombre.toLowerCase().includes(term) || 
+      list = list.filter(t =>
+        t.nombre.toLowerCase().includes(term) ||
         t.descripcion?.toLowerCase().includes(term) ||
         t.usuario_inactivacion?.toLowerCase().includes(term)
       );
@@ -104,11 +130,21 @@ export class SisRepuestosComponent implements OnInit {
     return list;
   }
 
+  // ─── Alertas de stock bajo ────────────────────────────────
+  get countAlertasActivas(): number { return this.alertasStockBajo.length; }
+
+  esStockBajo(repuesto: SysRepuesto): boolean {
+    const minimo = repuesto.stock_minimo ?? 4;
+    const stock = repuesto.cantidad_stock ?? 0;
+    return stock <= minimo;
+  }
+
   // ─── Inicialización ───────────────────────────────────────
   ngOnInit(): void {
     this.loadRepuestos();
     this.loadTipos();
     this.loadAuditoria();
+    this.loadAlertas();
   }
 
   // ─── Carga de datos ───────────────────────────────────────
@@ -138,9 +174,7 @@ export class SisRepuestosComponent implements OnInit {
 
   loadTipos(): void {
     this.tiposService.getTipos().subscribe({
-      next: (res) => {
-        if (res.success) this.tipos = Array.isArray(res.data) ? res.data : [res.data];
-      },
+      next: (res) => { if (res.success) this.tipos = Array.isArray(res.data) ? res.data : [res.data]; },
       error: () => { this.tipos = []; }
     });
   }
@@ -149,8 +183,7 @@ export class SisRepuestosComponent implements OnInit {
     this.isLoadingAudit = true;
     this.auditoriaService.getHistorial().subscribe({
       next: (res) => {
-        const data = res.success ? res.data : [];
-        this.auditoria = data;
+        this.auditoria = res.success ? res.data : [];
         this.applyAuditFilter();
         this.isLoadingAudit = false;
       },
@@ -162,10 +195,37 @@ export class SisRepuestosComponent implements OnInit {
     });
   }
 
+  loadMovimientos(): void {
+    this.isLoadingMovimientos = true;
+    const filtros: any = {};
+    if (this.filtroTipoMovimiento) filtros.tipo = this.filtroTipoMovimiento;
+    if (this.filtroFechaDesde) filtros.fechaDesde = this.filtroFechaDesde;
+    if (this.filtroFechaHasta) filtros.fechaHasta = this.filtroFechaHasta;
+
+    this.movimientosService.getMovimientos(Object.keys(filtros).length ? filtros : undefined).subscribe({
+      next: (res) => {
+        this.movimientos = res.success ? res.data : [];
+        this.applyMovimientosFilter();
+        this.isLoadingMovimientos = false;
+      },
+      error: () => {
+        this.movimientos = [];
+        this.applyMovimientosFilter();
+        this.isLoadingMovimientos = false;
+      }
+    });
+  }
+
+  loadAlertas(): void {
+    this.movimientosService.getAlertas().subscribe({
+      next: (res) => { this.alertasStockBajo = res.success ? res.data : []; },
+      error: () => { this.alertasStockBajo = []; }
+    });
+  }
+
   // ─── Filtros y paginación Repuestos ───────────────────────
 
   applyFilters(): void {
-    // 1. Repuestos Activos
     let activeR = this.repuestos.filter(r => r.is_active === true || (r.is_active as any) === 1);
     if (this.searchTerm.trim()) {
       const term = this.searchTerm.toLowerCase();
@@ -179,7 +239,6 @@ export class SisRepuestosComponent implements OnInit {
     }
     this.filteredRepuestos = activeR;
 
-    // 2. Repuestos Inactivos
     let inactiveR = this.repuestos.filter(r => r.is_active === false || (r.is_active as any) === 0);
     if (this.searchInactivosRepuestos.trim()) {
       const term = this.searchInactivosRepuestos.toLowerCase();
@@ -193,14 +252,10 @@ export class SisRepuestosComponent implements OnInit {
     this.inactivosCurrentPage = 1;
     this.updateInactivosPage();
 
-    // 3. Tipos Activos
     this.applyTiposFilter();
-
     this.currentPage = 1;
     this.updatePage();
   }
-
-  filteredInactivosRepuestos: SysRepuesto[] = [];
 
   onSearchInactivosRepuestos(event: Event): void {
     this.searchInactivosRepuestos = (event.target as HTMLInputElement).value;
@@ -209,8 +264,6 @@ export class SisRepuestosComponent implements OnInit {
 
   onSearchInactivosTipos(event: Event): void {
     this.searchInactivosTipos = (event.target as HTMLInputElement).value;
-    // El getter inactivosTipos ya usa searchInactivosTipos, así que solo notificamos el cambio si fuera necesario
-    // pero como es un getter, se actualiza solo en el template.
   }
 
   onSearchTipos(event: Event): void {
@@ -222,8 +275,8 @@ export class SisRepuestosComponent implements OnInit {
     let list = this.activosTipos;
     if (this.searchTipos.trim()) {
       const term = this.searchTipos.toLowerCase();
-      list = list.filter(t => 
-        t.nombre.toLowerCase().includes(term) || 
+      list = list.filter(t =>
+        t.nombre.toLowerCase().includes(term) ||
         t.descripcion?.toLowerCase().includes(term)
       );
     }
@@ -279,7 +332,62 @@ export class SisRepuestosComponent implements OnInit {
     return pages;
   }
 
-  min(a: number, b: number): number { return Math.min(a, b); }
+  // ─── Filtros y paginación Movimientos ─────────────────────
+
+  applyMovimientosFilter(): void {
+    let list = [...this.movimientos];
+    if (this.searchMovimientos.trim()) {
+      const term = this.searchMovimientos.toLowerCase();
+      list = list.filter(m =>
+        m.repuesto?.nombre?.toLowerCase().includes(term) ||
+        m.motivo?.toLowerCase().includes(term) ||
+        m.usuario?.toLowerCase().includes(term) ||
+        m.referencia?.toLowerCase().includes(term)
+      );
+    }
+    this.filteredMovimientos = list;
+    this.movPage = 1;
+    this.updateMovPage();
+  }
+
+  updateMovPage(): void {
+    this.movTotalPages = Math.max(1, Math.ceil(this.filteredMovimientos.length / this.pageSize));
+    if (this.movPage > this.movTotalPages) this.movPage = this.movTotalPages;
+    const start = (this.movPage - 1) * this.pageSize;
+    this.pagedMovimientos = this.filteredMovimientos.slice(start, start + this.pageSize);
+  }
+
+  goToMovPage(page: number): void {
+    if (page < 1 || page > this.movTotalPages) return;
+    this.movPage = page;
+    this.updateMovPage();
+  }
+
+  getMovPagesArray(): number[] {
+    const delta = 2;
+    const pages: number[] = [];
+    const left = Math.max(1, this.movPage - delta);
+    const right = Math.min(this.movTotalPages, this.movPage + delta);
+    for (let i = left; i <= right; i++) pages.push(i);
+    return pages;
+  }
+
+  onSearchMovimientos(event: Event): void {
+    this.searchMovimientos = (event.target as HTMLInputElement).value;
+    this.applyMovimientosFilter();
+  }
+
+  aplicarFiltrosMovimientos(): void {
+    this.loadMovimientos();
+  }
+
+  limpiarFiltrosMovimientos(): void {
+    this.filtroTipoMovimiento = '';
+    this.filtroFechaDesde = '';
+    this.filtroFechaHasta = '';
+    this.searchMovimientos = '';
+    this.loadMovimientos();
+  }
 
   // ─── Filtros y paginación Auditoría ───────────────────────
 
@@ -287,12 +395,10 @@ export class SisRepuestosComponent implements OnInit {
     const repuestosFiltered = this.auditoria.filter(a => a.tabla_origen === 'SysRepuesto' && this.matchesAuditSearch(a, 'repuestos'));
     const tiposFiltered = this.auditoria.filter(a => a.tabla_origen === 'SysTipoRepuesto' && this.matchesAuditSearch(a, 'tipos'));
 
-    // Repuestos
     this.auditPageRepuestos = 1;
     this.auditTotalPagesRepuestos = Math.max(1, Math.ceil(repuestosFiltered.length / this.pageSize));
     this.pagedAuditoriaRepuestos = repuestosFiltered.slice(0, this.pageSize);
 
-    // Tipos
     this.auditPageTipos = 1;
     this.auditTotalPagesTipos = Math.max(1, Math.ceil(tiposFiltered.length / this.pageSize));
     this.pagedAuditoriaTipos = tiposFiltered.slice(0, this.pageSize);
@@ -350,7 +456,7 @@ export class SisRepuestosComponent implements OnInit {
   openCreateModal(): void {
     this.isEditMode = false;
     this.selectedRepuesto = null;
-    this.formRepuesto = { cantidad_stock: 0, is_active: true, observacion: '' };
+    this.formRepuesto = { cantidad_stock: 0, stock_minimo: 4, is_active: true, observacion: '' };
     this.isRepuestoModalOpen = true;
   }
 
@@ -365,6 +471,17 @@ export class SisRepuestosComponent implements OnInit {
     this.isRepuestoModalOpen = false;
     this.selectedRepuesto = null;
     this.formRepuesto = {};
+  }
+
+  // ─── Modal Detalles ───────────────────────────────────────
+  openDetallesModal(repuesto: SysRepuesto): void {
+    this.repuestoDetalle = repuesto;
+    this.isDetallesModalOpen = true;
+  }
+
+  closeDetallesModal(): void {
+    this.isDetallesModalOpen = false;
+    this.repuestoDetalle = null;
   }
 
   guardarRepuesto(): void {
@@ -403,7 +520,15 @@ export class SisRepuestosComponent implements OnInit {
   // ─── Toggle Repuesto Activo/Inactivo ──────────────────────
 
   toggleRepuesto(repuesto: SysRepuesto): void {
-    const accion = repuesto.is_active ? 'dar de baja al' : 'restaurar el';
+    if (repuesto.is_active && (repuesto.cantidad_stock ?? 0) > 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Acción Bloqueada',
+        text: `No puedes dar de baja este repuesto porque aún quedan ${repuesto.cantidad_stock} unidades en el inventario. Debes egresar / restar todo el stock primero.`
+      });
+      return;
+    }
+
     const verbo = repuesto.is_active ? 'Dar de baja' : 'Restaurar';
     Swal.fire({
       title: `¿${verbo} repuesto?`,
@@ -422,10 +547,7 @@ export class SisRepuestosComponent implements OnInit {
       cancelButtonText: 'Cancelar',
       preConfirm: () => {
         const obs = (document.getElementById('swal-observacion') as HTMLTextAreaElement)?.value?.trim();
-        if (!obs) {
-          Swal.showValidationMessage('La observación es obligatoria');
-          return false;
-        }
+        if (!obs) { Swal.showValidationMessage('La observación es obligatoria'); return false; }
         return obs;
       }
     }).then(result => {
@@ -433,15 +555,123 @@ export class SisRepuestosComponent implements OnInit {
         this.repuestosService.toggleActivo(repuesto.id_sysrepuesto, result.value as string).subscribe({
           next: (res) => {
             if (res.success) {
-              const estado = repuesto.is_active ? 'dado de baja' : 'restaurado';
-              Swal.fire({ icon: 'success', title: `Repuesto ${estado}`, timer: 1500, showConfirmButton: false });
+              Swal.fire({ icon: 'success', title: `Repuesto ${repuesto.is_active ? 'dado de baja' : 'restaurado'}`, timer: 1500, showConfirmButton: false });
               this.loadRepuestos();
+              this.loadAlertas();
             }
           },
           error: () => Swal.fire('Error', 'No se pudo cambiar el estado', 'error')
         });
       }
     });
+  }
+
+  // ─── Modal Movimiento Stock ───────────────────────────────
+
+  openMovimientoModal(repuesto: SysRepuesto): void {
+    this.repuestoParaMovimiento = repuesto;
+    this.formMovimiento = { tipo: 'ingreso', cantidad: 1, motivo: '', referencia: '' };
+    this.isMovimientoModalOpen = true;
+  }
+
+  closeMovimientoModal(): void {
+    this.isMovimientoModalOpen = false;
+    this.repuestoParaMovimiento = null;
+  }
+
+  guardarMovimiento(): void {
+    if (!this.repuestoParaMovimiento?.id_sysrepuesto) return;
+    if (!this.formMovimiento.motivo.trim()) {
+      Swal.fire('Atención', 'El motivo del movimiento es obligatorio', 'warning');
+      return;
+    }
+    if (!this.formMovimiento.cantidad || this.formMovimiento.cantidad <= 0) {
+      Swal.fire('Atención', 'La cantidad debe ser mayor a 0', 'warning');
+      return;
+    }
+
+    this.isSavingMovimiento = true;
+    this.movimientosService.registrarMovimiento({
+      id_repuesto_fk: this.repuestoParaMovimiento.id_sysrepuesto,
+      tipo: this.formMovimiento.tipo,
+      cantidad: this.formMovimiento.cantidad,
+      motivo: this.formMovimiento.motivo.trim(),
+      referencia: this.formMovimiento.referencia?.trim() || undefined
+    }).subscribe({
+      next: (res) => {
+        this.isSavingMovimiento = false;
+        if (res.success) {
+          Swal.fire({ icon: 'success', title: '¡Movimiento registrado!', text: res.message, timer: 2500, showConfirmButton: false });
+          this.closeMovimientoModal();
+          this.loadRepuestos();
+          this.loadAlertas();
+          if (this.tabActual === 'stockMovimientos') this.loadMovimientos();
+        } else {
+          Swal.fire('Error', res.message || 'No se pudo registrar el movimiento', 'error');
+        }
+      },
+      error: (err) => {
+        this.isSavingMovimiento = false;
+        const msg = err?.error?.message || 'Error al conectar con el servidor';
+        Swal.fire('Error', msg, 'error');
+      }
+    });
+  }
+
+  // ─── Exportar CSV ─────────────────────────────────────────
+
+  exportarRepuestosCSV(): void {
+    const lista = this.repuestos.filter(r => r.is_active === true || (r.is_active as any) === 1);
+    if (!lista.length) { Swal.fire('Aviso', 'No hay repuestos activos para exportar', 'info'); return; }
+
+    const encabezado = 'ID;Nombre;Tipo;Nº Parte;Nº Serie;Proveedor;Stock;Stock Mínimo;Estado;Ubicación;Garantía Inicio;Garantía Fin;Fecha Ingreso\n';
+    const filas = lista.map(r => [
+      r.id_sysrepuesto,
+      `"${r.nombre || ''}"`,
+      `"${r.tipoRepuesto?.nombre || ''}"`,
+      `"${r.numero_parte || ''}"`,
+      `"${r.numero_serie || ''}"`,
+      `"${r.proveedor || ''}"`,
+      r.cantidad_stock ?? 0,
+      r.stock_minimo ?? 4,
+      r.estado || '',
+      `"${r.ubicacion_fisica || ''}"`,
+      r.garantia_inicio || '',
+      r.garantia_fin || '',
+      r.fecha_ingreso || ''
+    ].join(';')).join('\n');
+
+    const csv = '\uFEFF' + encabezado + filas;
+    this.descargarCSV(csv, `repuestos_activos_${new Date().toISOString().slice(0, 10)}.csv`);
+  }
+
+  exportarMovimientosCSV(): void {
+    const filtros: any = {};
+    if (this.filtroTipoMovimiento) filtros.tipo = this.filtroTipoMovimiento;
+    if (this.filtroFechaDesde) filtros.fechaDesde = this.filtroFechaDesde;
+    if (this.filtroFechaHasta) filtros.fechaHasta = this.filtroFechaHasta;
+
+    this.movimientosService.exportarCSV(Object.keys(filtros).length ? filtros : undefined).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `movimientos_stock_${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+      error: () => Swal.fire('Error', 'No se pudo exportar el reporte', 'error')
+    });
+  }
+
+  private descargarCSV(csv: string, filename: string): void {
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   // ─── Modal Tipo ───────────────────────────────────────────
@@ -467,13 +697,9 @@ export class SisRepuestosComponent implements OnInit {
   }
 
   guardarTipo(): void {
-    if (!this.formTipo.nombre?.trim()) {
-      Swal.fire('Atención', 'El nombre del tipo es obligatorio', 'warning');
-      return;
-    }
+    if (!this.formTipo.nombre?.trim()) { Swal.fire('Atención', 'El nombre del tipo es obligatorio', 'warning'); return; }
     if (this.isTipoEditMode && !this.formTipo.observacion?.trim()) {
-      Swal.fire('Atención', 'Debe ingresar una observación / motivo del cambio al editar', 'warning');
-      return;
+      Swal.fire('Atención', 'Debe ingresar una observación / motivo del cambio al editar', 'warning'); return;
     }
     const obs = this.isTipoEditMode && this.selectedTipo?.id_sys_tipo_repuesto
       ? this.tiposService.updateTipo(this.selectedTipo.id_sys_tipo_repuesto, this.formTipo)
@@ -485,9 +711,7 @@ export class SisRepuestosComponent implements OnInit {
           Swal.fire({ icon: 'success', title: this.isTipoEditMode ? '¡Actualizado!' : '¡Tipo creado!', text: res.message, timer: 1800, showConfirmButton: false });
           this.closeTipoModal();
           this.loadTipos();
-        } else {
-          Swal.fire('Error', res.message || 'No se pudo guardar el tipo', 'error');
-        }
+        } else { Swal.fire('Error', res.message || 'No se pudo guardar el tipo', 'error'); }
       },
       error: () => Swal.fire('Error', 'Error al conectar con el servidor', 'error')
     });
@@ -514,10 +738,7 @@ export class SisRepuestosComponent implements OnInit {
       cancelButtonText: 'Cancelar',
       preConfirm: () => {
         const obs = (document.getElementById('swal-observacion-tipo') as HTMLTextAreaElement)?.value?.trim();
-        if (!obs) {
-          Swal.showValidationMessage('La observación es obligatoria');
-          return false;
-        }
+        if (!obs) { Swal.showValidationMessage('La observación es obligatoria'); return false; }
         return obs;
       }
     }).then(result => {
@@ -537,18 +758,19 @@ export class SisRepuestosComponent implements OnInit {
 
   // ─── Tab/navegación ───────────────────────────────────────
 
-  setTab(tab: 'repuestos' | 'inactivos' | 'tipos' | 'registros'): void {
+  setTab(tab: 'repuestos' | 'inactivos' | 'tipos' | 'registros' | 'stockMovimientos'): void {
     this.tabActual = tab;
     if (tab === 'repuestos' || tab === 'inactivos') {
       this.searchTerm = '';
       this.applyFilters();
     }
-    if (tab === 'registros' && this.auditoria.length === 0) {
-      this.loadAuditoria();
-    }
+    if (tab === 'registros' && this.auditoria.length === 0) this.loadAuditoria();
+    if (tab === 'stockMovimientos') this.loadMovimientos();
   }
 
   // ─── Helpers ──────────────────────────────────────────────
+
+  min(a: number, b: number): number { return Math.min(a, b); }
 
   getTipoNombre(id?: number): string {
     if (!id) return '—';
@@ -558,20 +780,14 @@ export class SisRepuestosComponent implements OnInit {
 
   getAccionLabel(accion: string): string {
     const map: Record<string, string> = {
-      creacion: 'Creación',
-      edicion: 'Edición',
-      activacion: 'Activación',
-      inactivacion: 'Inactivación'
+      creacion: 'Creación', edicion: 'Edición', activacion: 'Activación', inactivacion: 'Inactivación'
     };
     return map[accion] || accion;
   }
 
   getAccionClass(accion: string): string {
     const map: Record<string, string> = {
-      creacion: 'badge-info',
-      edicion: 'badge-warning',
-      activacion: 'badge-success',
-      inactivacion: 'badge-danger'
+      creacion: 'badge-info', edicion: 'badge-warning', activacion: 'badge-success', inactivacion: 'badge-danger'
     };
     return map[accion] || 'badge-secondary';
   }

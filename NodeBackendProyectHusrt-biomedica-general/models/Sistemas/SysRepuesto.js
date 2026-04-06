@@ -42,6 +42,11 @@ const SysRepuesto = sequelize.define('SysRepuesto', {
     allowNull: false,
     defaultValue: 0
   },
+  stock_minimo: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 4
+  },
   ubicacion_fisica: {
     type: DataTypes.STRING(255),
     allowNull: true

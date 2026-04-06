@@ -160,6 +160,10 @@ exports.toggleActive = async (req, res) => {
     const repuesto = await SysRepuesto.findByPk(id);
     if (!repuesto) return res.status(404).json({ success: false, message: 'Repuesto no encontrado' });
 
+    if (repuesto.is_active && repuesto.cantidad_stock > 0) {
+      return res.status(400).json({ success: false, message: `No se puede dar de baja. Aún hay ${repuesto.cantidad_stock} unidades en stock.` });
+    }
+
     const nuevoEstado = !repuesto.is_active;
     const updateData = { is_active: nuevoEstado };
 

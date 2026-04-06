@@ -15,14 +15,18 @@
 
 <!-- ── Tabs ───────────────────────────────────────────────── -->
 <div class="tab-bar">
-  <button class="tab-btn" [class.active]="tabActual === 'repuestos'" (click)="setTab('repuestos')">
+  <button class="tab-btn" [class.active]="tabActual === 'repuestos'" (click)="setTab('repuestos')" style="position:relative">
     <i class="pi pi-box mr-1"></i> Repuestos
+    <span *ngIf="countAlertasActivas > 0" class="tab-alert-badge">{{ countAlertasActivas }}</span>
   </button>
   <button class="tab-btn" [class.active]="tabActual === 'tipos'" (click)="setTab('tipos')">
     <i class="pi pi-tags mr-1"></i> Tipos de Repuesto
   </button>
   <button class="tab-btn" [class.active]="tabActual === 'inactivos'" (click)="setTab('inactivos')">
     <i class="pi pi-ban mr-1"></i> Dados de Baja o Inactivos
+  </button>
+  <button class="tab-btn" [class.active]="tabActual === 'stockMovimientos'" (click)="setTab('stockMovimientos')">
+    <i class="pi pi-chart-bar mr-1"></i> Movimientos Stock
   </button>
   <button class="tab-btn" [class.active]="tabActual === 'registros'" (click)="setTab('registros')">
     <i class="pi pi-history mr-1"></i> Registro de Cambios
@@ -34,15 +38,35 @@
 ═══════════════════════════════════════════════════════ -->
 <div *ngIf="tabActual === 'repuestos'">
 
+  <!-- Panel de alertas de stock bajo -->
+  <div class="alertas-panel" *ngIf="alertasStockBajo.length > 0" style="background: linear-gradient(135deg, #fff7ed, #ffedd5); padding: 0.8rem 1.2rem;">
+    <div style="display:flex; align-items:center; gap:0.6rem; color: #ea580c;">
+      <i class="pi pi-exclamation-triangle" style="font-size: 1.25rem;"></i>
+      <div style="display:flex; flex-direction:column;">
+        <span style="font-weight:700; font-size: 0.95rem;">
+          Hay {{ alertasStockBajo.length }} repuesto(s) con stock bajo o agotado
+        </span>
+        <span style="font-weight: 500; font-size: 0.8rem; color: #c2410c;">
+          Por favor, utilice el botón "Stock" en la tabla inferior para gestionar el ingreso.
+        </span>
+      </div>
+    </div>
+  </div>
+
   <!-- Toolbar -->
   <div class="toolbar">
     <div class="search-box">
       <i class="pi pi-search"></i>
       <input type="text" placeholder="Buscar por nombre, tipo, N° parte..." (input)="onSearch($event)" />
     </div>
-    <button *ngIf="isAdmin" class="btn-primary" (click)="openCreateModal()">
-      <i class="pi pi-plus"></i> Nuevo Repuesto
-    </button>
+    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+      <button class="btn-secondary" (click)="exportarRepuestosCSV()" title="Exportar tabla actual a CSV">
+        <i class="pi pi-download"></i> Exportar CSV
+      </button>
+      <button *ngIf="isAdmin" class="btn-primary" (click)="openCreateModal()">
+        <i class="pi pi-plus"></i> Nuevo Repuesto
+      </button>
+    </div>
   </div>
 
   <!-- Tabla -->
@@ -93,12 +117,18 @@
           <!-- Data rows -->
           <tr *ngFor="let r of pagedRepuestos">
             <td><span class="code-badge">#{{ r.id_sysrepuesto }}</span></td>
-            <td><strong>{{ r.nombre }}</strong></td>
+            <td>
+              <strong>{{ r.nombre }}</strong>
+              <span class="stock-bajo-badge-sm" *ngIf="esStockBajo(r)" title="Stock por debajo del mínimo">⚠ Stock bajo</span>
+            </td>
             <td>{{ r.tipoRepuesto?.nombre || getTipoNombre(r.id_sys_tipo_repuesto_fk) }}</td>
             <td>{{ r.numero_parte || '—' }}</td>
             <td>{{ r.numero_serie || '—' }}</td>
             <td>{{ r.proveedor || '—' }}</td>
-            <td>{{ r.cantidad_stock ?? 0 }}</td>
+            <td>
+              <span [class]="esStockBajo(r) ? 'stock-num-bajo' : 'stock-num-ok'">{{ r.cantidad_stock ?? 0 }}</span>
+              <small style="color:#9ca3af;font-size:0.75rem;"> / mín: {{ r.stock_minimo ?? 4 }}</small>
+            </td>
             <td>
               <span class="badge" [ngClass]="r.is_active ? 'badge-success' : 'badge-danger'">
                 <i class="pi" [ngClass]="r.is_active ? 'pi-check-circle' : 'pi-times-circle'"></i>
@@ -106,8 +136,14 @@
               </span>
             </td>
             <td style="display:flex;gap:0.4rem;flex-wrap:wrap;align-items:center;">
+              <button class="btn-icon" title="Ver Detalles" (click)="openDetallesModal(r)">
+                <i class="pi pi-eye" style="color:var(--primary-color)"></i>
+              </button>
               <button class="btn-icon" title="Editar" (click)="openEditModal(r)">
                 <i class="pi pi-pencil"></i>
+              </button>
+              <button *ngIf="isAdmin" class="btn-stock" (click)="openMovimientoModal(r)" title="Ingreso / Egreso">
+                <i class="pi pi-arrows-v"></i> Stock
               </button>
               <button *ngIf="r.is_active && isAdmin" class="btn-outline-danger" (click)="toggleRepuesto(r)" title="Dar de baja">
                 <i class="pi pi-arrow-down"></i> Dar de baja
@@ -149,10 +185,99 @@
 </div>
 
 <!-- ══════════════════════════════════════════════════════
+     TAB: MOVIMIENTOS DE STOCK (NUEVO)
+═══════════════════════════════════════════════════════ -->
+<div *ngIf="tabActual === 'stockMovimientos'">
+
+  <div class="mov-filtros-bar">
+    <div class="search-box">
+      <i class="pi pi-search"></i>
+      <input type="text" placeholder="Buscar repuesto, motivo, usuario..." (input)="onSearchMovimientos($event)" />
+    </div>
+    <select [(ngModel)]="filtroTipoMovimiento" class="filtro-select">
+      <option value="">— Todos los tipos —</option>
+      <option value="ingreso">⬆ Ingreso</option>
+      <option value="egreso">⬇ Egreso</option>
+    </select>
+    <input type="date" [(ngModel)]="filtroFechaDesde" class="filtro-date" title="Desde" />
+    <input type="date" [(ngModel)]="filtroFechaHasta" class="filtro-date" title="Hasta" />
+    <button class="btn-primary" (click)="aplicarFiltrosMovimientos()"><i class="pi pi-filter"></i> Filtrar</button>
+    <button class="btn-secondary" (click)="limpiarFiltrosMovimientos()"><i class="pi pi-times"></i> Limpiar</button>
+    <button class="btn-secondary" (click)="exportarMovimientosCSV()" title="Exportar historial a CSV">
+      <i class="pi pi-download"></i> Exportar CSV
+    </button>
+  </div>
+
+  <div class="table-card">
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>ID Mov.</th>
+            <th>Repuesto</th>
+            <th>Tipo</th>
+            <th>Cantidad</th>
+            <th>Stock Antes</th>
+            <th>Stock Después</th>
+            <th>Motivo / Acción</th>
+            <th>Referencia</th>
+            <th>Usuario</th>
+            <th>Fecha</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="isLoadingMovimientos">
+            <td colspan="10"><div class="state-box"><i class="pi pi-spin pi-spinner"></i><p>Cargando auditoría de stock...</p></div></td>
+          </tr>
+          <tr *ngIf="!isLoadingMovimientos && pagedMovimientos.length === 0">
+            <td colspan="10"><div class="state-box"><i class="pi pi-inbox"></i><p>No hay movimientos registrados.</p></div></td>
+          </tr>
+          <tr *ngFor="let m of pagedMovimientos">
+            <td><span class="code-badge">#{{ m.id }}</span></td>
+            <td>
+              <strong>{{ m.repuesto?.nombre || 'Desconocido' }}</strong>
+              <br><small style="color:#6b7280">N° Parte: {{ m.repuesto?.numero_parte || 'N/A' }}</small>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="m.tipo === 'ingreso' ? 'badge-success' : 'badge-danger'">
+                <i class="pi" [ngClass]="m.tipo === 'ingreso' ? 'pi-arrow-up' : 'pi-arrow-down'"></i>
+                {{ m.tipo === 'ingreso' ? 'Ingreso' : 'Egreso' }}
+              </span>
+            </td>
+            <td style="font-weight:bold; font-size:1.1rem;" [style.color]="m.tipo === 'ingreso' ? '#16a34a' : '#dc2626'">
+              {{ m.tipo === 'ingreso' ? '+' : '-' }}{{ m.cantidad }}
+            </td>
+            <td style="text-align:center;">{{ m.stock_antes }}</td>
+            <td style="text-align:center; font-weight:bold">{{ m.stock_despues }}</td>
+            <td style="max-width:180px;font-size:0.85rem">{{ m.motivo }}</td>
+            <td style="font-size:0.85rem">{{ m.referencia || '—' }}</td>
+            <td><span class="user-badge"><i class="pi pi-user"></i>{{ m.usuario }}</span></td>
+            <td style="font-size:0.85rem;white-space:nowrap">{{ m.fecha_movimiento | date:'dd/MM/yy HH:mm' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="pagination-bar" *ngIf="!isLoadingMovimientos && filteredMovimientos.length > 0">
+      <span class="pagination-info">
+        Mostrando {{ (movPage - 1) * pageSize + 1 }}–{{ min(movPage * pageSize, filteredMovimientos.length) }}
+        de {{ filteredMovimientos.length }} movimientos
+      </span>
+      <div class="pagination-btns">
+        <button class="pg-btn" (click)="goToMovPage(1)" [disabled]="movPage === 1"><i class="pi pi-angle-double-left"></i></button>
+        <button class="pg-btn" (click)="goToMovPage(movPage - 1)" [disabled]="movPage === 1"><i class="pi pi-angle-left"></i></button>
+        <button *ngFor="let p of getMovPagesArray()" class="pg-btn" [class.active]="p === movPage" (click)="goToMovPage(p)">{{ p }}</button>
+        <button class="pg-btn" (click)="goToMovPage(movPage + 1)" [disabled]="movPage === movTotalPages"><i class="pi pi-angle-right"></i></button>
+        <button class="pg-btn" (click)="goToMovPage(movTotalPages)" [disabled]="movPage === movTotalPages"><i class="pi pi-angle-double-right"></i></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
      TAB: TIPOS DE REPUESTO
 ═══════════════════════════════════════════════════════ -->
 <div *ngIf="tabActual === 'tipos'">
-
   <div class="toolbar">
     <div class="search-box">
       <i class="pi pi-search"></i>
@@ -162,7 +287,6 @@
       <i class="pi pi-plus"></i> Nuevo Tipo
     </button>
   </div>
-
   <div class="table-card">
     <div class="table-responsive">
       <table>
@@ -180,7 +304,7 @@
             <td colspan="7">
               <div class="state-box">
                 <i class="pi pi-tags"></i>
-                <p>No hay tipos de repuestos activos. Crea el primero.</p>
+                <p>No hay tipos de repuestos activos.</p>
               </div>
             </td>
           </tr>
@@ -195,15 +319,9 @@
               </span>
             </td>
             <td style="display:flex;gap:0.4rem;flex-wrap:wrap;">
-              <button class="btn-icon" title="Editar" (click)="openEditTipoModal(t)">
-                <i class="pi pi-pencil"></i>
-              </button>
-              <button *ngIf="t.is_active && isAdmin" class="btn-outline-danger" (click)="toggleTipo(t)" title="Inactivar">
-                <i class="pi pi-ban"></i> Inactivar
-              </button>
-              <button *ngIf="!t.is_active && isAdmin" class="btn-outline-success" (click)="toggleTipo(t)" title="Activar">
-                <i class="pi pi-check"></i> Activar
-              </button>
+              <button class="btn-icon" title="Editar" (click)="openEditTipoModal(t)"><i class="pi pi-pencil"></i></button>
+              <button *ngIf="t.is_active && isAdmin" class="btn-outline-danger" (click)="toggleTipo(t)" title="Inactivar"><i class="pi pi-ban"></i> Inactivar</button>
+              <button *ngIf="!t.is_active && isAdmin" class="btn-outline-success" (click)="toggleTipo(t)" title="Activar"><i class="pi pi-check"></i> Activar</button>
             </td>
           </tr>
         </tbody>
@@ -223,7 +341,7 @@
   </div>
 
   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-    <!-- Lado Izquierdo: Repuestos inactivos -->
+    <!-- Repuestos -->
     <div class="table-card">
       <div class="section-header">
         <h3><i class="pi pi-box mr-1"></i> Repuestos</h3>
@@ -246,12 +364,7 @@
           </thead>
           <tbody>
             <tr *ngIf="!isLoading && pagedInactivosRepuestos.length === 0">
-              <td colspan="6">
-                <div class="state-box">
-                  <i class="pi pi-inbox"></i>
-                  <p>No hay repuestos dados de baja.</p>
-                </div>
-              </td>
+              <td colspan="6"><div class="state-box"><i class="pi pi-inbox"></i><p>No hay repuestos dados de baja.</p></div></td>
             </tr>
             <tr *ngFor="let r of pagedInactivosRepuestos">
               <td><strong>{{ r.nombre }}</strong></td>
@@ -260,38 +373,24 @@
               <td><span class="user-badge"><i class="pi pi-user"></i>{{ r.usuario_inactivacion || '—' }}</span></td>
               <td><span style="font-size:0.82rem;color:#6b7280;font-weight:500;">{{ r.fecha_inactivacion | date:'dd/MM/yyyy' }}</span></td>
               <td>
-                <button *ngIf="isAdmin" class="btn-outline-success" (click)="toggleRepuesto(r)" title="Restaurar">
-                  <i class="pi pi-refresh"></i> Restaurar
-                </button>
+                <button *ngIf="isAdmin" class="btn-outline-success" (click)="toggleRepuesto(r)" title="Restaurar"><i class="pi pi-refresh"></i> Restaurar</button>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
-      
-      <!-- Paginación para repuestos inactivos -->
       <div class="pagination-bar" *ngIf="!isLoading && filteredInactivosRepuestos.length > 0">
         <div class="pagination-btns" style="margin:0 auto">
-          <button class="pg-btn" (click)="goToInactivosPage(1)" [disabled]="inactivosCurrentPage === 1">
-            <i class="pi pi-angle-double-left"></i>
-          </button>
-          <button class="pg-btn" (click)="goToInactivosPage(inactivosCurrentPage - 1)" [disabled]="inactivosCurrentPage === 1">
-            <i class="pi pi-angle-left"></i>
-          </button>
-          <button *ngFor="let p of getInactivosPagesArray()" class="pg-btn" [class.active]="p === inactivosCurrentPage" (click)="goToInactivosPage(p)">
-            {{ p }}
-          </button>
-          <button class="pg-btn" (click)="goToInactivosPage(inactivosCurrentPage + 1)" [disabled]="inactivosCurrentPage === inactivosTotalPages">
-            <i class="pi pi-angle-right"></i>
-          </button>
-          <button class="pg-btn" (click)="goToInactivosPage(inactivosTotalPages)" [disabled]="inactivosCurrentPage === inactivosTotalPages">
-            <i class="pi pi-angle-double-right"></i>
-          </button>
+          <button class="pg-btn" (click)="goToInactivosPage(1)" [disabled]="inactivosCurrentPage === 1"><i class="pi pi-angle-double-left"></i></button>
+          <button class="pg-btn" (click)="goToInactivosPage(inactivosCurrentPage - 1)" [disabled]="inactivosCurrentPage === 1"><i class="pi pi-angle-left"></i></button>
+          <button *ngFor="let p of getInactivosPagesArray()" class="pg-btn" [class.active]="p === inactivosCurrentPage" (click)="goToInactivosPage(p)">{{ p }}</button>
+          <button class="pg-btn" (click)="goToInactivosPage(inactivosCurrentPage + 1)" [disabled]="inactivosCurrentPage === inactivosTotalPages"><i class="pi pi-angle-right"></i></button>
+          <button class="pg-btn" (click)="goToInactivosPage(inactivosTotalPages)" [disabled]="inactivosCurrentPage === inactivosTotalPages"><i class="pi pi-angle-double-right"></i></button>
         </div>
       </div>
     </div>
 
-    <!-- Lado Derecho: Tipos Inactivos -->
+    <!-- Tipos -->
     <div class="table-card">
       <div class="section-header">
         <h3><i class="pi pi-tags mr-1"></i> Tipos de Repuesto</h3>
@@ -313,12 +412,7 @@
           </thead>
           <tbody>
             <tr *ngIf="inactivosTipos.length === 0">
-              <td colspan="5">
-                <div class="state-box">
-                  <i class="pi pi-inbox"></i>
-                  <p>No hay tipos de repuesto inactivados.</p>
-                </div>
-              </td>
+              <td colspan="5"><div class="state-box"><i class="pi pi-inbox"></i><p>No hay tipos de repuesto inactivados.</p></div></td>
             </tr>
             <tr *ngFor="let t of inactivosTipos">
               <td><strong>{{ t.nombre }}</strong></td>
@@ -326,9 +420,7 @@
               <td><span class="user-badge"><i class="pi pi-user"></i>{{ t.usuario_inactivacion || '—' }}</span></td>
               <td><span style="font-size:0.82rem;color:#6b7280;font-weight:500;">{{ t.fecha_inactivacion | date:'dd/MM/yyyy' }}</span></td>
               <td>
-                <button *ngIf="isAdmin" class="btn-outline-success" (click)="toggleTipo(t)" title="Activar">
-                  <i class="pi pi-check"></i> Activar
-                </button>
+                <button *ngIf="isAdmin" class="btn-outline-success" (click)="toggleTipo(t)" title="Activar"><i class="pi pi-check"></i> Activar</button>
               </td>
             </tr>
           </tbody>
@@ -342,32 +434,29 @@
      TAB: REGISTRO DE CAMBIOS
 ═══════════════════════════════════════════════════════ -->
 <div *ngIf="tabActual === 'registros'">
-
   <div class="toolbar">
     <span style="font-size:0.85rem;color:var(--text-color-secondary)">
-      <i class="pi pi-history mr-1"></i> Historial detallado de todas las acciones realizadas.
+      <i class="pi pi-history mr-1"></i> Historial detallado de registro, edición y activación/inactivación.
     </span>
     <button class="btn-secondary" (click)="loadAuditoria()">
       <i class="pi pi-refresh"></i> Actualizar
     </button>
   </div>
-
   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-    
-    <!-- Lado Izquierdo: Cambios en Repuestos -->
+    <!-- Historial Repuestos -->
     <div class="table-card">
       <div class="section-header">
         <h3><i class="pi pi-box mr-1"></i> Cambios en Repuestos</h3>
         <div class="search-box compact">
           <i class="pi pi-search"></i>
-          <input type="text" placeholder="BUSCAR EN ESTA TABLA..." (input)="onSearchAuditRepuestos($event)" />
+          <input type="text" placeholder="Buscar..." (input)="onSearchAuditRepuestos($event)" />
         </div>
       </div>
       <div class="table-responsive">
         <table>
           <thead>
             <tr>
-              <th>Fecha / Hora</th>
+              <th>Fecha</th>
               <th>Usuario</th>
               <th>Ítem</th>
               <th>Acción</th>
@@ -375,76 +464,33 @@
             </tr>
           </thead>
           <tbody>
-            <!-- Loading -->
-            <tr *ngIf="isLoadingAudit">
-              <td colspan="4">
-                <div class="state-box">
-                  <i class="pi pi-spin pi-spinner"></i>
-                  <p>Cargando registros...</p>
-                </div>
-              </td>
-            </tr>
-            <!-- Empty -->
-            <tr *ngIf="!isLoadingAudit && pagedAuditoriaRepuestos.length === 0">
-              <td colspan="4">
-                <div class="state-box">
-                  <i class="pi pi-inbox"></i>
-                  <p>No hay registros en Repuestos.</p>
-                </div>
-              </td>
-            </tr>
-            <!-- Data rows -->
+            <tr *ngIf="isLoadingAudit"><td colspan="5"><div class="state-box"><i class="pi pi-spin pi-spinner"></i></div></td></tr>
+            <tr *ngIf="!isLoadingAudit && pagedAuditoriaRepuestos.length===0"><td colspan="5"><div class="state-box"><p>No hay registros...</p></div></td></tr>
             <tr *ngFor="let a of pagedAuditoriaRepuestos">
               <td style="white-space:nowrap;font-size:0.82rem;">{{ a.fecha_hora | date:'dd/MM/yyyy HH:mm' }}</td>
               <td><span class="user-badge"><i class="pi pi-user"></i>{{ a.usuario }}</span></td>
-              <td style="max-width:180px;font-size:0.9rem;"><strong>{{ a.nombre_item || '—' }}</strong></td>
-              <td>
-                <span class="badge" [ngClass]="getAccionClass(a.accion)">
-                  {{ getAccionLabel(a.accion) }}
-                </span>
-              </td>
-              <td style="max-width:200px;font-size:0.85rem;">{{ a.observacion || '—' }}</td>
+              <td style="font-size:0.9rem;"><strong>{{ a.nombre_item || '—' }}</strong></td>
+              <td><span class="badge" [ngClass]="getAccionClass(a.accion)">{{ getAccionLabel(a.accion) }}</span></td>
+              <td style="font-size:0.85rem;">{{ a.observacion || '—' }}</td>
             </tr>
           </tbody>
         </table>
       </div>
-
-      <!-- Paginación Repuestos Audit -->
-      <div class="pagination-bar" *ngIf="!isLoadingAudit && pagedAuditoriaRepuestos.length > 0">
-        <div class="pagination-btns">
-          <button class="pg-btn" (click)="goToAuditPageRepuestos(1)" [disabled]="auditPageRepuestos === 1">
-            <i class="pi pi-angle-double-left"></i>
-          </button>
-          <button class="pg-btn" (click)="goToAuditPageRepuestos(auditPageRepuestos - 1)" [disabled]="auditPageRepuestos === 1">
-            <i class="pi pi-angle-left"></i>
-          </button>
-          <button *ngFor="let p of getAuditPagesArray(auditTotalPagesRepuestos, auditPageRepuestos)" class="pg-btn" [class.active]="p === auditPageRepuestos" (click)="goToAuditPageRepuestos(p)">
-            {{ p }}
-          </button>
-          <button class="pg-btn" (click)="goToAuditPageRepuestos(auditPageRepuestos + 1)" [disabled]="auditPageRepuestos === auditTotalPagesRepuestos">
-            <i class="pi pi-angle-right"></i>
-          </button>
-          <button class="pg-btn" (click)="goToAuditPageRepuestos(auditTotalPagesRepuestos)" [disabled]="auditPageRepuestos === auditTotalPagesRepuestos">
-            <i class="pi pi-angle-double-right"></i>
-          </button>
-        </div>
-      </div>
     </div>
-
-    <!-- Lado Derecho: Cambios en Tipos de Repuesto -->
+    <!-- Historial Tipos -->
     <div class="table-card">
       <div class="section-header">
         <h3><i class="pi pi-tags mr-1"></i> Cambios en Tipos</h3>
         <div class="search-box compact">
           <i class="pi pi-search"></i>
-          <input type="text" placeholder="BUSCAR EN ESTA TABLA..." (input)="onSearchAuditTipos($event)" />
+          <input type="text" placeholder="Buscar..." (input)="onSearchAuditTipos($event)" />
         </div>
       </div>
       <div class="table-responsive">
         <table>
           <thead>
             <tr>
-              <th>Fecha / Hora</th>
+              <th>Fecha</th>
               <th>Usuario</th>
               <th>Ítem</th>
               <th>Acción</th>
@@ -452,65 +498,21 @@
             </tr>
           </thead>
           <tbody>
-            <!-- Loading -->
-            <tr *ngIf="isLoadingAudit">
-              <td colspan="4">
-                <div class="state-box">
-                  <i class="pi pi-spin pi-spinner"></i>
-                  <p>Cargando registros...</p>
-                </div>
-              </td>
-            </tr>
-            <!-- Empty -->
-            <tr *ngIf="!isLoadingAudit && pagedAuditoriaTipos.length === 0">
-              <td colspan="4">
-                <div class="state-box">
-                  <i class="pi pi-inbox"></i>
-                  <p>No hay registros en Tipos.</p>
-                </div>
-              </td>
-            </tr>
-            <!-- Data rows -->
+            <tr *ngIf="isLoadingAudit"><td colspan="5"><div class="state-box"><i class="pi pi-spin pi-spinner"></i></div></td></tr>
+            <tr *ngIf="!isLoadingAudit && pagedAuditoriaTipos.length===0"><td colspan="5"><div class="state-box"><p>No hay registros...</p></div></td></tr>
             <tr *ngFor="let a of pagedAuditoriaTipos">
               <td style="white-space:nowrap;font-size:0.82rem;">{{ a.fecha_hora | date:'dd/MM/yyyy HH:mm' }}</td>
               <td><span class="user-badge"><i class="pi pi-user"></i>{{ a.usuario }}</span></td>
-              <td style="max-width:180px;font-size:0.9rem;"><strong>{{ a.nombre_item || '—' }}</strong></td>
-              <td>
-                <span class="badge" [ngClass]="getAccionClass(a.accion)">
-                  {{ getAccionLabel(a.accion) }}
-                </span>
-              </td>
-              <td style="max-width:200px;font-size:0.85rem;">{{ a.observacion || '—' }}</td>
+              <td style="font-size:0.9rem;"><strong>{{ a.nombre_item || '—' }}</strong></td>
+              <td><span class="badge" [ngClass]="getAccionClass(a.accion)">{{ getAccionLabel(a.accion) }}</span></td>
+              <td style="font-size:0.85rem;">{{ a.observacion || '—' }}</td>
             </tr>
           </tbody>
         </table>
       </div>
-
-      <!-- Paginación Tipos Audit -->
-      <div class="pagination-bar" *ngIf="!isLoadingAudit && pagedAuditoriaTipos.length > 0">
-        <div class="pagination-btns">
-          <button class="pg-btn" (click)="goToAuditPageTipos(1)" [disabled]="auditPageTipos === 1">
-            <i class="pi pi-angle-double-left"></i>
-          </button>
-          <button class="pg-btn" (click)="goToAuditPageTipos(auditPageTipos - 1)" [disabled]="auditPageTipos === 1">
-            <i class="pi pi-angle-left"></i>
-          </button>
-          <button *ngFor="let p of getAuditPagesArray(auditTotalPagesTipos, auditPageTipos)" class="pg-btn" [class.active]="p === auditPageTipos" (click)="goToAuditPageTipos(p)">
-            {{ p }}
-          </button>
-          <button class="pg-btn" (click)="goToAuditPageTipos(auditPageTipos + 1)" [disabled]="auditPageTipos === auditTotalPagesTipos">
-            <i class="pi pi-angle-right"></i>
-          </button>
-          <button class="pg-btn" (click)="goToAuditPageTipos(auditTotalPagesTipos)" [disabled]="auditPageTipos === auditTotalPagesTipos">
-            <i class="pi pi-angle-double-right"></i>
-          </button>
-        </div>
-      </div>
     </div>
   </div>
-  
 </div>
-
 
 <!-- ══════════════════════════════════════════════════════
      MODAL — CREAR / EDITAR REPUESTO
@@ -523,14 +525,10 @@
     </div>
     <div class="modal-body">
       <div class="form-grid">
-
-        <!-- Nombre -->
         <div class="form-group full-width">
           <label>Nombre *</label>
-          <input type="text" [(ngModel)]="formRepuesto.nombre" placeholder="Nombre del repuesto" />
+          <input type="text" [(ngModel)]="formRepuesto.nombre" placeholder="Nombre" />
         </div>
-
-        <!-- Tipo -->
         <div class="form-group">
           <label>Tipo de Repuesto</label>
           <select [(ngModel)]="formRepuesto.id_sys_tipo_repuesto_fk">
@@ -538,77 +536,32 @@
             <option *ngFor="let t of activosTipos" [ngValue]="t.id_sys_tipo_repuesto">{{ t.nombre }}</option>
           </select>
         </div>
-
-        <!-- Stock -->
         <div class="form-group">
-          <label>Cantidad en Stock</label>
-          <input type="number" [(ngModel)]="formRepuesto.cantidad_stock" min="0" />
+          <label>N° Parte</label>
+          <input type="text" [(ngModel)]="formRepuesto.numero_parte" placeholder="..." />
         </div>
-
-        <!-- N° Parte -->
-        <div class="form-group">
-          <label>Número de Parte</label>
-          <input type="text" [(ngModel)]="formRepuesto.numero_parte" placeholder="Ej. ABC-1234" />
-        </div>
-
-        <!-- N° Serie -->
-        <div class="form-group">
-          <label>Número de Serie</label>
-          <input type="text" [(ngModel)]="formRepuesto.numero_serie" placeholder="Ej. SN-9876" />
-        </div>
-
-        <!-- Proveedor -->
         <div class="form-group">
           <label>Proveedor</label>
-          <input type="text" [(ngModel)]="formRepuesto.proveedor" placeholder="Nombre del proveedor" />
+          <input type="text" [(ngModel)]="formRepuesto.proveedor" placeholder="..." />
         </div>
-
-        <!-- Modelo Asociado -->
         <div class="form-group">
-          <label>Modelo Asociado</label>
-          <input type="text" [(ngModel)]="formRepuesto.modelo_asociado" placeholder="Modelo del equipo" />
-        </div>
-
-        <!-- Fecha Ingreso -->
-        <div class="form-group">
-          <label>Fecha de Ingreso</label>
-          <input type="date" [(ngModel)]="formRepuesto.fecha_ingreso" />
-        </div>
-
-        <!-- Garantía Inicio -->
-        <div class="form-group">
-          <label>Garantía — Inicio</label>
-          <input type="date" [(ngModel)]="formRepuesto.garantia_inicio" />
-        </div>
-
-        <!-- Garantía Fin -->
-        <div class="form-group">
-          <label>Garantía — Fin</label>
+          <label>Garantía Fin</label>
           <input type="date" [(ngModel)]="formRepuesto.garantia_fin" />
         </div>
-
-        <!-- Ubicación Física -->
-        <div class="form-group full-width">
-          <label>Ubicación Física</label>
-          <input type="text" [(ngModel)]="formRepuesto.ubicacion_fisica" placeholder="Ej. Estante A / Bodega" />
+        <div class="form-group">
+          <label title="El sistema alertará si el stock cae a este valor o menos">Alerta Mínima <i class="pi pi-bell" style="font-size: 0.8rem; color: #ea580c"></i></label>
+          <input type="number" [(ngModel)]="formRepuesto.stock_minimo" min="0" placeholder="Ej. 4" />
         </div>
-
-        <!-- Descripción técnica -->
         <div class="form-group full-width">
-          <label>Descripción Técnica</label>
-          <textarea [(ngModel)]="formRepuesto.descripcion_tecnica" placeholder="Descripción detallada..."></textarea>
+          <label>Ubicación / Detalles Tecnicos</label>
+          <textarea [(ngModel)]="formRepuesto.descripcion_tecnica" placeholder="Ubicación física o notas técnicas..."></textarea>
         </div>
-
-        <!-- Observación (auditoría) -->
         <div class="form-group full-width">
           <label style="color:var(--primary-color,#6366f1)">
-            <i class="pi pi-info-circle"></i> Observación / Motivo del cambio {{ (isEditMode || isTipoEditMode) ? '*' : '(opcional)' }}
+            <i class="pi pi-info-circle"></i> Observación {{ isEditMode ? '*' : '(opcional)' }}
           </label>
-          <textarea [(ngModel)]="formRepuesto.observacion"
-            [placeholder]="isEditMode ? 'Explique el motivo de esta acción (requerido para auditoría)...' : 'Opcional: Detalles adicionales para el registro...'"
-            style="min-height:70px;border-color:var(--primary-color,#6366f1);"></textarea>
+          <textarea [(ngModel)]="formRepuesto.observacion" style="min-height:70px;border-color:var(--primary-color,#6366f1);"></textarea>
         </div>
-
       </div>
     </div>
     <div class="modal-footer">
@@ -621,6 +574,66 @@
   </div>
 </div>
 
+<!-- ══════════════════════════════════════════════════════
+     MODAL — MOVIMIENTO DE STOCK (INGRESO / EGRESO)
+═══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" *ngIf="isMovimientoModalOpen" (click)="closeMovimientoModal()">
+  <div class="modal-card" style="max-width: 500px;" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3><i class="pi pi-arrows-v"></i> Movimiento de Stock</h3>
+      <button class="btn-close" (click)="closeMovimientoModal()"><i class="pi pi-times"></i></button>
+    </div>
+    <div class="modal-body">
+      
+      <div *ngIf="repuestoParaMovimiento" style="background:#f3f4f6; margin-bottom: 1rem; border-radius: 8px; padding: 1rem; border: 1px solid #e5e7eb;">
+        <div style="font-weight:bold; color:#1f2937">
+          <i class="pi pi-box" style="color:var(--primary-color)"></i> {{ repuestoParaMovimiento.nombre }}
+        </div>
+        <div style="font-size:0.9rem; margin-top:0.25rem;">
+          Stock actual: 
+          <strong [style.color]="esStockBajo(repuestoParaMovimiento) ? '#dc2626' : '#16a34a'">
+            {{ repuestoParaMovimiento.cantidad_stock }}
+          </strong>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group full-width">
+          <label>Tipo de Movimiento *</label>
+          <select [(ngModel)]="formMovimiento.tipo" style="font-weight:600;">
+            <option value="ingreso">⬆ Ingresar stock (sumar)</option>
+            <option value="egreso">⬇ Retirar stock (restar)</option>
+          </select>
+        </div>
+        
+        <div class="form-group full-width">
+          <label>Cantidad a {{ formMovimiento.tipo === 'ingreso' ? 'ingresar' : 'retirar' }} *</label>
+          <input type="number" [(ngModel)]="formMovimiento.cantidad" min="1" placeholder="Ej. 5" />
+          <div *ngIf="formMovimiento.tipo === 'egreso' && repuestoParaMovimiento" style="font-size:0.8rem; color:#6b7280; margin-top:0.3rem">
+            Máximo posible: {{ repuestoParaMovimiento.cantidad_stock }}
+          </div>
+        </div>
+
+        <div class="form-group full-width">
+          <label>Motivo del movimiento *</label>
+          <textarea [(ngModel)]="formMovimiento.motivo" placeholder="Ej. Orden de compra 1234, Uso en equipo..."></textarea>
+        </div>
+
+        <div class="form-group full-width">
+          <label>Referencia (opcional)</label>
+          <input type="text" [(ngModel)]="formMovimiento.referencia" placeholder="N° de factura, técnico, etc." />
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeMovimientoModal()">Cancelar</button>
+      <button class="btn-primary" (click)="guardarMovimiento()" [disabled]="isSavingMovimiento">
+        <i class="pi" [ngClass]="isSavingMovimiento ? 'pi-spin pi-spinner' : 'pi-check'"></i>
+        {{ isSavingMovimiento ? 'Registrando...' : 'Confirmar' }}
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- ══════════════════════════════════════════════════════
      MODAL — CREAR / EDITAR TIPO
@@ -628,35 +641,95 @@
 <div class="modal-overlay" *ngIf="isTipoModalOpen" (click)="closeTipoModal()">
   <div class="modal-card" style="max-width:520px" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <h3>{{ isTipoEditMode ? 'Editar Tipo' : 'Nuevo Tipo de Repuesto' }}</h3>
+      <h3>{{ isTipoEditMode ? 'Editar Tipo' : 'Nuevo Tipo' }}</h3>
       <button class="btn-close" (click)="closeTipoModal()"><i class="pi pi-times"></i></button>
     </div>
     <div class="modal-body">
       <div class="form-grid">
         <div class="form-group full-width">
           <label>Nombre *</label>
-          <input type="text" [(ngModel)]="formTipo.nombre" placeholder="Ej. Electrónico, Mecánico..." />
+          <input type="text" [(ngModel)]="formTipo.nombre" />
         </div>
         <div class="form-group full-width">
           <label>Descripción</label>
-          <textarea [(ngModel)]="formTipo.descripcion" placeholder="Descripción del tipo (opcional)"></textarea>
+          <textarea [(ngModel)]="formTipo.descripcion"></textarea>
         </div>
         <div class="form-group full-width">
           <label style="color:var(--primary-color,#6366f1)">
-            <i class="pi pi-info-circle"></i> Observación / Motivo del cambio {{ (isEditMode || isTipoEditMode) ? '*' : '(opcional)' }}
+            <i class="pi pi-info-circle"></i> Observación {{ (isEditMode || isTipoEditMode) ? '*' : '(opcional)' }}
           </label>
-          <textarea [(ngModel)]="formTipo.observacion"
-            [placeholder]="isTipoEditMode ? 'Explique el motivo de esta acción (requerido para auditoría)...' : 'Opcional: Detalles adicionales para el registro...'"
-            style="min-height:70px;border-color:var(--primary-color,#6366f1);"></textarea>
+          <textarea [(ngModel)]="formTipo.observacion" style="min-height:70px;border-color:var(--primary-color,#6366f1);"></textarea>
         </div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn-secondary" (click)="closeTipoModal()">Cancelar</button>
       <button class="btn-primary" (click)="guardarTipo()">
-        <i class="pi pi-save"></i>
-        {{ isTipoEditMode ? 'Actualizar Tipo' : 'Guardar Tipo' }}
+        <i class="pi pi-save"></i> Guardar
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     MODAL — DETALLES DEL REPUESTO
+═══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" *ngIf="isDetallesModalOpen" (click)="closeDetallesModal()">
+  <div class="modal-card" style="max-width: 650px;" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3><i class="pi pi-id-card" style="color:var(--primary-color)"></i> Detalles del Repuesto</h3>
+      <button class="btn-close" (click)="closeDetallesModal()"><i class="pi pi-times"></i></button>
+    </div>
+    <div class="modal-body" *ngIf="repuestoDetalle" style="padding-top: 0;">
+      <div style="background-color: #f8fafc; padding: 1.5rem; border-radius: 8px; border: 1px solid #cbd5e1; margin-top: 1rem;">
+        <h4 style="margin: 0 0 1rem 0; color: #1e293b; font-size: 1.25rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.75rem;">
+          {{ repuestoDetalle.nombre }}
+          <span style="font-size: 0.9rem; color: #64748b; font-weight: normal; margin-left: 0.5rem">#{{ repuestoDetalle.id_sysrepuesto }}</span>
+        </h4>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+          <div>
+            <p style="margin: 0; font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Tipo de Repuesto</p>
+            <p style="margin: 0.25rem 0 0 0; font-size: 1rem; color: #334155; font-weight: 500;">
+              <i class="pi pi-tags" style="font-size:0.8rem;color:#94a3b8;margin-right:0.2rem"></i>
+              {{ repuestoDetalle.tipoRepuesto?.nombre || getTipoNombre(repuestoDetalle.id_sys_tipo_repuesto_fk) || 'N/A' }}
+            </p>
+          </div>
+          <div>
+            <p style="margin: 0; font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Proveedor</p>
+            <p style="margin: 0.25rem 0 0 0; font-size: 1rem; color: #334155; font-weight: 500;">{{ repuestoDetalle.proveedor || 'No registrado' }}</p>
+          </div>
+          <div>
+            <p style="margin: 0; font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">N° de Parte</p>
+            <p style="margin: 0.25rem 0 0 0; font-size: 1rem; color: #334155; font-weight: 500;">{{ repuestoDetalle.numero_parte || 'N/A' }}</p>
+          </div>
+          <div>
+            <p style="margin: 0; font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">N° de Serie</p>
+            <p style="margin: 0.25rem 0 0 0; font-size: 1rem; color: #334155; font-weight: 500;">{{ repuestoDetalle.numero_serie || 'N/A' }}</p>
+          </div>
+          <div>
+            <p style="margin: 0; font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Fin de Garantía</p>
+            <p style="margin: 0.25rem 0 0 0; font-size: 1rem; color: #334155; font-weight: 500;">
+              <i class="pi pi-calendar" *ngIf="repuestoDetalle.garantia_fin" style="color:#94a3b8"></i>
+               {{ repuestoDetalle.garantia_fin ? (repuestoDetalle.garantia_fin | date:'dd/MM/yyyy') : 'No registrada' }}
+            </p>
+          </div>
+          <div>
+            <p style="margin: 0; font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Estado</p>
+            <p style="margin: 0.25rem 0 0 0; font-size: 1rem; font-weight: 600;" [ngStyle]="{'color': repuestoDetalle.is_active ? '#16a34a' : '#ef4444'}">
+              {{ repuestoDetalle.is_active ? 'Activo (En catálogo)' : 'Dado de Baja (Retirado)' }}
+            </p>
+          </div>
+          
+          <div style="grid-column: 1 / -1; margin-top: 0.5rem;" *ngIf="repuestoDetalle.descripcion_tecnica">
+            <p style="margin: 0; font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Ubicación / Detalles Técnicos</p>
+            <div style="margin: 0.5rem 0 0 0; font-size: 0.95rem; color: #334155; line-height: 1.6; white-space: pre-wrap; background: white; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 6px;">{{ repuestoDetalle.descripcion_tecnica }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer" style="border-top: none; padding-top: 0;">
+      <button class="btn-primary" (click)="closeDetallesModal()">Aceptar</button>
     </div>
   </div>
 </div>

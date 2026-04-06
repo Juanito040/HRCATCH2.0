@@ -632,3 +632,238 @@ td {
   .form-grid { grid-template-columns: 1fr; }
   .tab-bar { width: 100%; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   STOCK MOVEMENT — New styles
+═══════════════════════════════════════════════════════════ */
+
+/* Tab alert badge (counter over Movimientos tab) */
+.tab-alert-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.1rem 0.38rem;
+  border-radius: 999px;
+  min-width: 1.2rem;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(239,68,68,0.4);
+  animation: pulse-badge 2s infinite;
+}
+
+@keyframes pulse-badge {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+}
+
+/* ── Alertas Panel ────────────────────────────────────────── */
+.alertas-panel {
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #fff7ed, #fff);
+  border: 1.5px solid #fed7aa;
+  border-radius: 0.85rem;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(234,88,12,0.1);
+}
+
+.alertas-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.1rem;
+  background: linear-gradient(135deg, #fff7ed, #ffedd5);
+  color: #c2410c;
+  font-size: 0.88rem;
+}
+
+.alertas-header i { color: #ea580c; }
+
+.alertas-body {
+  padding: 0.6rem 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.alerta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: rgba(255,237,213,0.5);
+  border: 1px solid #fed7aa;
+  border-radius: 0.6rem;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.84rem;
+}
+
+/* Stock bajo badge (in alert panel and inline) */
+.stock-bajo-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: #c2410c;
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+/* Inline badge-sm shown next to row name */
+.stock-bajo-badge-sm {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  margin-left: 0.4rem;
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  color: #dc2626;
+  border-radius: 999px;
+  padding: 0.1rem 0.45rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  animation: pulse-badge 2.5s infinite;
+}
+
+/* Stock number coloring */
+.stock-num-bajo {
+  font-weight: 700;
+  color: #dc2626;
+}
+
+.stock-num-ok {
+  font-weight: 700;
+  color: #16a34a;
+}
+
+/* ── Button: Stock (teal/cyan) ────────────────────────────── */
+.btn-stock {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.38rem 0.8rem;
+  background: rgba(14,165,233,0.08);
+  color: #0369a1;
+  border: 1.5px solid rgba(14,165,233,0.3);
+  border-radius: 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-stock:hover {
+  background: linear-gradient(135deg, #0ea5e9, #0369a1);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 3px 10px rgba(14,165,233,0.3);
+  transform: translateY(-1px);
+}
+
+/* Small primary button for alert panel */
+.btn-sm-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.28rem 0.65rem;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  box-shadow: 0 2px 6px rgba(37,99,235,0.25);
+}
+
+.btn-sm-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37,99,235,0.35);
+}
+
+/* ── Movimientos: filters bar ─────────────────────────────── */
+.mov-filtros-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+  background: rgba(255,255,255,0.7);
+  border: 1px solid rgba(37,99,235,0.12);
+  border-radius: 0.85rem;
+  padding: 0.7rem 1rem;
+  backdrop-filter: blur(8px);
+}
+
+.filtro-select,
+.filtro-date {
+  padding: 0.5rem 0.8rem;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 0.6rem;
+  font-size: 0.84rem;
+  background: rgba(255,255,255,0.9);
+  color: #111827;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.filtro-select:focus,
+.filtro-date:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+  background: #fff;
+}
+
+/* ── Modal Stock specific ─────────────────────────────────── */
+.modal-stock {
+  max-width: 560px;
+}
+
+/* Repuesto info box inside movement modal */
+.repuesto-info-box {
+  background: linear-gradient(135deg, #eff6ff, #f0f9ff);
+  border: 1.5px solid rgba(37,99,235,0.18);
+  border-radius: 0.75rem;
+  padding: 0.85rem 1.1rem;
+  margin-bottom: 1.2rem;
+}
+
+.repuesto-info-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.3rem;
+}
+
+.repuesto-info-title i { color: #2563eb; }
+
+.repuesto-info-sub {
+  font-size: 0.88rem;
+  color: #374151;
+}
+
+/* Tipo select inside movement modal */
+.tipo-select-mov {
+  padding: 0.55rem 0.85rem;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 0.6rem;
+  font-size: 0.875rem;
+  background: rgba(255,255,255,0.9);
+  color: #111827;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  font-family: inherit;
+  cursor: pointer;
+  width: 100%;
+}
+
+.tipo-select-mov:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+  background: #fff;
+}

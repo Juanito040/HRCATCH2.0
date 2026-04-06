@@ -13,6 +13,7 @@ export interface SysRepuesto {
   modelo_asociado?: string;
   proveedor?: string;
   cantidad_stock?: number;
+  stock_minimo?: number;
   ubicacion_fisica?: string;
   garantia_inicio?: string;
   garantia_fin?: string;
