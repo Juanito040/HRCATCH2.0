@@ -139,9 +139,10 @@ router.put('/backups/:id', async (req, res) => {
             const diasPorFrecuencia = { 'Diario': 1, 'Semanal': 7, 'Mensual': 30, 'Anual': 365 };
             const dias = diasPorFrecuencia[backup.frecuencia_backup];
             if (dias) {
-                const proximaFecha = new Date();
+                // Base: fecha del backup completado (no hoy) para mantener la cadena
+                // programada sin importar cuándo el usuario marque el backup
+                const proximaFecha = new Date(String(backup.fecha) + 'T00:00:00');
                 proximaFecha.setDate(proximaFecha.getDate() + dias);
-                // Construir fecha con componentes locales para evitar desfase UTC
                 const anio = proximaFecha.getFullYear();
                 const mes  = String(proximaFecha.getMonth() + 1).padStart(2, '0');
                 const dia  = String(proximaFecha.getDate()).padStart(2, '0');
