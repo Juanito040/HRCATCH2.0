@@ -21,11 +21,13 @@
                 <i class="pi pi-exclamation-triangle mt-1" style="color: var(--orange-500); font-size: 1.1rem;"></i>
                 <div class="flex flex-column gap-1 flex-1">
                     <span class="font-bold">{{ alerta.nombre }}</span>
-                    <span class="text-secondary text-sm">{{ alerta.periodicidad }}</span>
+                    <span class="text-secondary text-sm">{{ alerta.frecuencia_backup }}</span>
                     <span class="text-sm">{{ alerta.mensaje }}</span>
-                    <span *ngIf="alerta.ultimoBackup !== null" class="text-xs text-secondary">
-                        Último backup: {{ alerta.ultimoBackup }} ({{ alerta.diasDesdeUltimo }} día(s))
-                    </span>
+                    <span class="text-xs text-secondary">Vence: {{ alerta.fecha }}</span>
+                    <button pButton icon="pi pi-check" label="Completado"
+                            class="p-button-success p-button-text p-button-sm mt-1"
+                            (click)="marcarCompletado(alerta)">
+                    </button>
                 </div>
             </div>
         </ng-container>

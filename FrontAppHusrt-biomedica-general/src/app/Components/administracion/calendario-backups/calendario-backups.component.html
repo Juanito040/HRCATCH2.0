@@ -122,6 +122,12 @@
     </ng-template>
 
     <ng-template pTemplate="footer">
+        <button *ngIf="backupSeleccionado?.estado === 'Pendiente'"
+                pButton label="Marcar como Completado"
+                icon="pi pi-check"
+                class="p-button-success p-button-sm"
+                (click)="marcarCompletado()">
+        </button>
         <p-button label="Cerrar" icon="pi pi-times" [outlined]="true" (onClick)="cerrarDetalle()"></p-button>
     </ng-template>
 

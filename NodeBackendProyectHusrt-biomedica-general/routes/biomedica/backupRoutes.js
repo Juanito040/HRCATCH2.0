@@ -4,59 +4,34 @@ const { Op } = require('sequelize');
 const { BackupSistema, SistemaInformacion } = require('../../models/Biomedica');
 const { checkToken } = require('../../utilities/middleware');
 
-// GET /backups/alertas — evalúa estado de backups según frecuencia_backup individual
+// GET /backups/alertas — retorna registros BackupSistema con estado Pendiente cuya fecha ya llegó o pasó
 router.get('/backups/alertas', checkToken, async (req, res) => {
     try {
-        const sistemas = await SistemaInformacion.findAll({
-            where: { estado: true },
+        const ahora = new Date();
+        const hoy = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}-${String(ahora.getDate()).padStart(2, '0')}`;
+        const pendientes = await BackupSistema.findAll({
+            where: {
+                estado: 'Pendiente',
+                fecha: { [Op.lte]: hoy }
+            },
             include: [{
-                model: BackupSistema,
-                as: 'backups',
-                where: { estado: 'Completado' },
-                required: false,
-                order: [['fecha', 'DESC']],
-                limit: 1
-            }]
+                model: SistemaInformacion,
+                as: 'sistema',
+                attributes: ['id', 'nombre']
+            }],
+            order: [['fecha', 'ASC']]
         });
 
-        const limitePorFrecuencia = {
-            'Diario':  1,
-            'Semanal': 7,
-            'Mensual': 30,
-            'Anual':   365
-        };
-
-        const alertas = [];
-
-        for (const sistema of sistemas) {
-            const ultimoBackup = sistema.backups && sistema.backups.length > 0 ? sistema.backups[0] : null;
-            const ultimaFecha = ultimoBackup ? new Date(ultimoBackup.fecha) : null;
-            const diasDesdeUltimo = ultimaFecha ? Math.floor((Date.now() - ultimaFecha) / 86400000) : null;
-            const frecuencia = ultimoBackup ? ultimoBackup.frecuencia_backup : null;
-            const limite = frecuencia ? limitePorFrecuencia[frecuencia] : null;
-
-            let necesitaAlerta = false;
-            let mensaje = '';
-
-            if (!ultimoBackup) {
-                necesitaAlerta = true;
-                mensaje = 'Sin backup completado. Se requiere realizar un backup.';
-            } else if (limite !== null && diasDesdeUltimo > limite) {
-                necesitaAlerta = true;
-                mensaje = `Último backup hace ${diasDesdeUltimo} día(s). Se requiere backup ${frecuencia.toLowerCase()}.`;
-            }
-
-            if (necesitaAlerta) {
-                alertas.push({
-                    sistemaId: sistema.id,
-                    nombre: sistema.nombre,
-                    frecuencia_backup: frecuencia,
-                    ultimoBackup: ultimaFecha ? ultimoBackup.fecha : null,
-                    diasDesdeUltimo,
-                    mensaje
-                });
-            }
-        }
+        const alertas = pendientes.map(b => ({
+            id: b.id,
+            sistemaId: b.sistema.id,
+            nombre: b.sistema.nombre,
+            frecuencia_backup: b.frecuencia_backup,
+            fecha: b.fecha,
+            ultimoBackup: null,
+            diasDesdeUltimo: null,
+            mensaje: `Backup pendiente programado para ${b.fecha}`
+        }));
 
         res.json(alertas);
     } catch (error) {
@@ -159,6 +134,27 @@ router.put('/backups/:id', async (req, res) => {
             return res.status(404).json({ error: 'Backup no encontrado' });
         }
         await backup.update(req.body);
+
+        if (req.body.estado === 'Completado' && backup.frecuencia_backup) {
+            const diasPorFrecuencia = { 'Diario': 1, 'Semanal': 7, 'Mensual': 30, 'Anual': 365 };
+            const dias = diasPorFrecuencia[backup.frecuencia_backup];
+            if (dias) {
+                const proximaFecha = new Date();
+                proximaFecha.setDate(proximaFecha.getDate() + dias);
+                // Construir fecha con componentes locales para evitar desfase UTC
+                const anio = proximaFecha.getFullYear();
+                const mes  = String(proximaFecha.getMonth() + 1).padStart(2, '0');
+                const dia  = String(proximaFecha.getDate()).padStart(2, '0');
+                await BackupSistema.create({
+                    sistemaInformacionId: backup.sistemaInformacionId,
+                    tipo: backup.tipo,
+                    frecuencia_backup: backup.frecuencia_backup,
+                    estado: 'Pendiente',
+                    fecha: `${anio}-${mes}-${dia}`
+                });
+            }
+        }
+
         res.json(backup);
     } catch (error) {
         res.status(500).json({ error: 'Error al actualizar el backup', detalle: error.message });

@@ -6,7 +6,9 @@ import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { DialogModule } from 'primeng/dialog';
+import Swal from 'sweetalert2';
 import { BackupSistemaService } from '../../../Services/appServices/biomedicaServices/backup/backup-sistema.service';
+import { NotificacionBackupService } from '../../../Services/appServices/biomedicaServices/backup/notificacion-backup.service';
 
 @Component({
     selector: 'app-calendario-backups',
@@ -18,6 +20,7 @@ import { BackupSistemaService } from '../../../Services/appServices/biomedicaSer
 export class CalendarioBackupsComponent implements OnInit {
 
     private backupService = inject(BackupSistemaService);
+    private notificacionService = inject(NotificacionBackupService);
 
     fechaSeleccionada: Date = new Date();
     backupsDelMes: any[] = [];
@@ -138,5 +141,22 @@ export class CalendarioBackupsComponent implements OnInit {
         if (estado === 'Completado') return 'estado-completado';
         if (estado === 'Fallido') return 'estado-fallido';
         return 'estado-pendiente';
+    }
+
+    async marcarCompletado(): Promise<void> {
+        const result = await Swal.fire({
+            title: '¿Marcar como Completado?',
+            text: `Backup de ${this.backupSeleccionado.sistemaNombre}`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, completar',
+            cancelButtonText: 'Cancelar'
+        });
+        if (result.isConfirmed) {
+            await this.backupService.updateBackup(this.backupSeleccionado.id, { estado: 'Completado' });
+            this.cerrarDetalle();
+            await this.cargarBackupsDelMes();
+            await this.notificacionService.cargarAlertas();
+        }
     }
 }
