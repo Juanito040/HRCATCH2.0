@@ -85,17 +85,15 @@ app.use(CondicionInicialRoutes, checkToken);
 // ===== MÓDULO SISTEMAS =====
 require('../models/Sistemas/SysHojaVida');
 require('../models/Sistemas/SysBaja');
-require('../models/Sistemas/SysMantenimiento');
 require('../models/Sistemas/SysRepuesto');
 require('../models/Sistemas/SysTrazabilidad');
 require('../models/Sistemas/SysProtocoloPreventivo');
 require('../models/Sistemas/SysPlanMantenimiento');
 require('../models/Sistemas/SysReporte');
 require('../models/Sistemas/SysPlanMantenimiento'); 
-require('../models/Sistemas/SysProgramacionPreventivoMes');
-require('../models/Sistemas/sysCumplimientoProtocoloPreventivo'); // Importar modelo para asegurar su creación en DB
+require('../models/Sistemas/Sysprogramacionpreventivomes');
+require('../models/Sistemas/SysCumplimientoProtocoloPreventivo'); 
 const sysEquipoRoutes = require('./../routes/sistemas/sysEquipoRoutes');
-const sysMantenimientoRoutes = require('./../routes/sistemas/sysMantenimientoRoutes');
 const sysHojaVidaRoutes = require('./../routes/sistemas/sysHojaVidaRoutes');
 const sysTrazabilidadRoutes = require('./../routes/sistemas/sysTrazabilidadRoutes');
 const sysProtocoloPreventivoRoutes = require('./../routes/sistemas/sysProtocoloPreventivoRoutes');
@@ -103,10 +101,9 @@ const sysPlanMantenimientoRoutes = require('./../routes/sistemas/sysPlanMantenim
 const sysReporteRoutes = require('./../routes/sistemas/sysReporteRoutes');
 const sysProgramacionRoutes = require('./../routes/sistemas/sysProgramacionPreventivoRoutes');
 const sysCumplimientoProtocoloPreventivoRoutes = require('./../routes/sistemas/sysCumplimientoProtocoloPreventivo');
-app.use('/syscumplimiento', checkToken, sysCumplimientoProtocoloPreventivoRoutes);
+app.use('/syscumplimiento', checkToken, sysCumplimientoProtocoloPreventivoRoutes); 
 app.use('/sysprogramacion', checkToken, sysProgramacionRoutes); 
 app.use('/sysequipo', checkToken, sysEquipoRoutes);
-app.use('/sysmantenimiento', checkToken, sysMantenimientoRoutes);
 app.use('/syshojavida', checkToken, sysHojaVidaRoutes);
 app.use('/systrazabilidad', checkToken, sysTrazabilidadRoutes);
 app.use('/sysprotocolo', checkToken, sysProtocoloPreventivoRoutes);

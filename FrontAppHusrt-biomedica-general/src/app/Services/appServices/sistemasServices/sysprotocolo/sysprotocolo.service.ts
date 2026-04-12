@@ -45,4 +45,14 @@ export class SysprotocoloService {
   delete(id: number): Promise<{ mensaje: string }> {
     return firstValueFrom(this.http.delete<{ mensaje: string }>(`${this.apiUrl}/${id}`));
   }
+  getCumplimientoProtocoloMantenimiento(idMantenimiento: any) {
+    return firstValueFrom(
+      this.http.get<any[]>(`${API_URL}/cumplimientos/mantenimiento/` + idMantenimiento)
+    )
+  }
+  addCumplimientoProtocolo(protocolo: any) {
+    return firstValueFrom(
+      this.http.post<any>(`${API_URL}/syscumplimiento/addcumplimiento`, protocolo)
+    )
+  }
 }

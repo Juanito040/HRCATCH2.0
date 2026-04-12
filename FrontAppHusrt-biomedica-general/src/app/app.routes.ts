@@ -85,6 +85,7 @@ import { SysTrazabilidadGlobalComponent } from './Components/Sistemas/trazabilid
 import { SysProtocolosComponent } from './Components/Sistemas/protocolos/protocolos.component';
 import { ParametrizacionSistemasComponent } from './Components/Homepage/parametrizacion-sistemas/parametrizacion-sistemas.component';
 import { CrearMantenimientoComponent } from './Components/Sistemas/reporteMantenimiento/reporte-mantenimiento.component';
+import { ProgramarMantenimientoComponent } from './Components/Sistemas/programar-mantenimiento/programar-mantenimiento.component';
 
 export const routes: Routes = [
 
@@ -186,6 +187,7 @@ export const routes: Routes = [
     { path: 'adminsistemas/reporteMantenimiento/:id', component: CrearMantenimientoComponent, canActivate: [authGuard], data: { roles: ['BIOMEDICAADMIN', 'BIOMEDICAUSER', 'BIOMEDICATECNICO', 'SUPERADMIN'] } },
   { path: 'adminsistemas/hojavida/:equipoId', component: SysHojaVidaComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER'] } },
   { path: 'adminsistemas/trazabilidad', component: SysTrazabilidadGlobalComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER'] } },
+   { path: 'adminsistemas/planMantenimiento', component: ProgramarMantenimientoComponent, canActivate: [authGuard], data: { roles: ['SYSTEMADMIN', 'SYSTEMUSER', 'SUPERADMIN'] } },
 
   { path: 'intranet', component: IntranetComponent }
 ];

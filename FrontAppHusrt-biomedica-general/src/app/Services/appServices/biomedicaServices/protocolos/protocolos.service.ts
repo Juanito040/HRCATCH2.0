@@ -35,11 +35,6 @@ export class ProtocolosService {
       this.httpClient.get<any[]>(`${API_URL}/cumplimientos/reporte/` + idReporte)
     )
   }
-  getCumplimientoProtocoloMantenimiento(idMantenimiento: any) {
-    return firstValueFrom(
-      this.httpClient.get<any[]>(`${API_URL}/cumplimientos/mantenimiento/` + idMantenimiento)
-    )
-  }
 
   updateProtocolo(id: any, protocolo: any) {
     return firstValueFrom(

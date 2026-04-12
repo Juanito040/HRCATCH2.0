@@ -1,14 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const { Op } = require('sequelize');
-const SysMantenimiento = require('../../models/Sistemas/SysMantenimiento');
+const SysReporte = require('../../models/Sistemas/SysReporte');
 const SysEquipo = require('../../models/Sistemas/SysEquipo');
-const SysProgramacionPreventivoMes = require('../../models/Sistemas/SysProgramacionPreventivoMes');
+const SysProgramacionPreventivoMes = require('../../models/Sistemas/Sysprogramacionpreventivomes');
+const SysPlanMantenimiento = require('../../models/Sistemas/SysPlanMantenimiento');
 
 /**
  * POST /sysprogramacion/programacion-preventivos
  * Llamado por el módulo de calendario.
- * Recibe { mes, anio } y genera un SysMantenimiento preventivo
+ * Recibe { mes, anio } y genera un SysReporte preventivo
  * por cada equipo sys activo con preventivo_s = true.
  */
 router.post('/programacion-preventivos', async (req, res) => {
@@ -23,7 +24,6 @@ router.post('/programacion-preventivos', async (req, res) => {
             });
         }
 
-        // Validar que no se haya programado ya ese mes/año
         const yaExiste = await SysProgramacionPreventivoMes.findOne({
             where: { mes, anio }
         });
@@ -34,42 +34,40 @@ router.post('/programacion-preventivos', async (req, res) => {
             });
         }
 
-        // Traer equipos activos con mantenimiento preventivo habilitado
-        const equipos = await SysEquipo.findAll({
-            where: {
-                preventivo_s: true,
-                estado_baja: false,
-                activo: true
-            }
+        const planes = await SysPlanMantenimiento.findAll({
+            where: { mes, ano: anio },  // ← ajusta 'ano' al nombre real de tu columna
+            include: [{
+                model: SysEquipo,
+                as: 'equipo',  // ← ajusta al alias real de tu asociación
+                where: {
+                    preventivo_s: true,
+                    estado_baja: false,
+                    activo: true
+                }
+            }]
         });
 
-        if (equipos.length === 0) {
+        if (planes.length === 0) {
             return res.status(200).json({
                 success: true,
-                message: 'No hay equipos con mantenimiento preventivo habilitado',
+                message: 'No hay equipos con plan de mantenimiento para el mes y año seleccionados',
                 data: []
             });
         }
 
-        // Crear un mantenimiento preventivo pendiente por cada equipo
-        for (const equipo of equipos) {
-            const nuevoMtto = await SysMantenimiento.create({
-                mesProgramado: mes,
+        // Crear un mantenimiento por cada plan encontrado
+        for (const plan of planes) {
+            const equipo = plan.equipo;
+            const nuevoMtto = await SysReporte.create({
                 añoProgramado: anio,
-                tipo_mantenimiento: 2,        // 2 = Preventivo
-                mphardware: true,
-                mpsoftware: true,
-                entega: false,
-                dano: false,
-                id_sysequipo_fk: equipo.id_sysequipo,
-                // Campos que el técnico completará después desde el frontend:
-                // fecha, horas, observaciones, autor_realizado, autor_recibido,
-                // tipo_falla, rutinah, rutinas, tiempo_fuera_servicio
+                mesProgramado: mes,
+                tipoMantenimiento: 'Preventivo',
+                servicioIdFk: equipo.id_servicio_fk,
+                id_sysequipo_fk: equipo.id_sysequipo
             });
             reportes.push(nuevoMtto);
         }
 
-        // Registrar que este mes/año ya fue programado
         await SysProgramacionPreventivoMes.create({ mes, anio });
 
         return res.status(201).json({
@@ -87,7 +85,6 @@ router.post('/programacion-preventivos', async (req, res) => {
         });
     }
 });
-
 /**
  * GET /sysprogramacion/programaciones
  * Consulta qué meses/años ya fueron programados.
@@ -100,6 +97,14 @@ router.get('/programaciones', async (req, res) => {
         res.json({ success: true, data: programaciones });
     } catch (error) {
         res.status(500).json({ success: false, error: 'Error al obtener programaciones' });
+    }
+});
+router.get('/programacionPreventivaMeses', async (req, res) => {
+    try {
+        const meses = await SysProgramacionPreventivoMes.findAll();
+        res.json(meses);
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener los meses programados', detalle: error.message });
     }
 });
 

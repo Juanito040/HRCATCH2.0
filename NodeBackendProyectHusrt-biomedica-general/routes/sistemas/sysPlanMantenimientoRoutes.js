@@ -3,6 +3,7 @@ const router = express.Router();
 const SysPlanMantenimiento = require('../../models/Sistemas/SysPlanMantenimiento');
 const SysEquipo = require('../../models/Sistemas/SysEquipo');
 const SysTrazabilidad = require('../../models/Sistemas/SysTrazabilidad');
+const Servicio = require('../../models/generales/Servicio');
 
 // GET /sysplanmantenimiento → todos los planes
 router.get('/', async (req, res) => {
@@ -34,13 +35,26 @@ router.get('/equipo/:idEquipo', async (req, res) => {
 router.post('/mes', async (req, res) => {
   try {
     const { mes, ano } = req.body;
-    const planes = await SysPlanMantenimiento.findAll({
-      where: { mes, ano },
-      include: [{ model: SysEquipo, as: 'equipo' }],
-      order: [['id_sysplan', 'ASC']]
-    });
+
+        if (!mes || !ano) {
+            return res.status(400).json({ error: 'Mes y año son requeridos' });
+        }
+        const planes = await SysPlanMantenimiento.findAll({
+            where: {
+                mes: parseInt(mes),
+                ano: parseInt(ano)
+            },
+            include: [{
+                model: SysEquipo,
+                as: 'equipo',
+                where: { estado_baja: false },
+                required: true,
+                include: { model: Servicio, as: 'servicio' }
+            }]
+        });
     res.json(planes);
   } catch (error) {
+     console.error(error);
     res.status(500).json({ error: 'Error al obtener los planes', detalle: error.message });
   }
 });
@@ -123,5 +137,62 @@ router.put('/equipo/:idEquipo/reemplazar', async (req, res) => {
     res.status(500).json({ error: 'Error al reemplazar los planes', detalle: error.message });
   }
 });
+router.get('/planmantenimientotipoequipo/:idtipoequipo', async (req, res) => {
+    try {
+        const tipoEquipoId = req.params.idtipoequipo;
+
+        if (!tipoEquipoId) {
+            return res.status(400).json({ error: 'El parámetro tipoEquipoId es requerido' });
+        }
+        const planes = await SysPlanMantenimiento.findAll({
+            include: {
+                model: SysEquipo,
+                as: 'equipo',
+                required: true,
+                where: {
+                    id_tipo_equipo_fk: tipoEquipoId,
+                     estado_baja: false
+               },
+                include: { model: Servicio, as: 'servicio' }
+            }
+        });
+        res.json(planes);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            error: 'Error al obtener los planes de mantenimiento',
+            detalle: error.message
+        });
+    }
+});
+router.get('/planmantenimientoservicio/:idservicio', async (req, res) => {
+    try {
+        const servicioId = req.params.idservicio;
+
+        if (!servicioId) {
+            return res.status(400).json({ error: 'El parámetro servicioId es requerido' });
+        }
+        const planes = await SysPlanMantenimiento.findAll({
+            include: {
+                model: SysEquipo,
+                as: 'equipo',
+                required: true,
+                where: {
+                    servicioIdFk: servicioId,
+                    estadoBaja: false
+                },
+                include: { model: Servicio, as: 'servicios' }
+            }
+        });
+        res.json(planes);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            error: 'Error al obtener los planes de mantenimiento',
+            detalle: error.message
+        });
+    }
+});
+
 
 module.exports = router;

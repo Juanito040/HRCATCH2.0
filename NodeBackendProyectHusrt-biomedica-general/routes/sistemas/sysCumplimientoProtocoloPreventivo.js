@@ -1,16 +1,16 @@
 const express = require('express');
 const router = express.Router();
 
-const sysCumplimientoProtocoloPreventivo = require('../../models/Sistemas/sysCumplimientoProtocoloPreventivo');
-const ProtocoloPreventivo = require('../../models/Biomedica/ProtocoloPreventivo');
-const Mantenimiento = require('../../models/Sistemas/SysMantenimiento');
+const sysCumplimientoProtocoloPreventivo = require('../../models/Sistemas/SysCumplimientoProtocoloPreventivo');
+const SysProtocoloPreventivo = require('../../models/Sistemas/SysProtocoloPreventivo');
+const Reporte = require('../../models/Sistemas/SysReporte');
 
 router.get('/cumplimientos', async (req, res) => {
     try {
         const cumplimientos = await sysCumplimientoProtocoloPreventivo.findAll({
             include: [
-                { model: ProtocoloPreventivo, as: 'protocolo' },
-                { model: Mantenimiento, as: 'mantenimiento' }
+                { model: SysProtocoloPreventivo, as: 'protocolo' },
+                { model: Reporte, as: 'reporte' }
             ],
             order: [['id', 'ASC']]
         });
@@ -20,16 +20,16 @@ router.get('/cumplimientos', async (req, res) => {
     }
 });
 
-// Obtener cumplimientos por ID de reporte
+// Obtener cumplimientos por ID de mantenimiento
 router.get('/cumplimientos/mantenimiento/:id', async (req, res) => {
     try {
         const cumplimientos = await sysCumplimientoProtocoloPreventivo.findAll({
-            where: { mantenimientoIdFk: req.params.id },
-            include: [{ model: ProtocoloPreventivo, as: 'protocolo' }]
+            where: { sysReporteIdFk: req.params.id },
+            include: [{ model: SysProtocoloPreventivo, as: 'protocolo' }]
         });
         res.json(cumplimientos);
     } catch (error) {
-        res.status(500).json({ error: 'Error al obtener los cumplimientos del mantenimiento', detalle: error.message });
+        res.status(500).json({ error: 'Error al obtener los cumplimientos del reporte', detalle: error.message });
     }
 });
 
@@ -38,8 +38,8 @@ router.get('/cumplimiento/:id', async (req, res) => {
     try {
         const cumplimiento = await sysCumplimientoProtocoloPreventivo.findByPk(req.params.id, {
             include: [
-                { model: ProtocoloPreventivo, as: 'protocolo' },
-                { model: Mantenimiento, as: 'mantenimiento' }
+                { model: SysProtocoloPreventivo, as: 'protocolo' },
+                { model: Reporte, as: 'reporte' }
             ]
         });
 
@@ -56,13 +56,13 @@ router.get('/cumplimiento/:id', async (req, res) => {
 // Crear nuevo cumplimiento
 router.post('/addcumplimiento', async (req, res) => {
     try {
-        const { protocoloPreventivoIdFk, mantenimientoIdFk, cumple, paso, observaciones } = req.body;
+        const { sysProtocoloPreventivoIdFk, sysReporteIdFk, cumple, paso, observaciones } = req.body;
 
-        // Buscar si ya existe un cumplimiento para este protocolo y mantenimiento
+        // Buscar si ya existe un cumplimiento para este protocolo y reporte
         const cumplimientoExistente = await sysCumplimientoProtocoloPreventivo.findOne({
             where: {
-                protocoloPreventivoIdFk: protocoloPreventivoIdFk,
-                mantenimientoIdFk: mantenimientoIdFk
+                sysProtocoloPreventivoIdFk: sysProtocoloPreventivoIdFk,
+                sysReporteIdFk: sysReporteIdFk
             }
         });
 

@@ -1,8 +1,8 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../../config/configDb');
-const ProtocoloPreventivo = require('../Biomedica/ProtocoloPreventivo');
+const SysProtocoloPreventivo = require('./SysProtocoloPreventivo');
 
-const SysCumplimientoProtocoloPreventivo = sequelize.define('SysCumpliminetoProtocoloPreventivo', {
+const SysCumplimientoProtocoloPreventivo = sequelize.define('SysCumplimientoProtocoloPreventivo', {
     cumple: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -11,26 +11,25 @@ const SysCumplimientoProtocoloPreventivo = sequelize.define('SysCumpliminetoProt
         type: DataTypes.STRING,
         allowNull: true,
     },
-    protocoloPreventivoIdFk: {
+    sysProtocoloPreventivoIdFk: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: ProtocoloPreventivo,
+            model: SysProtocoloPreventivo,
             key: 'id'
         },
     },
-    mantenimientoIdFk: {
+    sysReporteIdFk: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: 'SysMantenimiento',
-            key: 'id_sysmtto'
+            model: 'SysReporte',
+            key: 'id'
         },
     }
-}, { tableName: 'SysCumpliminetoProtocoloPreventivo', timestamps: true });
+}, { tableName: 'SysCumplimientoProtocoloPreventivo', timestamps: true });
 
-SysCumplimientoProtocoloPreventivo.belongsTo(ProtocoloPreventivo, { foreignKey: 'protocoloPreventivoIdFk', as: 'protocolo' });
-ProtocoloPreventivo.hasMany(SysCumplimientoProtocoloPreventivo, { foreignKey: 'protocoloPreventivoIdFk', as: 'SyscumplimientoProtocolo' });
-
+// Solo belongsTo aqui — el hasMany esta declarado en SysProtocoloPreventivo.js
+SysCumplimientoProtocoloPreventivo.belongsTo(SysProtocoloPreventivo, { foreignKey: 'sysProtocoloPreventivoIdFk', as: 'protocolo' });
 
 module.exports = SysCumplimientoProtocoloPreventivo;

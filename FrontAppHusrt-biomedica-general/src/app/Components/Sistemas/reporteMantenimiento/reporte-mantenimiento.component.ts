@@ -23,6 +23,7 @@ import { TipoEquipoService } from '../../../Services/appServices/general/tipoEqu
 import { DraftService } from '../../../Services/appServices/draft.service';
 
 import { UppercaseDirective } from '../../../Directives/uppercase.directive';
+import { SysprotocoloService } from '../../../Services/appServices/sistemasServices/sysprotocolo/sysprotocolo.service';
 
 @Component({
   selector: 'app-reporte-mantenimiento',
@@ -41,7 +42,7 @@ export class CrearMantenimientoComponent implements OnInit {
   selectProtocolos: any[] = [];
   mantenimientoForm!: FormGroup;
   sysequiposervices = inject(SysequiposService);
-  protocoloservices = inject(ProtocolosService);
+  sysprotocoloservices = inject(SysprotocoloService);
   userServices = inject(UserService);
   mantenimientoServices = inject(SysmantenimientoService);
   tipoEquipoService = inject(TipoEquipoService);
@@ -167,7 +168,7 @@ export class CrearMantenimientoComponent implements OnInit {
     }
     // Ensure we have compliance data
     if (this.mantenimiento.id) {
-      this.mantenimiento.cumplimientoProtocolo = await this.protocoloservices.getCumplimientoProtocoloMantenimiento(this.mantenimiento.id);
+      this.mantenimiento.cumplimientoProtocolo = await this.sysprotocoloservices.getCumplimientoProtocoloMantenimiento(this.mantenimiento.id);
 
       // Fetch full report details to get specific measurements
       try {
@@ -185,8 +186,8 @@ export class CrearMantenimientoComponent implements OnInit {
     const equipoRes = await this.sysequiposervices.getEquipoById(this.id);
     // El servicio de sistemas devuelve { success, data } — extraemos .data
     this.equipo = equipoRes?.data ?? equipoRes;
-    this.protocolos = await this.protocoloservices.getProtocoloActivoTipoEquipo(this.equipo.tipoEquipo?.id);
-    
+    this.protocolos = await this.sysprotocoloservices.getActivosByTipoEquipo(this.equipo.tipoEquipo?.id);
+
 
     this.nombreUsuario = await this.userServices.getNameUSer(getDecodedAccessToken().id);
 
@@ -375,8 +376,8 @@ export class CrearMantenimientoComponent implements OnInit {
         mantenimientoPropio: true,
         realizado: true,
         rutaPdf: null,
-        servicioIdFk: this.equipo.servicioIdFk,
-        equipoIdFk: this.equipo.id,
+        servicioIdFk: this.equipo.servicioIdFk ?? this.equipo.id_servicio_fk ?? this.equipo.servicio?.id,
+        id_sysequipo_fk: this.equipo.id_sysequipo ?? this.equipo.id,
         usuarioIdFk: getDecodedAccessToken().id,
         mediciones: medicionesPayload, // Add measurements to payload
         repuestos: this.mantenimientoForm.value.repuestos, // Add accessories to payload
@@ -396,7 +397,7 @@ export class CrearMantenimientoComponent implements OnInit {
           });
           const draftKey = `mantenimiento_${this.id}_${this.tipoMantenimiento}`;
           this.draftService.clearDraft(draftKey);
-          this.router.navigate(['/biomedica/mantenimientosequipo/', this.equipo.id]);
+          this.router.navigate(['adminsistemas/mantenimientos']);
         } catch (error) {
           console.error('Error al actualizar el mantenimiento:', error);
           Swal.fire({
@@ -406,11 +407,11 @@ export class CrearMantenimientoComponent implements OnInit {
           });
         }
       } else {
-        // NEW: Only call creation if there is no ID (usually for new Corrective reports)
-        /* try {
-          const res = await this.mantenimientoServices.CrearMantenimientoCorrectivo(this.mantenimiento);
-          if (res && res.id) {
-            await this.guardarCumplimiento(res.id);
+        // Correctivo nuevo — crear
+        try {
+          const res = await this.mantenimientoServices.create(this.mantenimiento);
+          if (res && res.data?.id) {
+            await this.guardarCumplimiento(res.data.id);
             Swal.fire({
               icon: 'success',
               title: 'Se almacenó el mantenimiento correctamente',
@@ -419,10 +420,11 @@ export class CrearMantenimientoComponent implements OnInit {
             });
             const draftKey = `mantenimiento_${this.id}_${this.tipoMantenimiento}`;
             this.draftService.clearDraft(draftKey);
-            this.router.navigate(['/biomedica/mantenimientosequipo/', this.equipo.id]);
+            this.router.navigate(['adminsistemas/mantenimientos']);
           } else {
             throw new Error('No se recibió el ID del mantenimiento creado');
           }
+
         } catch (error) {
           console.error('Error al crear el mantenimiento:', error);
           Swal.fire({
@@ -430,7 +432,7 @@ export class CrearMantenimientoComponent implements OnInit {
             title: 'Error al crear el mantenimiento',
             text: 'Por favor, inténtelo de nuevo más tarde.'
           });
-        } */
+        }
       }
     } else {
       Swal.fire({
@@ -466,37 +468,37 @@ export class CrearMantenimientoComponent implements OnInit {
     return this.mantenimientoForm.get('condicionesIniciales') as FormArray;
   }
 
-/*   async iniCondicionesIniciales() {
-    const array = this.condicionesInicialesFormArray;
-    array.clear();
-
-    // Fetch active conditions
-    this.activeCondicionesIniciales = await this.condicionInicialService.getActive();
-
-    // Determine existing values if any
-    const existing = this.mantenimiento && this.mantenimiento.cumplimientoCondicionesIniciales ? this.mantenimiento.cumplimientoCondicionesIniciales : [];
-
-    this.activeCondicionesIniciales.forEach(cond => {
-      const match = existing.find((e: any) => e.condicionInicialIdFk === cond.id || e.condicion?.id === cond.id || (e.condicionInicial && e.condicionInicial.id === cond.id));
-
-      array.push(this.fb.group({
-        id: [cond.id], // Definition ID
-        descripcion: [cond.descripcion], // For display
-        cumple: [match ? match.cumple : 'CUMPLE', Validators.required],
-        observacion: [match ? match.observacion : '']
-      }));
-    });
-  } */
+  /*   async iniCondicionesIniciales() {
+      const array = this.condicionesInicialesFormArray;
+      array.clear();
+  
+      // Fetch active conditions
+      this.activeCondicionesIniciales = await this.condicionInicialService.getActive();
+  
+      // Determine existing values if any
+      const existing = this.mantenimiento && this.mantenimiento.cumplimientoCondicionesIniciales ? this.mantenimiento.cumplimientoCondicionesIniciales : [];
+  
+      this.activeCondicionesIniciales.forEach(cond => {
+        const match = existing.find((e: any) => e.condicionInicialIdFk === cond.id || e.condicion?.id === cond.id || (e.condicionInicial && e.condicionInicial.id === cond.id));
+  
+        array.push(this.fb.group({
+          id: [cond.id], // Definition ID
+          descripcion: [cond.descripcion], // For display
+          cumple: [match ? match.cumple : 'CUMPLE', Validators.required],
+          observacion: [match ? match.observacion : '']
+        }));
+      });
+    } */
 
   async guardarCumplimiento(mantenimientoId: any) {
     const promises = this.mantenimientoForm.value.cumplimientoProtocolo.map((protocolo: any) => {
       const cp = {
-        protocoloPreventivoIdFk: protocolo.protocoloPreventivoIdFk,
+        sysProtocoloPreventivoIdFk: protocolo.protocoloPreventivoIdFk,
         cumple: protocolo.cumple,
-        mantenimientoIdFk: mantenimientoId,
+        sysReporteIdFk: mantenimientoId,
         observaciones: protocolo.observaciones
       };
-      return this.protocoloservices.addCumplimientoProtocolo(cp);
+      return this.sysprotocoloservices.addCumplimientoProtocolo(cp);
     });
     await Promise.all(promises);
   }
