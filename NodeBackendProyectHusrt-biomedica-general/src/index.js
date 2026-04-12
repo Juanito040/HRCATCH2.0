@@ -85,6 +85,7 @@ app.use(CondicionInicialRoutes, checkToken);
 // ===== MÓDULO SISTEMAS =====
 require('../models/Sistemas/SysHojaVida');
 require('../models/Sistemas/SysBaja');
+require('../models/Sistemas/SysTipoRepuesto');
 require('../models/Sistemas/SysRepuesto');
 require('../models/Sistemas/SysTrazabilidad');
 require('../models/Sistemas/SysProtocoloPreventivo');
@@ -93,6 +94,8 @@ require('../models/Sistemas/SysReporte');
 require('../models/Sistemas/SysPlanMantenimiento'); 
 require('../models/Sistemas/Sysprogramacionpreventivomes');
 require('../models/Sistemas/SysCumplimientoProtocoloPreventivo'); 
+require('../models/Sistemas/SysAuditoriaRepuesto');
+require('../models/Sistemas/SysMovimientosStockRepuestos');
 const sysEquipoRoutes = require('./../routes/sistemas/sysEquipoRoutes');
 const sysHojaVidaRoutes = require('./../routes/sistemas/sysHojaVidaRoutes');
 const sysTrazabilidadRoutes = require('./../routes/sistemas/sysTrazabilidadRoutes');
@@ -105,6 +108,15 @@ app.use('/syscumplimiento', checkToken, sysCumplimientoProtocoloPreventivoRoutes
 app.use('/sysprogramacion', checkToken, sysProgramacionRoutes); 
 app.use('/sysequipo', checkToken, sysEquipoRoutes);
 app.use('/syshojavida', checkToken, sysHojaVidaRoutes);
+
+const sysTipoRepuestoRoutes = require('./../routes/sistemas/sysTipoRepuestoRoutes');
+const sysRepuestoRoutes = require('./../routes/sistemas/sysRepuestoRoutes');
+const sysAuditoriaRepuestoRoutes = require('./../routes/sistemas/sysAuditoriaRepuestoRoutes');
+const sysMovimientosStockRoutes = require('./../routes/sistemas/sysMovimientosStockRoutes');
+app.use('/systiporepuesto', checkToken, sysTipoRepuestoRoutes);
+app.use('/sysrepuesto', checkToken, sysRepuestoRoutes);
+app.use('/sysauditoria-repuesto', checkToken, sysAuditoriaRepuestoRoutes);
+app.use('/sysmovimientosstock', checkToken, sysMovimientosStockRoutes);
 app.use('/systrazabilidad', checkToken, sysTrazabilidadRoutes);
 app.use('/sysprotocolo', checkToken, sysProtocoloPreventivoRoutes);
 app.use('/sysplanmantenimiento', checkToken, sysPlanMantenimientoRoutes);
