@@ -88,7 +88,7 @@ export class ClasificacionTipoEquipoSisComponent implements OnInit {
     this.isExportMenuOpen = false;
   }
 
-  async descargarInventario(tipo: 'todos' | 'bodega') {
+  async descargarInventario(tipo: 'todos' | 'bodega' | 'activo' | 'inactivo' | any) {
     this.isExportMenuOpen = false;
     this.isExporting = true;
     try {
@@ -96,7 +96,7 @@ export class ClasificacionTipoEquipoSisComponent implements OnInit {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = tipo === 'bodega' ? 'Inventario_Sistemas_Bodega.xlsx' : 'Inventario_Sistemas_Todos.xlsx';
+      a.download = tipo === 'bodega' ? 'Inventario_Sistemas_Bodega.xlsx' : tipo === 'activo' ? 'Inventario_Sistemas_Activo.xlsx' : tipo === 'inactivo' ? 'Inventario_Sistemas_Inactivo.xlsx' : 'Inventario_Sistemas_Todos.xlsx' ;
       a.click();
       window.URL.revokeObjectURL(url);
     } catch {

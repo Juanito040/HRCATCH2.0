@@ -63,6 +63,12 @@ export class SysHojaVidaService {
     return this.http.delete(`${this.base}/${id}`);
   }
 
+  uploadFoto(equipoId: number, formData: FormData): Promise<any> {
+    return firstValueFrom(
+      this.http.put<any>(`${this.base}/equipo/${equipoId}/foto`, formData)
+    );
+  }
+
   descargarPdf(equipoId: number): Promise<Blob> {
     return firstValueFrom(
       this.http.get(`${this.base}/equipo/${equipoId}/pdf`, { responseType: 'blob' })

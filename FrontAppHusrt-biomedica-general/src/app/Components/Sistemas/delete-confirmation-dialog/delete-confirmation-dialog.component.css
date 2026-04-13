@@ -24,9 +24,6 @@
 .radio-option.selected { border-color:var(--primary-color);background:#eff6ff; }
 .radio-option input[type="radio"] { margin-top:.2rem;accent-color:var(--primary-color); }
 .option-content { display:flex;gap:.75rem;align-items:flex-start; }
-.option-icon { width:2.5rem;height:2.5rem;border-radius:.5rem;display:flex;align-items:center;justify-content:center;font-size:1.125rem;flex-shrink:0; }
-.option-icon.warning { background:#fff7ed;color:#ea580c; }
-.option-icon.danger { background:#fef2f2;color:var(--danger-color); }
 .option-text h3 { font-size:.9375rem;font-weight:600;color:var(--gray-900);margin:0 0 .25rem; }
 .option-text p { font-size:.8125rem;color:var(--gray-500);margin:0; }
 .warning-text { color:#b45309 !important; }

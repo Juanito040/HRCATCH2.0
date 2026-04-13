@@ -9,7 +9,6 @@ import { SysEquipoDetailModalComponent } from '../equipo-detail-modal/equipo-det
 import { SysDeleteConfirmationDialogComponent, DeleteAction } from '../delete-confirmation-dialog/delete-confirmation-dialog.component';
 import { SysReactivarEquipoModalComponent, ReactivarEquipoData } from '../reactivar-equipo-modal/reactivar-equipo-modal.component';
 import { SysHistorialEquipoComponent } from '../historial-equipo/historial-equipo.component';
-import { SysReporteFormComponent } from '../sys-reporte-form/sys-reporte-form.component';
 import { SysReportesEquipoComponent } from '../sys-reportes-equipo/sys-reportes-equipo.component';
 import { SysReporteService } from '../../../Services/appServices/sistemasServices/sysreporte/sysreporte.service';
 import { getDecodedAccessToken } from '../../../utilidades';
@@ -27,7 +26,6 @@ import Swal from 'sweetalert2';
     SysDeleteConfirmationDialogComponent,
     SysReactivarEquipoModalComponent,
     SysHistorialEquipoComponent,
-    SysReporteFormComponent,
     SysReportesEquipoComponent
   ],
   templateUrl: './equipos.component.html',
@@ -184,6 +182,12 @@ export class SisEquiposComponent implements OnInit {
   onSearch(event: Event) {
     const term = (event.target as HTMLInputElement).value.toLowerCase();
     this.searchTerm = term;
+    this.applyFilters();
+  }
+
+  clearSearch() {
+    this.searchTerm = '';
+    this.resetSearchInput();
     this.applyFilters();
   }
 
@@ -406,13 +410,9 @@ export class SisEquiposComponent implements OnInit {
   }
 
   openReporteForm(equipo: any) {
-    this.equipoForReporte = equipo;
-    this.isReporteFormOpen = true;
-  }
-
-  closeReporteForm() {
-    this.isReporteFormOpen = false;
-    this.equipoForReporte = null;
+    sessionStorage.setItem('equipoParaReporte', JSON.stringify(equipo));
+    sessionStorage.setItem('origenReporte', '/adminsistemas/equipos');
+    this.router.navigate(['/adminsistemas/reporte-entrega']);
   }
 
   openReportesList(equipo: any) {

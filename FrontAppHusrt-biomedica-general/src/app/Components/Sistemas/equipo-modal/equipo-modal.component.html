@@ -220,6 +220,20 @@
 
             <div class="form-row">
               <div class="form-group">
+                <label for="id_sede_fk">Sede</label>
+                <select id="id_sede_fk" formControlName="id_sede_fk" [class.error]="hasError('id_sede_fk')"
+                  (change)="onSedeChange($any($event.target).value)">
+                  <option value="">Todas las sedes...</option>
+                  @for (sede of sedes; track sede.id) {
+                    <option [value]="sede.id">{{ sede.nombre }}</option>
+                  }
+                </select>
+                @if (hasError('id_sede_fk')) {
+                  <span class="error-message">{{ getErrorMessage('id_sede_fk') }}</span>
+                }
+              </div>
+              <div></div>
+              <div class="form-group">
                 <label for="id_servicio_fk">Servicio</label>
                 <select id="id_servicio_fk" formControlName="id_servicio_fk" [class.error]="hasError('id_servicio_fk')">
                   <option value="">Seleccionar...</option>
@@ -231,6 +245,7 @@
                   <span class="error-message">{{ getErrorMessage('id_servicio_fk') }}</span>
                 }
               </div>
+              <div></div>
               <div class="form-group">
                 <label for="id_tipo_equipo_fk">Tipo de Equipo</label>
                 <select id="id_tipo_equipo_fk" formControlName="id_tipo_equipo_fk" [class.error]="hasError('id_tipo_equipo_fk')">
@@ -244,7 +259,7 @@
                 }
               </div>
             </div>
-
+<div></div>
             <div class="form-row">
               <div class="form-group">
                 <label for="id_usuario_fk">Usuario Responsable</label>
@@ -383,10 +398,6 @@
                     <div class="form-group">
                       <label for="nombre_usuario">Nombre de Usuario (Sistema)</label>
                       <input type="text" id="nombre_usuario" formControlName="nombre_usuario" placeholder="Ej: admin, jperez" />
-                    </div>
-                    <div class="form-group">
-                      <label for="foto">URL de Foto</label>
-                      <input type="text" id="foto" formControlName="foto" placeholder="Ej: /assets/equipos/foto.jpg" />
                     </div>
                   </div>
                   <div class="form-row">

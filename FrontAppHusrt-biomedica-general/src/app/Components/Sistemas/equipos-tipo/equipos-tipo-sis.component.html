@@ -13,8 +13,13 @@
   <div class="toolbar">
     <div class="search-box">
       <span class="search-icon"><i class="fas fa-search"></i></span>
-      <input type="text" placeholder="Buscar por nombre, marca, modelo, serie o ubicación..."
+      <input #searchInput type="text" placeholder="Buscar por nombre, marca, modelo, serie o ubicación..."
         (input)="onSearch($event)" [disabled]="isLoading" />
+      @if (searchTerm) {
+        <button class="search-clear-btn" type="button" (click)="clearSearch(searchInput)">
+          <i class="fas fa-times"></i>
+        </button>
+      }
     </div>
   </div>
 
@@ -62,10 +67,10 @@
               </td>
               <td>
                 <div class="action-dropdown">
-                  <button class="btn btn-sm btn-outline-primary" (click)="verHojaVida(equipo)">
+                  <button class="btn btn-sm btn-outline-secondary " (click)="verHojaVida(equipo)">
                     <i class="fas fa-file-alt"></i> HV
                   </button>
-                  <button class="btn btn-sm btn-outline-primary dropdown-toggle-btn"
+                  <button class="btn btn-sm btn-outline-secondary dropdown-toggle-btn"
                     (click)="$event.stopPropagation(); toggleMenu(equipo)">
                     <i class="fas fa-chevron-down"></i>
                   </button>
@@ -157,7 +162,7 @@
 
       <div class="plan-modal-header">
         <div>
-          <h2><i class="pi pi-calendar"></i> Plan de Mantenimiento</h2>
+          <h2> Plan de mantenimiento</h2>
           <p class="plan-equipo-nombre">{{ currentEquipoPlan?.nombre_equipo }}</p>
         </div>
         <button class="modal-close-btn" (click)="closePlanDialog()">
@@ -196,7 +201,7 @@
 
         @if (calculatedMonthsText) {
           <div class="plan-cycle-banner">
-            <i class="pi pi-calendar-plus"></i>
+            
             <div>
               <span class="plan-cycle-label">Ciclo calculado:</span>
               <span class="plan-cycle-text">{{ calculatedMonthsText }}</span>
@@ -209,21 +214,13 @@
         <button class="btn btn-secondary" (click)="closePlanDialog()" [disabled]="isSavingPlan">Cancelar</button>
         <button class="btn btn-primary" (click)="savePlan()" [disabled]="isSavingPlan || selectedPlanes.length === 0">
           @if (isSavingPlan) { <span class="btn-spinner-sm"></span> Guardando... }
-          @else { <i class="pi pi-save"></i> Guardar Plan }
+          @else {  Guardar Plan }
         </button>
       </div>
 
     </div>
   </div>
 }
-
-<!-- Modal Reporte de Entrega -->
-<app-sys-reporte-form
-  [isOpen]="isReporteFormOpen"
-  [equipo]="equipoForReporte"
-  (closed)="closeReporteForm()"
-  (saved)="closeReporteForm()"
-></app-sys-reporte-form>
 
 <!-- Modal Ver Reportes del Equipo -->
 <app-sys-reportes-equipo

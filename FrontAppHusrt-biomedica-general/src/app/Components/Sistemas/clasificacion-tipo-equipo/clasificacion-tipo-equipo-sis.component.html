@@ -2,7 +2,7 @@
 
   <div class="page-header">
     <div>
-      <h1>Tipos de Equipos de Sistemas</h1>
+      <h1>Tipos de equipos de sistemas</h1>
       <p class="subtitle">Selecciona un tipo para ver sus equipos registrados</p>
     </div>
     <div class="header-actions">
@@ -11,16 +11,22 @@
           @if (isExporting) {
             <span class="btn-spinner-sm"></span> Exportando...
           } @else {
-            <i class="fas fa-file-excel"></i> Descargar <i class="fas fa-chevron-down" style="font-size:0.7rem;margin-left:2px"></i>
+            Descargar listado <i class="fas fa-chevron-down" style="font-size:0.7rem;margin-left:2px"></i>
           }
         </button>
         @if (isExportMenuOpen) {
           <div class="export-dropdown-menu">
             <button class="export-dropdown-item" (click)="descargarInventario('todos')">
-              <i class="fas fa-list"></i> Todos los equipos
+              <i class=""></i> Todos los equipos
+            </button>
+            <button class="export-dropdown-item" (click)="descargarInventario('activo')">
+              <i class=""></i> Equipos activos
             </button>
             <button class="export-dropdown-item" (click)="descargarInventario('bodega')">
-              <i class="fas fa-warehouse"></i> En Bodega
+              <i class=""></i> Equipos en bodega
+            </button>
+            <button class="export-dropdown-item" (click)="descargarInventario('inactivo')">
+              <i class=""></i> Equipos inactivos
             </button>
           </div>
         }
@@ -35,6 +41,11 @@
     <div class="search-box">
       <i class="fas fa-search search-icon"></i>
       <input type="text" placeholder="Buscar tipo de equipo..." [(ngModel)]="searchText" />
+      @if (searchText) {
+        <button class="search-clear-btn" type="button" (click)="searchText = ''">
+          <i class="fas fa-times"></i>
+        </button>
+      }
     </div>
   </div>
 

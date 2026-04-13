@@ -9,7 +9,6 @@ import { SysEquipoModalComponent } from '../equipo-modal/equipo-modal.component'
 import { SysEquipoDetailModalComponent } from '../equipo-detail-modal/equipo-detail-modal.component';
 import { SysHistorialEquipoComponent } from '../historial-equipo/historial-equipo.component';
 import { SysDeleteConfirmationDialogComponent, DeleteAction } from '../delete-confirmation-dialog/delete-confirmation-dialog.component';
-import { SysReporteFormComponent } from '../sys-reporte-form/sys-reporte-form.component';
 import { SysReportesEquipoComponent } from '../sys-reportes-equipo/sys-reportes-equipo.component';
 import { SysReporteService } from '../../../Services/appServices/sistemasServices/sysreporte/sysreporte.service';
 import { getDecodedAccessToken } from '../../../utilidades';
@@ -19,7 +18,7 @@ import Swal from 'sweetalert2';
 @Component({
   selector: 'app-equipos-tipo-sis',
   standalone: true,
-  imports: [CommonModule, FormsModule, SysEquipoModalComponent, SysEquipoDetailModalComponent, SysHistorialEquipoComponent, SysDeleteConfirmationDialogComponent, SysReporteFormComponent, SysReportesEquipoComponent],
+  imports: [CommonModule, FormsModule, SysEquipoModalComponent, SysEquipoDetailModalComponent, SysHistorialEquipoComponent, SysDeleteConfirmationDialogComponent, SysReportesEquipoComponent],
   templateUrl: './equipos-tipo-sis.component.html',
   styleUrl: './equipos-tipo-sis.component.css'
 })
@@ -150,6 +149,12 @@ export class EquiposTipoSisComponent implements OnInit {
     this.applyFilters();
   }
 
+  clearSearch(input: HTMLInputElement) {
+    input.value = '';
+    this.searchTerm = '';
+    this.applyFilters();
+  }
+
   applyFilters() {
     let filtered = this.equipos;
     if (this.searchTerm) {
@@ -272,13 +277,9 @@ export class EquiposTipoSisComponent implements OnInit {
   }
 
   openReporteForm(equipo: any) {
-    this.equipoForReporte = equipo;
-    this.isReporteFormOpen = true;
-  }
-
-  closeReporteForm() {
-    this.isReporteFormOpen = false;
-    this.equipoForReporte = null;
+    sessionStorage.setItem('equipoParaReporte', JSON.stringify(equipo));
+    sessionStorage.setItem('origenReporte', '/adminsistemas/equipostipo');
+    this.router.navigate(['/adminsistemas/reporte-entrega']);
   }
 
   openReportesList(equipo: any) {

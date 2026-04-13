@@ -1,96 +1,101 @@
 @if (isOpen) {
-  <div class="modal-overlay">
+  <div class="modal-overlay" (click)="close()">
     <div class="modal-container" (click)="$event.stopPropagation()">
 
-      <!-- Header -->
       <div class="modal-header">
-        <div class="header-content">
-          <div class="header-icon"><i class="fas fa-file-export"></i></div>
-          <div>
-            <h2>Reportes de Entrega</h2>
-            <p class="header-sub">{{ equipo?.nombre_equipo }} · {{ equipo?.placa_inventario || 'Sin placa' }}</p>
-          </div>
+        <div>
+          <h2 class="modal-title">Reportes de entrega</h2>
+          <p class="modal-sub">{{ equipo?.nombre_equipo }} &nbsp;·&nbsp; {{ equipo?.placa_inventario || 'Sin placa' }}</p>
         </div>
-        <button class="btn-close" (click)="close()" title="Cerrar">
-          <i class="fas fa-times"></i>
-        </button>
+        <button class="btn-close" (click)="close()">✕</button>
       </div>
 
-      <!-- Body -->
       <div class="modal-body">
 
         @if (isLoading) {
-          <div class="loading-state">
+          <div class="estado-centrado">
             <div class="spinner"></div>
             <p>Cargando reportes...</p>
           </div>
         } @else if (error) {
-          <div class="empty-state">
-            <i class="fas fa-exclamation-triangle"></i>
-            <p>{{ error }}</p>
-            <button class="btn-retry" (click)="cargarReportes()">Reintentar</button>
+          <div class="estado-centrado">
+            <p class="error-text">{{ error }}</p>
+            <button class="btn-reintentar" (click)="cargarReportes()">Reintentar</button>
           </div>
         } @else if (reportes.length === 0) {
-          <div class="empty-state">
-            <i class="fas fa-folder-open"></i>
+          <div class="estado-centrado">
             <p>Este equipo no tiene reportes de entrega registrados.</p>
           </div>
         } @else {
 
-          <div class="resumen-badge">
-            <i class="fas fa-list-ul"></i> {{ reportes.length }} reporte{{ reportes.length !== 1 ? 's' : '' }} registrado{{ reportes.length !== 1 ? 's' : '' }}
-          </div>
+          <p class="total-label">{{ reportes.length }} reporte{{ reportes.length !== 1 ? 's' : '' }}</p>
 
-          <div class="tabla-wrapper">
-            <table class="reportes-tabla">
-              <thead>
-                <tr>
-                  <th>Fecha</th>
-                  <th>Hora inicio</th>
-                  <th>Hora fin</th>
-                  <th>Servicio anterior</th>
-                  <th>Servicio destino</th>
-                  <th>Realizado por</th>
-                  <th>Recibido por</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (r of reportes; track r.id_sysreporte) {
-                  <tr>
-                    <td>{{ formatFecha(r.fecha) }}</td>
-                    <td>{{ r.hora_inicio || '—' }}</td>
-                    <td>{{ r.hora_terminacion || '—' }}</td>
-                    <td>
-                      <span class="ubicacion-text">{{ r.servicio_anterior || '—' }}</span>
+          <div class="reportes-lista">
+            @for (r of reportes; track r.id_sysreporte) {
+              <div class="reporte-item">
+
+                <div class="reporte-cabecera">
+                  <div class="cabecera-izq">
+                    <span class="fecha-reporte">{{ formatFecha(r.fecha) }}</span>
+                    <span class="horas-reporte">
+                      @if (r.hora_llamado) { Llamado {{ r.hora_llamado }} }
+                      @if (r.hora_inicio) {
+                        &nbsp;·&nbsp; {{ r.hora_inicio }}
+                        @if (r.hora_terminacion) { — {{ r.hora_terminacion }} }
+                      }
+                    </span>
+                  </div>
+                  <button class="btn-pdf"
+                    (click)="descargarPdf(r)"
+                    [disabled]="downloadingId === r.id_sysreporte">
+                    {{ downloadingId === r.id_sysreporte ? 'Generando...' : 'Descargar PDF' }}
+                  </button>
+                </div>
+
+                <div class="reporte-cuerpo">
+
+                  <div class="traslado-grid">
+                    <div class="traslado-col">
+                      <p class="col-titulo">Procedencia</p>
+                      <p class="col-valor">{{ r.servicio_anterior || '—' }}</p>
                       @if (r.ubicacion_anterior) {
-                        <span class="ubicacion-sub">{{ r.ubicacion_anterior }}</span>
+                        <p class="col-detalle">{{ r.ubicacion_anterior }}</p>
                       }
-                    </td>
-                    <td>
-                      <span class="ubicacion-text">{{ r.servicio_nuevo || '—' }}</span>
+                    </div>
+                    <div class="traslado-separador"></div>
+                    <div class="traslado-col">
+                      <p class="col-titulo">Destino</p>
+                      <p class="col-valor">{{ r.servicio_nuevo || '—' }}</p>
                       @if (r.ubicacion_nueva) {
-                        <span class="ubicacion-sub">{{ r.ubicacion_nueva }}</span>
+                        <p class="col-detalle">{{ r.ubicacion_nueva }}</p>
                       }
-                    </td>
-                    <td>{{ r.realizado_por || '—' }}</td>
-                    <td>{{ r.recibido_por || '—' }}</td>
-                    <td>
-                      <button class="btn-pdf"
-                        (click)="descargarPdf(r)"
-                        [disabled]="downloadingId === r.id_sysreporte"
-                        title="Descargar reporte">
-                        @if (downloadingId === r.id_sysreporte) {
-                          <i class="fas fa-spinner fa-spin"></i> Generando...
-                        } @else {
-                          <i class="fas fa-download"></i> Descargar
-                        }
-                      </button>
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
+                      @if (r.ubicacion_especifica) {
+                        <p class="col-detalle">{{ r.ubicacion_especifica }}</p>
+                      }
+                    </div>
+                  </div>
+
+                  <div class="personal-grid">
+                    <div class="personal-campo">
+                      <span class="campo-label">Realizado por</span>
+                      <span class="campo-valor">{{ r.realizado_por || '—' }}</span>
+                    </div>
+                    <div class="personal-campo">
+                      <span class="campo-label">Recibido por</span>
+                      <span class="campo-valor">{{ r.recibido_por || '—' }}</span>
+                    </div>
+                  </div>
+
+                  @if (r.observaciones) {
+                    <div class="observaciones">
+                      <span class="campo-label">Observaciones</span>
+                      <p class="observaciones-texto">{{ r.observaciones }}</p>
+                    </div>
+                  }
+
+                </div>
+              </div>
+            }
           </div>
 
         }

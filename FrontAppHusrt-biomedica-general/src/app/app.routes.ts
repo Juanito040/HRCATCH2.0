@@ -84,6 +84,12 @@ import { EquiposTipoSisComponent } from './Components/Sistemas/equipos-tipo/equi
 import { SysTrazabilidadGlobalComponent } from './Components/Sistemas/trazabilidad-global/trazabilidad-global.component';
 import { SysProtocolosComponent } from './Components/Sistemas/protocolos/protocolos.component';
 import { ParametrizacionSistemasComponent } from './Components/Homepage/parametrizacion-sistemas/parametrizacion-sistemas.component';
+import { AdmTiposEquipoSisComponent } from './Components/Sistemas/adm-tiposequipo-sis/adm-tiposequipo-sis.component';
+import { ClasificacionServicioSisComponent } from './Components/Sistemas/clasificacion-servicio-sis/clasificacion-servicio-sis.component';
+import { EquiposServicioSisComponent } from './Components/Sistemas/equipos-servicio-sis/equipos-servicio-sis.component';
+import { ClasificacionSedesSisComponent } from './Components/Sistemas/clasificacion-sedes-sis/clasificacion-sedes-sis.component';
+import { EquiposSedesSisComponent } from './Components/Sistemas/equipos-sede-sis/equipos-sede-sis.component';
+import { SysReporteFormComponent } from './Components/Sistemas/sys-reporte-form/sys-reporte-form.component';
 
 export const routes: Routes = [
 
@@ -183,7 +189,13 @@ export const routes: Routes = [
   { path: 'adminsistemas/equipos', component: SisEquiposComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER'] } },
   { path: 'adminsistemas/mantenimientos', component: SisMantenimientosComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER'] } },
   { path: 'adminsistemas/hojavida/:equipoId', component: SysHojaVidaComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER'] } },
-  { path: 'adminsistemas/trazabilidad', component: SysTrazabilidadGlobalComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER'] } },
+  { path: 'adminsistemas/trazabilidad', component: SysTrazabilidadGlobalComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'ADMINISTRADOR', 'AG', 'SYSTEMADMIN', 'SYSTEMUSER'] } },
+  { path: 'adminsistemas/admin/tiposequipo', component: AdmTiposEquipoSisComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN'] } },
+  { path: 'adminsistemas/servicios', component: ClasificacionServicioSisComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER'] } },
+  { path: 'adminsistemas/equiposservicio', component: EquiposServicioSisComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER'] } },
+  { path: 'adminsistemas/sedes', component: ClasificacionSedesSisComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER'] } },
+  { path: 'adminsistemas/equipossede', component: EquiposSedesSisComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER'] } },
+  { path: 'adminsistemas/reporte-entrega', component: SysReporteFormComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER'] } },
 
   { path: 'intranet', component: IntranetComponent }
 ];

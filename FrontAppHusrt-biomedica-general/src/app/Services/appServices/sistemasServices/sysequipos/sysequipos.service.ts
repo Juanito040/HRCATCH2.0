@@ -95,7 +95,7 @@ export class SysequiposService {
     return this.http.get<any[]>(`${this.apiUrl}/tiposequipo`);
   }
 
-  exportarInventario(tipo: 'todos' | 'bodega'): Promise<Blob> {
+  exportarInventario(tipo: 'todos' | 'bodega' | 'activo' | 'inactivo'): Promise<Blob> {
     return firstValueFrom(
       this.http.get(`${this.apiUrl}/exportar`, {
         params: { tipo },

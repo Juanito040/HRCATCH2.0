@@ -19,10 +19,12 @@ export class ParametrizacionSistemasComponent {
   constructor() {
     const decoded = getDecodedAccessToken();
     if (decoded?.rol === 'SUPERADMIN') this.isSuperAdmin = true;
-    if (decoded?.rol === 'ADMINISTRADOR' || decoded?.rol === 'AG') this.isAdminSistemas = true;
+    if (decoded?.rol === 'ADMINISTRADOR' || decoded?.rol === 'AG' || decoded?.rol === 'SYSTEMADMIN') this.isAdminSistemas = true;
   }
 
-  irATiposEquipo()  { this.router.navigate(['/adminsistemas/tiposequipo']); }
-  irAProtocolos()   { this.router.navigate(['/adminsistemas/protocolos']); }
-  irAUsuarios()     { this.router.navigate(['/admusuarios']); }
+  irATiposEquipo()   { this.router.navigate(['/adminsistemas/admin/tiposequipo']); }
+  irAServicios()     { this.router.navigate(['/adminsistemas/servicios']); }
+  irAProtocolos()    { this.router.navigate(['/adminsistemas/protocolos']); }
+  irAUsuarios()      { this.router.navigate(['/admusuarios']); }
+  irATrazabilidad()  { this.router.navigate(['/adminsistemas/trazabilidad']); }
 }
