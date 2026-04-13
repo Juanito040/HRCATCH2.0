@@ -4,6 +4,9 @@ const ctrl = require('../../controllers/Sistemas/sysEquipoController');
 const SysEquipo = require('../../models/Sistemas/SysEquipo');
 const TipoEquipo = require('../../models/generales/TipoEquipo');
 const Servicio = require('../../models/generales/Servicio');
+const SysProtocoloPreventivo = require('../../models/Sistemas/SysProtocoloPreventivo');
+const SysMantenimiento = require('../../models/Sistemas/SysMantenimiento');
+const SysHojaVida = require('../../models/Sistemas/SysHojaVida');
 const { Op } = require('sequelize');
 
 // GET /sysequipo/tiposequipo → tipos de equipo que tienen equipos de sistemas
@@ -47,8 +50,22 @@ router.get('/exportar', async (req, res) => {
       };
       nombreArchivo = 'Inventario_Sistemas_Bodega';
       nombreHoja = 'En Bodega';
+    } else if (tipo === 'activo') {
+      where = {
+        activo: 1,
+        [Op.and]: [
+          { [Op.or]: [{ ubicacion: { [Op.ne]: 'Bodega' } }, { ubicacion: null }] },
+          { [Op.or]: [{ estado_baja: false }, { estado_baja: null }] }
+        ]
+      };
+      nombreArchivo = 'Inventario_Sistemas_Activo';
+      nombreHoja = 'Equipos Activos';
+    } else if (tipo === 'inactivo') {
+      where = { estado_baja: 1 };
+      nombreArchivo = 'Inventario_Sistemas_DadosDeBaja';
+      nombreHoja = 'Dados de Baja';
     } else {
-      // Todos: excluir bodega y dados de baja (mismo filtro que getAllSysEquipos)
+      // 'todos': excluir bodega y dados de baja (mismo filtro que getAllSysEquipos)
       where = {
         [Op.and]: [
           { [Op.or]: [{ ubicacion: { [Op.ne]: 'Bodega' } }, { ubicacion: null }] },
@@ -60,8 +77,18 @@ router.get('/exportar', async (req, res) => {
     const equipos = await SysEquipo.findAll({
       where,
       include: [
-        { model: TipoEquipo, as: 'tipoEquipo', attributes: ['id', 'nombres'] },
-        { model: Servicio,   as: 'servicio',   attributes: ['id', 'nombres'] }
+        {
+          model: TipoEquipo, as: 'tipoEquipo', attributes: ['id', 'nombres'],
+          include: [
+            { model: SysProtocoloPreventivo, as: 'sysProtocolos', attributes: ['paso', 'estado'],
+              where: { estado: true }, required: false }
+          ]
+        },
+        { model: Servicio, as: 'servicio', attributes: ['id', 'nombres'] },
+        { model: SysMantenimiento, as: 'mantenimientos',
+          attributes: ['tipo_mantenimiento', 'fecha', 'observacionesh', 'observacioness'],
+          required: false },
+        { model: SysHojaVida, as: 'hojaVida', required: false }
       ],
       order: [['nombre_equipo', 'ASC']]
     });
@@ -89,7 +116,32 @@ router.get('/exportar', async (req, res) => {
       { header: 'VLAN',             key: 'direccionamiento_Vlan', width: 18 },
       { header: 'N° Puertos',       key: 'numero_puertos',        width: 12 },
       { header: 'Administrable',    key: 'administrable',         width: 14 },
-      { header: 'Estado',           key: 'estado',                width: 12 }
+      { header: 'Estado',           key: 'estado',                width: 12 },
+      // Hoja de Vida
+      { header: 'IP',               key: 'ip',                    width: 16 },
+      { header: 'MAC',              key: 'mac',                   width: 20 },
+      { header: 'Procesador',       key: 'procesador',            width: 28 },
+      { header: 'RAM',              key: 'ram',                   width: 16 },
+      { header: 'Disco Duro',       key: 'disco_duro',            width: 18 },
+      { header: 'Sistema Operativo',key: 'sistema_operativo',     width: 22 },
+      { header: 'Office',           key: 'office',                width: 22 },
+      { header: 'Tóner',            key: 'tonner',                width: 16 },
+      { header: 'Usuario Asignado', key: 'nombre_usuario',        width: 24 },
+      { header: 'Vendedor',         key: 'vendedor',              width: 22 },
+      { header: 'Tipo de Uso',      key: 'tipo_uso',              width: 16 },
+      { header: 'Fecha Compra',     key: 'fecha_compra',          width: 16 },
+      { header: 'Fecha Instalación',key: 'fecha_instalacion',     width: 18 },
+      { header: 'Costo Compra',     key: 'costo_compra',          width: 16 },
+      { header: 'Contrato',         key: 'contrato',              width: 20 },
+      { header: 'Observaciones HV', key: 'observaciones_hv',      width: 35 },
+      { header: 'Compra Directa',   key: 'compraddirecta',        width: 15 },
+      { header: 'Convenio',         key: 'convenio',              width: 12 },
+      { header: 'Donado',           key: 'donado',                width: 12 },
+      { header: 'Comodato',         key: 'comodato',              width: 12 },
+      // Protocolos y mantenimientos
+      { header: 'Protocolos Preventivos', key: 'protocolos_preventivos', width: 55 },
+      { header: 'Último Mant. Preventivo', key: 'ultimo_preventivo',     width: 22 },
+      { header: 'Último Mant. Correctivo', key: 'ultimo_correctivo',     width: 22 }
     ];
 
     // Estilo de cabecera (asignación directa de propiedades ExcelJS)
@@ -117,6 +169,22 @@ router.get('/exportar', async (req, res) => {
     equipos.forEach((eq, index) => {
       const estadoTexto = eq.activo ? 'Activo' : 'En Bodega';
 
+      // Protocolos preventivos del tipo de equipo (pasos activos)
+      const protocolos = (eq.tipoEquipo?.sysProtocolos || []);
+      const protocolosTexto = protocolos.length > 0
+        ? protocolos.map((p, i) => `${i + 1}. ${p.paso}`).join('\n')
+        : 'Sin protocolos definidos';
+
+      // Último mantenimiento preventivo y correctivo
+      const mantenimientos = eq.mantenimientos || [];
+      const preventivos = mantenimientos.filter(m => m.tipo_mantenimiento === 2).sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+      const correctivos = mantenimientos.filter(m => m.tipo_mantenimiento === 1).sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+      const ultimoPreventivo = preventivos[0]?.fecha || 'Sin registros';
+      const ultimoCorrectivo = correctivos[0]?.fecha || 'Sin registros';
+
+      const hv = eq.hojaVida || {};
+      const fmtBool = v => v ? 'Sí' : 'No';
+
       const row = worksheet.addRow({
         id:                    eq.id_sysequipo,
         nombre_equipo:         eq.nombre_equipo         || '',
@@ -125,7 +193,7 @@ router.get('/exportar', async (req, res) => {
         serie:                 eq.serie                 || '',
         placa_inventario:      eq.placa_inventario      || '',
         codigo:                eq.codigo                || '',
-        tipo_equipo:           eq.tipoEquipo?.nombres || '',
+        tipo_equipo:           eq.tipoEquipo?.nombres   || '',
         servicio:              eq.servicio?.nombres      || '',
         ubicacion:             eq.ubicacion             || '',
         ubicacion_especifica:  eq.ubicacion_especifica  || '',
@@ -134,15 +202,45 @@ router.get('/exportar', async (req, res) => {
         direccionamiento_Vlan: eq.direccionamiento_Vlan || '',
         numero_puertos:        eq.numero_puertos        ?? '',
         administrable:         eq.administrable ? 'Sí' : 'No',
-        estado:                estadoTexto
+        estado:                estadoTexto,
+        // Hoja de Vida
+        ip:                    hv.ip                || '',
+        mac:                   hv.mac               || '',
+        procesador:            hv.procesador        || '',
+        ram:                   hv.ram               || '',
+        disco_duro:            hv.disco_duro        || '',
+        sistema_operativo:     hv.sistema_operativo || '',
+        office:                hv.office            || '',
+        tonner:                hv.tonner            || '',
+        nombre_usuario:        hv.nombre_usuario    || '',
+        vendedor:              hv.vendedor          || '',
+        tipo_uso:              hv.tipo_uso          || '',
+        fecha_compra:          hv.fecha_compra      || '',
+        fecha_instalacion:     hv.fecha_instalacion || '',
+        costo_compra:          hv.costo_compra      || '',
+        contrato:              hv.contrato          || '',
+        observaciones_hv:      hv.observaciones     || '',
+        compraddirecta:        hv.compraddirecta != null ? fmtBool(hv.compraddirecta) : '',
+        convenio:              hv.convenio          != null ? fmtBool(hv.convenio)    : '',
+        donado:                hv.donado            != null ? fmtBool(hv.donado)      : '',
+        comodato:              hv.comodato          != null ? fmtBool(hv.comodato)    : '',
+        // Protocolos y mantenimientos
+        protocolos_preventivos: protocolosTexto,
+        ultimo_preventivo:     ultimoPreventivo,
+        ultimo_correctivo:     ultimoCorrectivo
       });
 
       const fillColor = index % 2 === 0 ? 'FFFFFFFF' : 'FFF0F4FF';
-      row.eachCell(cell => {
+      // col 38 = protocolos_preventivos (17 base + 21 HV = col 38)
+      row.eachCell((cell, colNumber) => {
         cell.border    = cellBorder;
         cell.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: fillColor } };
-        cell.alignment = { vertical: 'middle' };
+        cell.alignment = colNumber === 38
+          ? { vertical: 'top', wrapText: true }
+          : { vertical: 'middle' };
       });
+      // Ajustar altura de fila según cantidad de protocolos
+      if (protocolos.length > 1) row.height = Math.min(15 * protocolos.length, 120);
     });
 
     const buffer = await workbook.xlsx.writeBuffer();
