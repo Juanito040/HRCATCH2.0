@@ -47,7 +47,7 @@ export class SysprotocoloService {
   }
   getCumplimientoProtocoloMantenimiento(idMantenimiento: any) {
     return firstValueFrom(
-      this.http.get<any[]>(`${API_URL}/cumplimientos/mantenimiento/` + idMantenimiento)
+      this.http.get<any[]>(`${API_URL}/syscumplimiento/cumplimientos/mantenimiento/` + idMantenimiento)
     )
   }
   addCumplimientoProtocolo(protocolo: any) {

@@ -63,4 +63,9 @@ export class SysRepuestosService {
   toggleActivo(id: number, observacion?: string): Observable<SysRepuestoResponse> {
     return this.http.patch<SysRepuestoResponse>(`${this.apiUrl}/${id}/toggle`, { observacion });
   }
+  getByTipo(idTipo: number, filters?: { is_active?: boolean }): Observable<SysRepuestoResponse> {
+    let params = new HttpParams();
+    if (filters?.is_active !== undefined) params = params.set('is_active', filters.is_active.toString());
+    return this.http.get<SysRepuestoResponse>(`${this.apiUrl}/tipo/${idTipo}`, { params });
+  }
 }

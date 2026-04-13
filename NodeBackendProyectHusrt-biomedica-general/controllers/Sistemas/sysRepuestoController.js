@@ -78,7 +78,29 @@ exports.getById = async (req, res) => {
     res.status(500).json({ success: false, message: 'Error al obtener el repuesto' });
   }
 };
+// ─── Obtener repuestos por tipo ───────────────────────────────────────────────
+exports.getByTipo = async (req, res) => {
+  try {
+    const { id_tipo } = req.params;
+    const { is_active } = req.query;
 
+    const where = { id_sys_tipo_repuesto_fk: id_tipo };
+    if (is_active !== undefined) {
+      where.is_active = is_active === 'true' || is_active === '1';
+    }
+
+    const repuestos = await SysRepuesto.findAll({
+      where,
+      include: INCLUDES_BASE,
+      order: [['nombre', 'ASC']]
+    });
+
+    res.json({ success: true, data: repuestos });
+  } catch (error) {
+    console.error('Error getByTipo SysRepuesto:', error);
+    res.status(500).json({ success: false, message: 'Error al obtener repuestos por tipo' });
+  }
+};
 // ─── Crear repuesto ───────────────────────────────────────────────────────────
 exports.create = async (req, res) => {
   try {

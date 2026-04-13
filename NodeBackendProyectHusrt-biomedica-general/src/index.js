@@ -104,15 +104,14 @@ const sysPlanMantenimientoRoutes = require('./../routes/sistemas/sysPlanMantenim
 const sysReporteRoutes = require('./../routes/sistemas/sysReporteRoutes');
 const sysProgramacionRoutes = require('./../routes/sistemas/sysProgramacionPreventivoRoutes');
 const sysCumplimientoProtocoloPreventivoRoutes = require('./../routes/sistemas/sysCumplimientoProtocoloPreventivo');
-app.use('/syscumplimiento', checkToken, sysCumplimientoProtocoloPreventivoRoutes); 
-app.use('/sysprogramacion', checkToken, sysProgramacionRoutes); 
-app.use('/sysequipo', checkToken, sysEquipoRoutes);
-app.use('/syshojavida', checkToken, sysHojaVidaRoutes);
-
 const sysTipoRepuestoRoutes = require('./../routes/sistemas/sysTipoRepuestoRoutes');
 const sysRepuestoRoutes = require('./../routes/sistemas/sysRepuestoRoutes');
 const sysAuditoriaRepuestoRoutes = require('./../routes/sistemas/sysAuditoriaRepuestoRoutes');
 const sysMovimientosStockRoutes = require('./../routes/sistemas/sysMovimientosStockRoutes');
+app.use('/syscumplimiento', checkToken, sysCumplimientoProtocoloPreventivoRoutes); 
+app.use('/sysprogramacion', checkToken, sysProgramacionRoutes); 
+app.use('/sysequipo', checkToken, sysEquipoRoutes);
+app.use('/syshojavida', checkToken, sysHojaVidaRoutes);
 app.use('/systiporepuesto', checkToken, sysTipoRepuestoRoutes);
 app.use('/sysrepuesto', checkToken, sysRepuestoRoutes);
 app.use('/sysauditoria-repuesto', checkToken, sysAuditoriaRepuestoRoutes);

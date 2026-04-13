@@ -1,5 +1,5 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { CommonModule, Location } from '@angular/common';
+import { Component, inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, FormsModule, FormArray, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CalendarModule } from 'primeng/calendar';
@@ -14,46 +14,55 @@ import { TextareaModule } from 'primeng/textarea';
 import { TableModule } from 'primeng/table';
 import Swal from 'sweetalert2';
 import { getDecodedAccessToken } from '../../../../app/utilidades';
-import { ProtocolosService } from '../../../Services/appServices/biomedicaServices/protocolos/protocolos.service';
 import { SysequiposService } from '../../../Services/appServices/sistemasServices/sysequipos/sysequipos.service';
 import { UserService } from '../../../Services/appServices/userServices/user.service';
 import { SysmantenimientoService } from '../../../Services/appServices/sistemasServices/sysmantenimiento/sysmantenimiento.service';
 import { TipoEquipoService } from '../../../Services/appServices/general/tipoEquipo/tipo-equipo.service';
-/* import { CondicionInicialService } from '../../../../Services/appServices/biomedicaServices/condicionesIniciales/condicion-inicial.service'; */
-import { DraftService } from '../../../Services/appServices/draft.service';
-
 import { UppercaseDirective } from '../../../Directives/uppercase.directive';
 import { SysprotocoloService } from '../../../Services/appServices/sistemasServices/sysprotocolo/sysprotocolo.service';
+import { SysTipoRepuestosService, SysTipoRepuesto } from '../../../Services/appServices/sistemasServices/systiporepuestos/systiporepuestos.service';
+import { SysRepuestosService, SysRepuesto } from '../../../Services/appServices/sistemasServices/sysrepuestos/sysrepuestos.service';
 
 @Component({
   selector: 'app-reporte-mantenimiento',
   standalone: true,
-  imports: [DatePickerModule, SelectModule, TextareaModule, InputTextModule, ButtonModule, CardModule, CalendarModule, InputMaskModule, CommonModule, CheckboxModule, ReactiveFormsModule, FormsModule, TableModule, UppercaseDirective],
+  imports: [
+    DatePickerModule, SelectModule, TextareaModule, InputTextModule, ButtonModule,
+    CardModule, CalendarModule, InputMaskModule, CommonModule, CheckboxModule,
+    ReactiveFormsModule, FormsModule, TableModule, UppercaseDirective
+  ],
   templateUrl: './reporte-mantenimiento.component.html',
   styleUrl: './reporte-mantenimiento.component.css'
 })
 export class CrearMantenimientoComponent implements OnInit {
 
+  // ─── Propiedades ────────────────────────────────────────────────────────────
   mantenimiento!: any;
   equipo!: any;
   protocolos!: any[];
   cumplimientoProtocolo: any[] = [];
   nombreUsuario!: any;
-  selectProtocolos: any[] = [];
   mantenimientoForm!: FormGroup;
+  tipoMantenimiento = '';
+  medicionesPreventivo: any[] = [];
+  equiposPatron: any[] = [];
+  selectedPatron: any = null;
+  id!: number;
+  tiposRepuesto: { label: string; value: number }[] = [];
+  repuestosPorTipo: Map<number, { label: string; value: number }[]> = new Map();
+
+  // ─── Servicios ──────────────────────────────────────────────────────────────
+  private platformId = inject(PLATFORM_ID);
   sysequiposervices = inject(SysequiposService);
   sysprotocoloservices = inject(SysprotocoloService);
   userServices = inject(UserService);
   mantenimientoServices = inject(SysmantenimientoService);
   tipoEquipoService = inject(TipoEquipoService);
-  /* condicionInicialService = inject(CondicionInicialService); */
+  tipoRepuestosService = inject(SysTipoRepuestosService);
+  sysRepuestosService = inject(SysRepuestosService);
   router = inject(Router);
-  draftService = inject(DraftService);
-  tipoMantenimiento = '';
 
-  // Specific Measurements
-  medicionesPreventivo: any[] = [];
-
+  // ─── Opciones de formulario ──────────────────────────────────────────────────
   tiposMantenimiento = [
     { label: 'Correctivo', value: 'Correctivo' },
     { label: 'Preventivo', value: 'Preventivo' },
@@ -70,26 +79,21 @@ export class CrearMantenimientoComponent implements OnInit {
     'Operativo sin restricciones', 'Operativo con restricciones', 'Fuera de servicio'
   ].map(v => ({ label: v, value: v }));
 
-  id!: number;
-
   opcionesCumplimiento = [
     { label: 'Cumple', value: 'CUMPLE' },
     { label: 'No Cumple', value: 'NO_CUMPLE' },
     { label: 'No Aplica', value: 'NO_APLICA' }
   ];
 
-  equiposPatron: any[] = [];
-  selectedPatron: any = null;
-
+  // ─── Constructor ─────────────────────────────────────────────────────────────
   constructor(private route: ActivatedRoute, private fb: FormBuilder, private location: Location) {
-    this.validarTipoMantenimiento();
     this.mantenimientoForm = this.fb.group({
       fechaRealizado: [null, Validators.required],
       horaInicio: [null, Validators.required],
       fechaFin: [null, Validators.required],
       horaTerminacion: [null, Validators.required],
       horaTotal: [{ value: null, disabled: true }],
-      tipoMantenimiento: [this.tipoMantenimiento, Validators.required],
+      tipoMantenimiento: ['', Validators.required],
       tipoFalla: [null, Validators.required],
       estadoOperativo: [null, Validators.required],
       motivo: ['', Validators.required],
@@ -98,34 +102,202 @@ export class CrearMantenimientoComponent implements OnInit {
       nombreRecibio: ['', Validators.required],
       cedulaRecibio: ['', Validators.required],
       observaciones: ['', Validators.required],
-      equipoPatronIdFk: [null], // Renamed field
+      equipoPatronIdFk: [null],
       cumplimientoProtocolo: this.fb.array([]),
       valoresMediciones: this.fb.array([]),
       repuestos: this.fb.array([]),
       condicionesIniciales: this.fb.array([])
     });
 
+    // Escucha cambios en tipoMantenimiento para ajustar campos
+    this.mantenimientoForm.get('tipoMantenimiento')?.valueChanges.subscribe((val) => {
+      if (val === 'Preventivo') {
+        this.mantenimientoForm.get('tipoFalla')?.setValue('Sin Falla');
+        this.mantenimientoForm.get('tipoFalla')?.disable();
+        this.mantenimientoForm.get('motivo')?.setValue('Programado para mantenimiento preventivo');
+        this.mantenimientoForm.get('motivo')?.disable();
+      } else {
+        this.mantenimientoForm.get('tipoFalla')?.enable();
+        this.mantenimientoForm.get('motivo')?.enable();
+        if (this.mantenimientoForm.get('tipoFalla')?.value === 'Sin Falla') {
+          this.mantenimientoForm.get('tipoFalla')?.setValue(null);
+        }
+        if (this.mantenimientoForm.get('motivo')?.value === 'Programado para mantenimiento preventivo') {
+          this.mantenimientoForm.get('motivo')?.setValue('');
+        }
+      }
+    });
+
+    // Calcula horas automáticamente al cambiar cualquier campo
     this.mantenimientoForm.valueChanges.subscribe(() => {
       this.calcularHoras();
     });
 
-    if (this.tipoMantenimiento === 'Preventivo') {
-      this.mantenimientoForm.get('tipoFalla')?.setValue('Sin Falla');
-      this.mantenimientoForm.get('tipoFalla')?.disable();
-      this.mantenimientoForm.get('motivo')?.setValue('Programado para mantenimiento preventivo');
-      this.mantenimientoForm.get('motivo')?.disable();
-    }
-
+    // Por defecto el tipo de mantenimiento está bloqueado
     this.mantenimientoForm.get('tipoMantenimiento')?.disable();
 
+    // Solo admins pueden cambiar el tipo
     const token = getDecodedAccessToken();
-
-    if (token && (token.rol === 'SUPERADMIN' || token.rol === 'BIOMEDICAADMIN' || token.rol === 'BIOMEDICAUSER')) {
-
+    if (token && (token.rol === 'SUPERADMIN' || token.rol === 'BIOMEDICAADMIN' || token.rol === 'BIOMEDICAUSER' || token.rol === 'SISTEMASADMIN' || token.rol === 'SISTEMASUSER')) {
       this.mantenimientoForm.get('tipoMantenimiento')?.enable();
     }
   }
 
+  // ─── Ciclo de vida ───────────────────────────────────────────────────────────
+  async ngOnInit() {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    this.id = Number(this.route.snapshot.paramMap.get('id'));
+    const idMantenimiento = Number(localStorage.getItem('idMantenimiento'));
+
+    await this.loadInitialData(idMantenimiento);
+    await this.loadBaseData();
+
+    // Para reportes nuevos, inicializa el tipo desde localStorage
+    if (!this.mantenimiento.realizado) {
+      // Si el registro ya tiene tipoMantenimiento (programado), usarlo
+      // Si no, leerlo del localStorage (correctivo nuevo)
+      if (!this.mantenimiento.tipoMantenimiento) {
+        this.validarTipoMantenimiento();
+        if (this.tipoMantenimiento) {
+          this.mantenimientoForm.get('tipoMantenimiento')?.setValue(
+            this.tipoMantenimiento, { emitEvent: false }
+          );
+        }
+      }
+      // Ajustar campos si es Preventivo
+      if (this.tipoMantenimiento === 'Preventivo' || this.mantenimiento.tipoMantenimiento === 'Preventivo') {
+        this.mantenimientoForm.get('tipoFalla')?.setValue('Sin Falla');
+        this.mantenimientoForm.get('tipoFalla')?.disable();
+        this.mantenimientoForm.get('motivo')?.setValue('Programado para mantenimiento preventivo');
+        this.mantenimientoForm.get('motivo')?.disable();
+      }
+    }
+
+    await this.initRelatedEntities();
+    this.populateFormFromMantenimiento();
+  }
+
+  // ─── Carga de datos ──────────────────────────────────────────────────────────
+
+  private async loadInitialData(idMantenimiento: number) {
+    if (idMantenimiento && idMantenimiento > 0) {
+      try {
+        // ✅ Desempacar .data porque el backend retorna { success: true, data: {...} }
+        const res: any = await this.mantenimientoServices.getById(idMantenimiento);
+        this.mantenimiento = res?.data ?? res;
+
+        // Carga cumplimiento de protocolo
+        if (this.mantenimiento.id) {
+          this.mantenimiento.cumplimientoProtocolo = await this.sysprotocoloservices
+            .getCumplimientoProtocoloMantenimiento(this.mantenimiento.id)
+            .catch(() => []);
+        }
+      } catch (error) {
+        console.error('Error cargando datos iniciales del mantenimiento:', error);
+        this.mantenimiento = {};
+      }
+    } else {
+      this.mantenimiento = {};
+    }
+  }
+
+  private async loadBaseData() {
+    // 1. Cargar usuario
+    try {
+      this.nombreUsuario = await this.userServices.getNameUSer(getDecodedAccessToken().id);
+    } catch (error) {
+      console.error('Error cargando usuario:', error);
+      this.nombreUsuario = { nombreCompleto: 'Técnico', numeroId: '' };
+    }
+    // Si es edición, mostrar el usuario original del reporte
+    if (this.mantenimiento.id && this.mantenimiento.usuario) {
+      this.nombreUsuario = this.mantenimiento.usuario;
+    }
+
+    // 2. Cargar equipo, protocolos y mediciones
+    try {
+      const equipoRes = await this.sysequiposervices.getEquipoById(this.id);
+      this.equipo = equipoRes?.data ?? equipoRes;
+
+      const tipoEquipoId = this.equipo.tipoEquipo?.id ?? this.equipo.id_tipo_equipo_fk ?? this.equipo.tipoEquipoIdFk;
+
+      if (tipoEquipoId) {
+        const [protocolos, allMediciones] = await Promise.all([
+          this.sysprotocoloservices.getActivosByTipoEquipo(tipoEquipoId).catch(() => []),
+          this.tipoEquipoService.getMediciones(tipoEquipoId).catch(() => [])
+        ]);
+        this.protocolos = protocolos;
+        this.medicionesPreventivo = allMediciones.filter((m: any) => m.estado !== false);
+      } else {
+        this.protocolos = [];
+        this.medicionesPreventivo = [];
+      }
+    } catch (error) {
+      console.error('Error cargando datos base del equipo:', error);
+      Swal.fire('Error', 'No se pudo cargar la información del equipo', 'error');
+    }
+    try {
+      const res = await this.tipoRepuestosService.getTipos({ is_active: true }).toPromise();
+      const tipos = Array.isArray(res?.data) ? res!.data as SysTipoRepuesto[] : [];
+      this.tiposRepuesto = tipos.map(t => ({ label: t.nombre, value: t.id_sys_tipo_repuesto! }));
+    } catch (error) {
+      console.error('Error cargando tipos de repuesto:', error);
+    }
+  }
+
+  private async initRelatedEntities() {
+    this.iniValoresMediciones();
+    this.iniCumplimientoProtocolo();
+    this.iniRepuestos();
+  }
+
+  private populateFormFromMantenimiento() {
+    // ✅ Quitar el guard de realizado — si tiene id debe cargar datos
+    if (!this.mantenimiento.id) return;
+
+    // Setear tipoMantenimiento SIEMPRE que exista en el registro
+    if (this.mantenimiento.tipoMantenimiento) {
+      this.tipoMantenimiento = this.mantenimiento.tipoMantenimiento;
+      this.mantenimientoForm.get('tipoMantenimiento')?.setValue(
+        this.mantenimiento.tipoMantenimiento, { emitEvent: false }
+      );
+    }
+
+    // Solo parchea los campos de reporte si ya fue realizado
+    if (this.mantenimiento.realizado) {
+      this.mantenimientoForm.patchValue({
+        fechaRealizado: this.mantenimiento.fechaRealizado
+          ? new Date(this.mantenimiento.fechaRealizado + 'T00:00:00') : null,
+        horaInicio: this.mantenimiento.horaInicio,
+        fechaFin: this.mantenimiento.fechaFin
+          ? new Date(this.mantenimiento.fechaFin + 'T00:00:00') : null,
+        horaTerminacion: this.mantenimiento.horaTerminacion,
+        horaTotal: this.mantenimiento.horaTotal,
+        tipoFalla: this.mantenimiento.tipoFalla,
+        motivo: this.mantenimiento.motivo,
+        trabajoRealizado: this.mantenimiento.trabajoRealizado,
+        calificacion: this.mantenimiento.calificacion,
+        nombreRecibio: this.mantenimiento.nombreRecibio,
+        cedulaRecibio: this.mantenimiento.cedulaRecibio,
+        observaciones: this.mantenimiento.observaciones,
+        estadoOperativo: this.mantenimiento.estadoOperativo,
+        equipoPatronIdFk: this.mantenimiento.equipoPatronIdFk
+      });
+    }
+
+    const token = getDecodedAccessToken();
+    const puedeEditarTipo = token && (
+      token.rol === 'SUPERADMIN' || token.rol === 'BIOMEDICAADMIN' ||
+      token.rol === 'BIOMEDICAUSER' || token.rol === 'SISTEMASADMIN' || token.rol === 'SISTEMASUSER'
+    );
+    if (puedeEditarTipo) {
+      this.mantenimientoForm.get('tipoMantenimiento')?.enable({ emitEvent: false });
+    } else {
+      this.mantenimientoForm.get('tipoMantenimiento')?.disable({ emitEvent: false });
+    }
+  }
+  // ─── Cálculo de horas ────────────────────────────────────────────────────────
   calcularHoras() {
     const fechaInicio = this.mantenimientoForm.get('fechaRealizado')?.value;
     const horaInicio = this.mantenimientoForm.get('horaInicio')?.value;
@@ -153,199 +325,18 @@ export class CrearMantenimientoComponent implements OnInit {
       const seconds = Math.floor((diferenciaMs % (1000 * 60)) / 1000);
 
       const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-
       this.mantenimientoForm.get('horaTotal')?.setValue(formattedTime, { emitEvent: false });
     }
   }
 
-  async ngOnInit() {
-    this.id = Number(this.route.snapshot.paramMap.get('id'));
-    const idMantenimiento = Number(sessionStorage.getItem('idMantenimiento'));
-    if (idMantenimiento && idMantenimiento > 0) {
-      this.mantenimiento = await this.mantenimientoServices.getById(idMantenimiento) || {};
-    } else {
-      this.mantenimiento = {};
-    }
-    // Ensure we have compliance data
-    if (this.mantenimiento.id) {
-      this.mantenimiento.cumplimientoProtocolo = await this.sysprotocoloservices.getCumplimientoProtocoloMantenimiento(this.mantenimiento.id);
-
-      // Fetch full report details to get specific measurements
-      try {
-        const reportDetails = await this.mantenimientoServices.getById(this.mantenimiento.id);
-        if (reportDetails && reportDetails.valoresMediciones) {
-          this.mantenimiento.valoresMediciones = reportDetails.valoresMediciones;
-        }
-        if (reportDetails && reportDetails.repuestos) {
-          this.mantenimiento.repuestos = reportDetails.repuestos;
-        }
-      } catch (error) {
-        console.error('Error fetching report details for measurements:', error);
-      }
-    }
-    const equipoRes = await this.sysequiposervices.getEquipoById(this.id);
-    // El servicio de sistemas devuelve { success, data } — extraemos .data
-    this.equipo = equipoRes?.data ?? equipoRes;
-    this.protocolos = await this.sysprotocoloservices.getActivosByTipoEquipo(this.equipo.tipoEquipo?.id);
-
-
-    this.nombreUsuario = await this.userServices.getNameUSer(getDecodedAccessToken().id);
-
-    // If editing, try to show the original author's name
-    if (this.mantenimiento.id && this.mantenimiento.usuario) {
-      this.nombreUsuario = this.mantenimiento.usuario;
-    }
-
-    // Fetch specific measurements
-    if (this.equipo && (this.equipo.id_tipo_equipo_fk || this.equipo.tipoEquipoIdFk)) {
-      try {
-        const allMediciones = await this.tipoEquipoService.getMediciones(this.equipo.tipoEquipo?.id ?? this.equipo.id_tipo_equipo_fk);
-        this.medicionesPreventivo = allMediciones.filter((m: any) => m.estado !== false);
-        this.iniValoresMediciones();
-      } catch (error) {
-        console.error('Error fetching measurements:', error);
-      }
-    }
-
-    await this.iniCumplimientoProtocolo();
-    this.iniRepuestos();
-
-    /* // Fetch patron equipments (Type 1316)
-    try {
-      this.equiposPatron = await this.sysequiposervices.getEquiposPatron();
-    } catch (error) {
-      console.error('Error fetching patron equipments:', error);
-    } */
-
-    // Initialize global initial conditions
-    /* try {
-      await this.iniCondicionesIniciales();
-    } catch (error) {
-      console.error('Error initializing initial conditions:', error);
-    }
- */
-    if (this.mantenimiento.id && this.mantenimiento.realizado) {
-      this.mantenimientoForm.patchValue({
-        // Fix: Use 'YYYY-MM-DDT00:00:00' to avoid timezone shifts
-        fechaRealizado: this.mantenimiento.fechaRealizado ? new Date(this.mantenimiento.fechaRealizado + 'T00:00:00') : null,
-        horaInicio: this.mantenimiento.horaInicio,
-        fechaFin: this.mantenimiento.fechaFin ? new Date(this.mantenimiento.fechaFin + 'T00:00:00') : null,
-        horaTerminacion: this.mantenimiento.horaTerminacion,
-        horaTotal: this.mantenimiento.horaTotal,
-        tipoMantenimiento: this.mantenimiento.tipoMantenimiento,
-        tipoFalla: this.mantenimiento.tipoFalla,
-        motivo: this.mantenimiento.motivo,
-        trabajoRealizado: this.mantenimiento.trabajoRealizado,
-        calificacion: this.mantenimiento.calificacion,
-        nombreRecibio: this.mantenimiento.nombreRecibio,
-        cedulaRecibio: this.mantenimiento.cedulaRecibio,
-        observaciones: this.mantenimiento.observaciones,
-        estadoOperativo: this.mantenimiento.estadoOperativo, // Load stored operative state
-        equipoPatronIdFk: this.mantenimiento.equipoPatronIdFk // Patch patron equipment
-      });
-
-      // Fix: Ensure tipoMantenimiento is updated from report data
-      if (this.mantenimiento.tipoMantenimiento) {
-        this.tipoMantenimiento = this.mantenimiento.tipoMantenimiento;
-        this.mantenimientoForm.get('tipoMantenimiento')?.enable({ emitEvent: false });
-        this.mantenimientoForm.get('tipoMantenimiento')?.patchValue(this.mantenimiento.tipoMantenimiento);
-      }
-
-      // PrimeNG Calendar expects Date object.
-      // If fetched dates are strings YYYY-MM-DD, new Date() works.
-
-      if (this.mantenimiento.equipoPatronIdFk) {
-        this.selectedPatron = this.equiposPatron.find(e => e.id === this.mantenimiento.equipoPatronIdFk);
-      }
-    }
-
-    // Check for drafts after initial load
-    this.checkForDraft();
-
-    // Start auto-saving
-    this.mantenimientoForm.valueChanges.subscribe(() => {
-      this.saveDraft();
-    });
-  }
-
-  checkForDraft() {
-    const draftKey = `mantenimiento_${this.id}_${this.tipoMantenimiento}`;
-    if (this.draftService.hasDraft(draftKey)) {
-      Swal.fire({
-        title: 'Borrador encontrado',
-        text: '¿Deseas recuperar el progreso guardado anteriormente?',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Sí, recuperar',
-        cancelButtonText: 'No, empezar de cero'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          const draft = this.draftService.getDraft(draftKey);
-          if (draft && draft.data) {
-            // Restore form values
-            this.mantenimientoForm.patchValue(draft.data, { emitEvent: false });
-            Swal.fire({
-              title: 'Recuperado',
-              text: 'Se ha restaurado el borrador con éxito.',
-              icon: 'success',
-              timer: 1500,
-              showConfirmButton: false
-            });
-          }
-        } else if (result.dismiss === Swal.DismissReason.cancel) {
-          this.draftService.clearDraft(draftKey);
-        }
-      });
-    }
-  }
-
-  saveDraft() {
-    const draftKey = `mantenimiento_${this.id}_${this.tipoMantenimiento}`;
-    this.draftService.saveDraft(draftKey, this.mantenimientoForm.value);
-  }
-
-  onSelectPatron() {
-    const id = this.mantenimientoForm.get('equipoPatronIdFk')?.value;
-    if (id) {
-      this.selectedPatron = this.equiposPatron.find(e => e.id === id);
-    } else {
-      this.selectedPatron = null;
-    }
-  }
-
-  iniValoresMediciones() {
-    const array = this.mantenimientoForm.get('valoresMediciones') as FormArray;
-    array.clear();
-    if (this.medicionesPreventivo) {
-      this.medicionesPreventivo.forEach(m => {
-        // Find existing value in report if editing
-        const existingVal = this.mantenimiento.valoresMediciones?.find((v: any) => v.medicion?.id === m.id || v.medicionIdFk === m.id);
-
-        array.push(this.fb.group({
-          id: [m.id],
-          nombre: [m.nombre],
-          unidad: [m.unidad],
-          valorEstandar: [m.valorEstandar],
-          valor: [existingVal ? existingVal.valor : ''],
-          unidadRegistrada: [existingVal ? existingVal.unidadRegistrada : m.unidad],
-          criterioAceptacion: [m.criterioAceptacion],
-          conforme: [existingVal ? existingVal.conforme : false]
-        }));
-      });
-    }
-  }
-
-  get valoresMedicionesFormArray(): FormArray {
-    return this.mantenimientoForm.get('valoresMediciones') as FormArray;
-  }
-
+  // ─── Submit ──────────────────────────────────────────────────────────────────
   async onSubmit() {
     if (this.mantenimientoForm.valid) {
-      // Prepare payload
-      let medicionesPayload = [];
-      if (this.mantenimientoForm.value.valoresMediciones) {
+      const selectedTipo = this.mantenimientoForm.get('tipoMantenimiento')?.value || this.tipoMantenimiento;
+
+      // Prepara mediciones
+      let medicionesPayload: any[] = [];
+      if (selectedTipo === 'Preventivo' && this.mantenimientoForm.value.valoresMediciones) {
         medicionesPayload = this.mantenimientoForm.value.valoresMediciones.map((m: any) => ({
           id: m.id,
           valor: m.valor,
@@ -354,60 +345,67 @@ export class CrearMantenimientoComponent implements OnInit {
         }));
       }
 
-      this.mantenimiento =
-      {
-        id: this.mantenimiento.id || null,
-        añoProgramado: this.mantenimiento.añoProgramado || null,
-        mesProgramado: this.mantenimiento.mesProgramado || null,
+      // Construye el payload conservando año y mes programado
+      this.mantenimiento = {
+        id: this.mantenimiento.id,
+        añoProgramado: this.mantenimiento.añoProgramado ||
+          (this.mantenimientoForm.value.fechaRealizado
+            ? new Date(this.mantenimientoForm.value.fechaRealizado).getFullYear() : null),
+        mesProgramado: (this.mantenimiento.mesProgramado !== null && this.mantenimiento.mesProgramado !== undefined)
+          ? this.mantenimiento.mesProgramado
+          : (this.mantenimientoForm.value.fechaRealizado
+            ? new Date(this.mantenimientoForm.value.fechaRealizado).getMonth() + 1 : null),
         fechaRealizado: this.mantenimientoForm.value.fechaRealizado,
         horaInicio: this.mantenimientoForm.value.horaInicio,
         fechaFin: this.mantenimientoForm.value.fechaFin,
         horaTerminacion: this.mantenimientoForm.value.horaTerminacion,
         horaTotal: this.mantenimientoForm.get('horaTotal')?.value || 0,
-        tipoMantenimiento: this.tipoMantenimiento,
-        tipoFalla: this.tipoMantenimiento == 'Preventivo' ? 'Sin Falla' : this.mantenimientoForm.value.tipoFalla,
-        motivo: this.tipoMantenimiento == 'Preventivo' ? 'Programado para mantenimiento preventivo' : this.mantenimientoForm.value.motivo,
+        tipoMantenimiento: selectedTipo,
+        tipoFalla: selectedTipo === 'Preventivo' ? 'Sin Falla' : this.mantenimientoForm.value.tipoFalla,
+        motivo: selectedTipo === 'Preventivo'
+          ? 'Programado para mantenimiento preventivo'
+          : this.mantenimientoForm.value.motivo,
         trabajoRealizado: this.mantenimientoForm.value.trabajoRealizado,
         calificacion: this.mantenimientoForm.value.calificacion,
         nombreRecibio: this.mantenimientoForm.value.nombreRecibio,
         cedulaRecibio: this.mantenimientoForm.value.cedulaRecibio,
         observaciones: this.mantenimientoForm.value.observaciones,
-        estadoOperativo: this.mantenimientoForm.value.estadoOperativo, // Ensure operative state is saved
+        estadoOperativo: this.mantenimientoForm.value.estadoOperativo,
         mantenimientoPropio: true,
         realizado: true,
         rutaPdf: null,
         servicioIdFk: this.equipo.servicioIdFk ?? this.equipo.id_servicio_fk ?? this.equipo.servicio?.id,
         id_sysequipo_fk: this.equipo.id_sysequipo ?? this.equipo.id,
         usuarioIdFk: getDecodedAccessToken().id,
-        mediciones: medicionesPayload, // Add measurements to payload
-        repuestos: this.mantenimientoForm.value.repuestos, // Add accessories to payload
-        equipoPatronIdFk: this.mantenimientoForm.value.equipoPatronIdFk, // Add patron equipment
-        condicionesIniciales: this.mantenimientoForm.value.condicionesIniciales // Add initial conditions
-      }
+        mediciones: medicionesPayload,
+        repuestos: this.mantenimientoForm.value.repuestos,
+        equipoPatronIdFk: this.mantenimientoForm.value.equipoPatronIdFk,
+        cumplimientoProtocolo: selectedTipo === 'Preventivo'
+          ? this.mantenimientoForm.value.cumplimientoProtocolo : []
+      };
+
       if (this.mantenimiento.id) {
-        // UPDATE: Use the update method if the report already exists (Corrective or Preventive edit)
+        // EDITAR reporte existente
         try {
           await this.mantenimientoServices.update(this.mantenimiento.id, this.mantenimiento);
           await this.guardarCumplimiento(this.mantenimiento.id);
           Swal.fire({
             icon: 'success',
-            title: this.tipoMantenimiento === 'Preventivo' ? 'Se actualizó el mantenimiento Preventivo' : 'Se actualizó el mantenimiento Correctivo',
+            title: selectedTipo === 'Preventivo'
+              ? 'Se actualizó el mantenimiento Preventivo'
+              : 'Se actualizó el mantenimiento Correctivo',
             showConfirmButton: false,
             timer: 1500
           });
-          const draftKey = `mantenimiento_${this.id}_${this.tipoMantenimiento}`;
-          this.draftService.clearDraft(draftKey);
+          localStorage.removeItem('idMantenimiento');
+          localStorage.removeItem('TipoMantenimiento');
           this.router.navigate(['adminsistemas/mantenimientos']);
         } catch (error) {
           console.error('Error al actualizar el mantenimiento:', error);
-          Swal.fire({
-            icon: 'error',
-            title: 'Error al actualizar el mantenimiento',
-            text: 'Por favor, inténtelo de nuevo más tarde.'
-          });
+          Swal.fire({ icon: 'error', title: 'Error al actualizar el mantenimiento', text: 'Por favor, inténtelo de nuevo más tarde.' });
         }
       } else {
-        // Correctivo nuevo — crear
+        // CREAR reporte nuevo
         try {
           const res = await this.mantenimientoServices.create(this.mantenimiento);
           if (res && res.data?.id) {
@@ -418,20 +416,15 @@ export class CrearMantenimientoComponent implements OnInit {
               showConfirmButton: false,
               timer: 1500
             });
-            const draftKey = `mantenimiento_${this.id}_${this.tipoMantenimiento}`;
-            this.draftService.clearDraft(draftKey);
+            localStorage.removeItem('idMantenimiento');
+            localStorage.removeItem('TipoMantenimiento');
             this.router.navigate(['adminsistemas/mantenimientos']);
           } else {
             throw new Error('No se recibió el ID del mantenimiento creado');
           }
-
         } catch (error) {
           console.error('Error al crear el mantenimiento:', error);
-          Swal.fire({
-            icon: 'error',
-            title: 'Error al crear el mantenimiento',
-            text: 'Por favor, inténtelo de nuevo más tarde.'
-          });
+          Swal.fire({ icon: 'error', title: 'Error al crear el mantenimiento', text: 'Por favor, inténtelo de nuevo más tarde.' });
         }
       }
     } else {
@@ -444,13 +437,16 @@ export class CrearMantenimientoComponent implements OnInit {
     }
   }
 
+  // ─── Protocolo ───────────────────────────────────────────────────────────────
   iniCumplimientoProtocolo() {
     const array = this.mantenimientoForm.get('cumplimientoProtocolo') as FormArray;
     array.clear();
-    this.protocolos.forEach(p => {
-      // Find existing compliance in report if editing
-      const existingComp = this.mantenimiento.cumplimientoProtocolo?.find((c: any) => c.protocoloPreventivoIdFk === p.id || c.protocolo?.id === p.id);
+    if (!this.protocolos?.length) return;
 
+    this.protocolos.forEach(p => {
+      const existingComp = this.mantenimiento.cumplimientoProtocolo?.find(
+        (c: any) => c.protocoloPreventivoIdFk === p.id || c.protocolo?.id === p.id
+      );
       array.push(this.fb.group({
         protocoloPreventivoIdFk: [p.id],
         cumple: [existingComp ? existingComp.cumple : 'CUMPLE'],
@@ -461,37 +457,11 @@ export class CrearMantenimientoComponent implements OnInit {
     });
   }
 
-  // Initial Conditions (Global)
-  activeCondicionesIniciales: any[] = [];
-
-  get condicionesInicialesFormArray(): FormArray {
-    return this.mantenimientoForm.get('condicionesIniciales') as FormArray;
-  }
-
-  /*   async iniCondicionesIniciales() {
-      const array = this.condicionesInicialesFormArray;
-      array.clear();
-  
-      // Fetch active conditions
-      this.activeCondicionesIniciales = await this.condicionInicialService.getActive();
-  
-      // Determine existing values if any
-      const existing = this.mantenimiento && this.mantenimiento.cumplimientoCondicionesIniciales ? this.mantenimiento.cumplimientoCondicionesIniciales : [];
-  
-      this.activeCondicionesIniciales.forEach(cond => {
-        const match = existing.find((e: any) => e.condicionInicialIdFk === cond.id || e.condicion?.id === cond.id || (e.condicionInicial && e.condicionInicial.id === cond.id));
-  
-        array.push(this.fb.group({
-          id: [cond.id], // Definition ID
-          descripcion: [cond.descripcion], // For display
-          cumple: [match ? match.cumple : 'CUMPLE', Validators.required],
-          observacion: [match ? match.observacion : '']
-        }));
-      });
-    } */
-
   async guardarCumplimiento(mantenimientoId: any) {
-    const promises = this.mantenimientoForm.value.cumplimientoProtocolo.map((protocolo: any) => {
+    const protocolos = this.mantenimientoForm.value.cumplimientoProtocolo;
+    if (!protocolos?.length) return;
+
+    const promises = protocolos.map((protocolo: any) => {
       const cp = {
         sysProtocoloPreventivoIdFk: protocolo.protocoloPreventivoIdFk,
         cumple: protocolo.cumple,
@@ -507,88 +477,140 @@ export class CrearMantenimientoComponent implements OnInit {
     return this.mantenimientoForm.get('cumplimientoProtocolo') as FormArray;
   }
 
-  testViewCumplimiento() {
-    const idMantenimiento = Number(sessionStorage.getItem('idMantenimiento'));
-    if (idMantenimiento && idMantenimiento > 0) {
-      this.guardarCumplimiento(idMantenimiento);
+  // ─── Mediciones ──────────────────────────────────────────────────────────────
+  iniValoresMediciones() {
+    const array = this.mantenimientoForm.get('valoresMediciones') as FormArray;
+    array.clear();
+    if (!this.medicionesPreventivo?.length) return;
+
+    this.medicionesPreventivo.forEach(m => {
+      const existingVal = this.mantenimiento.valoresMediciones?.find(
+        (v: any) => v.medicion?.id === m.id || v.medicionIdFk === m.id
+      );
+      array.push(this.fb.group({
+        id: [m.id],
+        nombre: [m.nombre],
+        unidad: [m.unidad],
+        valorEstandar: [m.valorEstandar],
+        valor: [existingVal ? existingVal.valor : ''],
+        unidadRegistrada: [existingVal ? existingVal.unidadRegistrada : m.unidad],
+        criterioAceptacion: [m.criterioAceptacion],
+        conforme: [existingVal ? existingVal.conforme : false]
+      }));
+    });
+  }
+
+  get valoresMedicionesFormArray(): FormArray {
+    return this.mantenimientoForm.get('valoresMediciones') as FormArray;
+  }
+
+  // ─── Repuestos ───────────────────────────────────────────────────────────────
+  iniRepuestos() {
+    const array = this.mantenimientoForm.get('repuestos') as FormArray;
+    array.clear();
+    if (!this.mantenimiento.repuestos?.length) return;
+
+    this.mantenimiento.repuestos.forEach((r: any) => {
+      array.push(this.fb.group({
+        id: [r.id],
+        tipoRepuestoIdFk: [r.tipoRepuestoIdFk ?? null],
+        sysRepuestoIdFk: [r.sysRepuestoIdFk ?? null],
+        cantidad: [r.cantidad],
+      }));
+    });
+  }
+  async cargarRepuestosPorTipo(idTipo: number, rowIndex: number) {
+    if (!idTipo) {
+      this.repuestosPorTipo.delete(rowIndex);
+      return;
+    }
+    try {
+      const res = await this.sysRepuestosService
+        .getByTipo(idTipo, { is_active: true })
+        .toPromise();
+      const lista = Array.isArray(res?.data) ? res!.data as SysRepuesto[] : [];
+      this.repuestosPorTipo.set(rowIndex, lista.map(r => ({
+        label: r.nombre,
+        value: r.id_sysrepuesto!
+      })));
+    } catch (error) {
+      console.error('Error cargando repuestos por tipo:', error);
+      this.repuestosPorTipo.set(rowIndex, []);
     }
   }
 
-  // Accessor for repuestos FormArray
+  getRepuestosParaFila(rowIndex: number): { label: string; value: number }[] {
+    return this.repuestosPorTipo.get(rowIndex) ?? [];
+  }
   get repuestosFormArray(): FormArray {
     return this.mantenimientoForm.get('repuestos') as FormArray;
   }
-
-  // Add new accessory
-  agregarRepuesto() {
-    const repuestoGroup = this.fb.group({
-      id: [null], // For editing
-      nombreInsumo: [''],
-      cantidad: [''],
-      comprobanteEgreso: ['']
-    });
-    this.repuestosFormArray.push(repuestoGroup);
+  onSeleccionarRepuesto(event: any, rowIndex: number) {
+    const repuestos = this.getRepuestosParaFila(rowIndex);
+    const encontrado = repuestos.find(r => r.value === event.value);
+    this.repuestosFormArray.at(rowIndex).get('nombreInsumo')?.setValue(encontrado?.label ?? '');
   }
 
-  // Remove accessory
+  onCambiarTipoRepuesto(event: any, rowIndex: number) {
+    this.cargarRepuestosPorTipo(event.value, rowIndex);
+    this.repuestosFormArray.at(rowIndex).get('sysRepuestoIdFk')?.setValue(null);
+    this.repuestosFormArray.at(rowIndex).get('nombreInsumo')?.setValue('');
+  }
+  agregarRepuesto() {
+    this.repuestosFormArray.push(this.fb.group({
+      id: [null],
+      tipoRepuestoIdFk: [null],
+      sysRepuestoIdFk: [null],
+      cantidad: [''],
+    }));
+  }
+
   eliminarRepuesto(index: number) {
     this.repuestosFormArray.removeAt(index);
   }
 
-  // Initialize repuestos from report data
-  iniRepuestos() {
-    const array = this.mantenimientoForm.get('repuestos') as FormArray;
-    array.clear();
-    if (this.mantenimiento.repuestos && this.mantenimiento.repuestos.length > 0) {
-      this.mantenimiento.repuestos.forEach((r: any) => {
-        array.push(this.fb.group({
-          id: [r.id],
-          nombreInsumo: [r.nombreInsumo],
-          cantidad: [r.cantidad],
-          comprobanteEgreso: [r.comprobanteEgreso]
-        }));
-      });
+  // ─── Utilidades ──────────────────────────────────────────────────────────────
+  validarTipoMantenimiento() {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    if (localStorage.getItem('TipoMantenimiento') === 'C') {
+      this.tipoMantenimiento = 'Correctivo';
+    } else if (localStorage.getItem('TipoMantenimiento') === 'P') {
+      this.tipoMantenimiento = 'Preventivo';
     }
   }
 
-
-  goBack(): void {
-    Swal.fire({
-      title: "¿Quieres guardar los cambios?",
-      showDenyButton: true,
-      showCancelButton: true,
-      confirmButtonText: "Guardar",
-      denyButtonText: `No guardar`,
-      cancelButtonText: "Cancelar",
-      icon: "question"
-    }).then((result) => {
-      if (result.isConfirmed) {
-        Swal.fire("Mantenimiento Guardado!", "", "success");
-      } else if (result.isDenied) {
-        Swal.fire("Los cambios no se guardan", "", "info");
-        this.location.back();
-      }
-    });
+  onSelectPatron() {
+    const id = this.mantenimientoForm.get('equipoPatronIdFk')?.value;
+    this.selectedPatron = id ? this.equiposPatron.find(e => e.id === id) : null;
   }
 
   validarPreventivo(): boolean {
-    return this.mantenimientoForm.value.tipoMantenimiento === 'Preventivo' ? true : false;
-  }
-
-  validarQR() {
-    this.router.navigate(['/biomedica/validarqr']);
-  }
-
-  validarTipoMantenimiento() {
-    if (sessionStorage.getItem('TipoMantenimiento') === 'C') {
-      this.tipoMantenimiento = 'Correctivo';
-    } else if (sessionStorage.getItem('TipoMantenimiento') === 'P') {
-      this.tipoMantenimiento = 'Preventivo';
-    }
+    return this.mantenimientoForm.get('tipoMantenimiento')?.value === 'Preventivo';
   }
 
   convertirMayusculas(texto: string): string {
     return texto ? texto.toUpperCase() : '';
   }
 
+  goBack(): void {
+    Swal.fire({
+      title: '¿Quieres guardar los cambios?',
+      showDenyButton: true,
+      showCancelButton: true,
+      confirmButtonText: 'Guardar',
+      denyButtonText: 'No guardar',
+      cancelButtonText: 'Cancelar',
+      icon: 'question'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.onSubmit();
+      } else if (result.isDenied) {
+        Swal.fire('Los cambios no se guardan', '', 'info');
+        localStorage.removeItem('idMantenimiento');
+        localStorage.removeItem('TipoMantenimiento');
+        this.location.back();
+      }
+    });
+  }
 }

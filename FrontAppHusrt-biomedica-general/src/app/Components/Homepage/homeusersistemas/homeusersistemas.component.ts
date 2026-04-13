@@ -19,4 +19,5 @@ export class HomeusersistemasComponent {
   irATiposEquipos()       { this.router.navigate(['/adminsistemas/tiposequipo']); }
   irAMantenimientosEquipos() { this.router.navigate(['/adminsistemas/mantenimientos']); }
   irACalendarioEquipo() { this.router.navigate(['/adminsistemas/planMantenimiento']); }
+  irARepuestos() { this.router.navigate(['/adminsistemas/repuestos']); }
 }

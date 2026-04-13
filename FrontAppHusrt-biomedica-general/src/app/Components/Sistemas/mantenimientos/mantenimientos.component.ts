@@ -42,28 +42,28 @@ export class SisMantenimientosComponent implements OnInit {
 
   @ViewChild('dt') dt!: Table;
 
-  router                       = inject(Router);
+  router = inject(Router);
   private mantenimientoService = inject(SysmantenimientoService);
-  private archivosService      = inject(ArchivosService);
+  private archivosService = inject(ArchivosService);
 
   // ── Datos ─────────────────────────────────────────────────────────────────
   mantenimientos: SysMantenimiento[] = [];
   displayRecords: SysMantenimiento[] = [];
 
   // ── UI State ──────────────────────────────────────────────────────────────
-  isLoading      = false;
+  isLoading = false;
   isModalLoading = false;           // spinner solo para el modal
   error: string | null = null;
   activeTab: 'todos' | 'Preventivo' | 'Correctivo' | 'Predictivo' = 'todos';
 
   // ── Filtros ───────────────────────────────────────────────────────────────
   filterFechaInicio = '';
-  filterFechaFin    = '';
+  filterFechaFin = '';
 
   // ── Modal Ver ─────────────────────────────────────────────────────────────
-  modalReport    = false;
+  modalReport = false;
   reportSelected: SysMantenimiento | undefined = undefined;
-  selectedFile:   File | null = null;
+  selectedFile: File | null = null;
 
   // ── Stats ─────────────────────────────────────────────────────────────────
   stats = { total: 0, realizados: 0, programados: 0, pendientes: 0, correctivos: 0 };
@@ -80,7 +80,7 @@ export class SisMantenimientosComponent implements OnInit {
     this.isLoading = true;
     const filters: any = {};
     if (this.filterFechaInicio) filters.fecha_inicio = this.filterFechaInicio;
-    if (this.filterFechaFin)    filters.fecha_fin    = this.filterFechaFin;
+    if (this.filterFechaFin) filters.fecha_fin = this.filterFechaFin;
 
     this.mantenimientoService.getAll(filters).subscribe({
       next: (res: any) => {
@@ -108,10 +108,10 @@ export class SisMantenimientosComponent implements OnInit {
 
   verificarVencimiento(mes: number | undefined, anio: number | undefined): boolean {
     if (!mes || !anio) return true;
-    const ahora      = new Date();
-    const mesActual  = ahora.getMonth() + 1;
+    const ahora = new Date();
+    const mesActual = ahora.getMonth() + 1;
     const anioActual = ahora.getFullYear();
-    if (anioActual < anio)  return true;
+    if (anioActual < anio) return true;
     if (anioActual === anio && mesActual <= mes) return true;
     return false;
   }
@@ -119,14 +119,14 @@ export class SisMantenimientosComponent implements OnInit {
   // ── Stats ──────────────────────────────────────────────────────────────────
 
   calculateStats() {
-    const ahora      = new Date();
-    const mesActual  = ahora.getMonth() + 1;
+    const ahora = new Date();
+    const mesActual = ahora.getMonth() + 1;
     const anioActual = ahora.getFullYear();
 
-    this.stats.total       = this.mantenimientos.length;
-    this.stats.realizados  = this.mantenimientos.filter(m => !!m.fechaRealizado).length;
+    this.stats.total = this.mantenimientos.length;
+    this.stats.realizados = this.mantenimientos.filter(m => !!m.fechaRealizado).length;
     this.stats.programados = this.mantenimientos.filter(m => (m as any)._status === 'PROGRAMADO').length;
-    this.stats.pendientes  = this.mantenimientos.filter(m =>
+    this.stats.pendientes = this.mantenimientos.filter(m =>
       !m.fechaRealizado && m.añoProgramado === anioActual && (m.mesProgramado ?? 0) < mesActual
     ).length;
     this.stats.correctivos = this.mantenimientos.filter(m => m.tipoMantenimiento === 'Correctivo').length;
@@ -151,7 +151,7 @@ export class SisMantenimientosComponent implements OnInit {
 
   clearFilters() {
     this.filterFechaInicio = '';
-    this.filterFechaFin    = '';
+    this.filterFechaFin = '';
     this.loadMantenimientos();
   }
 
@@ -184,14 +184,14 @@ export class SisMantenimientosComponent implements OnInit {
   // ── Acciones de navegación ────────────────────────────────────────────────
 
   nuevoReporte(idSysEquipo: number, tipoMantenimiento: string | undefined) {
-    sessionStorage.setItem('TipoMantenimiento', this.mapTipoToCode(tipoMantenimiento));
-    sessionStorage.removeItem('idMantenimiento');
+    localStorage.setItem('TipoMantenimiento', this.mapTipoToCode(tipoMantenimiento));
+    localStorage.removeItem('idMantenimiento');
     this.router.navigate(['adminsistemas/reporteMantenimiento', idSysEquipo]);
   }
 
   editarMantenimiento(idSysEquipo: number, idMantenimiento: number, tipoMantenimiento: string | undefined) {
-    sessionStorage.setItem('TipoMantenimiento', this.mapTipoToCode(tipoMantenimiento));
-    sessionStorage.setItem('idMantenimiento', idMantenimiento.toString());
+    localStorage.setItem('TipoMantenimiento', this.mapTipoToCode(tipoMantenimiento));
+    localStorage.setItem('idMantenimiento', idMantenimiento.toString());
     this.router.navigate(['adminsistemas/reporteMantenimiento', idSysEquipo]);
   }
 
@@ -270,8 +270,8 @@ export class SisMantenimientosComponent implements OnInit {
 
   getMesProgramado(mes: number | undefined): string {
     if (!mes) return '—';
-    const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
-                   'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
     return meses[mes - 1] ?? '—';
   }
 
@@ -287,8 +287,8 @@ export class SisMantenimientosComponent implements OnInit {
   getStatusSeverity(status: string): 'success' | 'info' | 'danger' | 'warn' | 'secondary' {
     const map: Record<string, 'success' | 'info' | 'danger' | 'warn'> = {
       'COMPLETADO': 'success',
-      'REALIZADO':  'info',
-      'PENDIENTE':  'danger',
+      'REALIZADO': 'info',
+      'PENDIENTE': 'danger',
       'PROGRAMADO': 'warn',
     };
     return map[status] ?? 'secondary';

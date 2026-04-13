@@ -80,21 +80,25 @@
 
         <div class="form-item">
           <label>Tipo de Mantenimiento</label>
-          <p-select [options]="tiposMantenimiento" formControlName="tipoMantenimiento"
-            placeholder="tipoMantenimiento"></p-select>
+          <!-- ✅ Fix: placeholder corregido, optionLabel y optionValue explícitos -->
+          <p-select [options]="tiposMantenimiento" formControlName="tipoMantenimiento" optionLabel="label"
+            optionValue="value" placeholder="Seleccione">
+          </p-select>
         </div>
 
         <div class="form-item">
           <label>Tipo de Falla</label>
-          <p-select [options]="tiposFalla" formControlName="tipoFalla" placeholder="Seleccione"></p-select>
+          <p-select [options]="tiposFalla" formControlName="tipoFalla" optionLabel="label" optionValue="value"
+            placeholder="Seleccione">
+          </p-select>
         </div>
 
         <div class="form-item">
           <label>Estado Operativo</label>
-          <p-select [options]="estadosOperativos" formControlName="estadoOperativo" placeholder="Seleccione"></p-select>
+          <p-select [options]="estadosOperativos" formControlName="estadoOperativo" optionLabel="label"
+            optionValue="value" placeholder="Seleccione">
+          </p-select>
         </div>
-
-
 
         <div class="form-item">
           <label>Calificaci&oacute;n (1-5)</label>
@@ -103,12 +107,12 @@
 
         <div class="form-item">
           <label>Nombre Realizo</label>
-          <input pInputText placeholder="{{nombreUsuario?.nombreCompleto}}" type="nombreRealizo" disabled />
+          <input pInputText placeholder="{{nombreUsuario?.nombreCompleto}}" type="text" disabled />
         </div>
 
         <div class="form-item">
           <label>Identificacion Realizo</label>
-          <input pInputText placeholder="{{nombreUsuario?.numeroId}}" type="nombreRealizo" disabled />
+          <input pInputText placeholder="{{nombreUsuario?.numeroId}}" type="text" disabled />
         </div>
 
         <div class="form-item">
@@ -122,7 +126,9 @@
         </div>
 
       </div>
+
       <div style="margin-top: 3%;"></div>
+
       <div class="custom-grid">
         <div class="form-item">
           <label>Motivo</label>
@@ -140,52 +146,13 @@
 
       <div style="margin-top: 3%;"></div>
 
-
-      <!-- Initial Conditions Section (Global) -->
-      <div class="title-container"
-        *ngIf="mantenimientoForm.get('tipoMantenimiento')?.value === 'Preventivo' && condicionesInicialesFormArray.controls.length > 0">
-        <h4><strong> CONDICIONES INICIALES </strong></h4>
-        <H6>Verifique las condiciones iniciales del equipo</H6>
-      </div>
-
-      <div
-        *ngIf="mantenimientoForm.get('tipoMantenimiento')?.value === 'Preventivo' && condicionesInicialesFormArray.controls.length > 0"
-        class="mb-5">
-        <div formArrayName="condicionesIniciales" class="w-full px-3">
-          <p-table [value]="condicionesInicialesFormArray.controls" responsiveLayout="scroll" [scrollable]="true"
-            scrollHeight="400px" styleClass="p-datatable-sm" [showCurrentPageReport]="true"
-            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros">
-            <ng-template pTemplate="header">
-              <tr>
-                <th style="width: 20%" class="text-center">Cumple</th>
-                <th style="width: 50%">Condición</th>
-                <th style="width: 30%">Observaciones</th>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-grupo let-i="rowIndex">
-              <tr [formGroupName]="i">
-                <td class="text-center">
-                  <p-select [options]="opcionesCumplimiento" formControlName="cumple" optionLabel="label"
-                    optionValue="value" appendTo="body" [style]="{'width':'150px'}"></p-select>
-                </td>
-                <td>
-                  {{ grupo.get('descripcion')?.value }}
-                </td>
-                <td>
-                  <input pInputText formControlName="observacion" class="w-full" placeholder="Ingrese observación..."
-                    appUppercase />
-                </td>
-              </tr>
-            </ng-template>
-          </p-table>
+      <!-- ✅ Fix: usar tipoMantenimiento (propiedad del componente) en vez de .value del form
+           porque el campo puede estar disabled y .value no retorna nada en ese caso -->
+      <ng-container *ngIf="tipoMantenimiento === 'Preventivo'">
+        <div class="title-container">
+          <h4><strong> PROTOCOLO PREVENTIVO </strong></h4>
+          <h6>Seleccione los pasos realizados en el mantenimiento</h6>
         </div>
-      </div>
-
-      <div class="title-container" *ngIf="mantenimientoForm.get('tipoMantenimiento')?.value === 'Preventivo'">
-        <h4><strong> PROTOCOLO PREVENTIVO </strong></h4>
-        <H6>Seleccione los pasos realizados en el mantenimiento</H6>
-      </div>
-      <div *ngIf="mantenimientoForm.get('tipoMantenimiento')?.value === 'Preventivo'">
         <div formArrayName="cumplimientoProtocolo" class="w-full px-3">
           <p-table [value]="cumplimientoProtocoloFormArray.controls" responsiveLayout="scroll" [scrollable]="true"
             scrollHeight="400px" styleClass="p-datatable-sm" [showCurrentPageReport]="true"
@@ -201,7 +168,8 @@
               <tr [formGroupName]="i">
                 <td class="text-center">
                   <p-select [options]="opcionesCumplimiento" formControlName="cumple" optionLabel="label"
-                    optionValue="value" appendTo="body" [style]="{'width':'150px'}"></p-select>
+                    optionValue="value" appendTo="body" [style]="{'width':'150px'}">
+                  </p-select>
                 </td>
                 <td>
                   <label [for]="'chk-' + i" class="cursor-pointer">{{ grupo.get('paso')?.value }}</label>
@@ -214,50 +182,68 @@
             </ng-template>
           </p-table>
         </div>
-      </div>
+      </ng-container>
 
-      <div class="title-container" *ngIf="repuestosFormArray">
+      <div style="margin-top: 3%;"></div>
+
+      <!-- ✅ Fix: una sola sección de repuestos, sin *ngIf duplicado -->
+      <div class="title-container">
         <h4><strong> INSUMOS / REPUESTOS </strong></h4>
-        <H6>Registre los repuestos o insumos utilizados en el mantenimiento</H6>
+        <h6>Registre los repuestos o insumos utilizados en el mantenimiento</h6>
       </div>
-      <div>
-        <div formArrayName="repuestos" class="w-full px-3">
-          <p-table [value]="repuestosFormArray.controls" responsiveLayout="scroll" [scrollable]="true"
-            scrollHeight="300px" styleClass="p-datatable-sm" [showCurrentPageReport]="true"
-            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros">
-            <ng-template pTemplate="header">
-              <tr>
-                <th style="width: 30%">Nombre Insumo</th>
-                <th style="width: 20%">Cantidad</th>
-                <th style="width: 30%">Comprobante Egreso</th>
-                <th style="width: 10%">Acci&oacute;n</th>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-repuesto let-i="rowIndex">
-              <tr [formGroupName]="i">
-                <td><input pInputText formControlName="nombreInsumo" class="w-full" placeholder="Nombre" appUppercase />
-                </td>
-                <td><input pInputText formControlName="cantidad" class="w-full" placeholder="Cant." appUppercase /></td>
-                <td><input pInputText formControlName="comprobanteEgreso" class="w-full"
-                    placeholder="Ref. / Comprobante" appUppercase /></td>
-                <td class="text-center">
-                  <button pButton type="button" icon="pi pi-trash"
-                    class="p-button-danger p-button-rounded p-button-text" (click)="eliminarRepuesto(i)"></button>
-                </td>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="footer">
-              <tr>
-                <td colspan="4" class="text-right">
-                  <button pButton label="Agregar Insumo" icon="pi pi-plus" class="p-button-sm p-button-outlined"
-                    (click)="agregarRepuesto()" type="button"></button>
-                </td>
-              </tr>
-            </ng-template>
-          </p-table>
-        </div>
-      </div>
+      <div formArrayName="repuestos" class="w-full px-3">
+        <p-table [value]="repuestosFormArray.controls" responsiveLayout="scroll" [scrollable]="true"
+          scrollHeight="300px" styleClass="p-datatable-sm" [showCurrentPageReport]="true"
+          currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros">
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width: 18%">Tipo Insumo</th>
+              <th style="width: 22%">Nombre Insumo</th>
+              <th style="width: 15%">Cantidad</th>
+              <th style="width: 7%">Acci&oacute;n</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-repuesto let-i="rowIndex">
+            <tr [formGroupName]="i">
 
+              <!-- 1. Tipo de repuesto -->
+              <td>
+                <p-select [options]="tiposRepuesto" formControlName="tipoRepuestoIdFk" optionLabel="label"
+                  optionValue="value" placeholder="Tipo" appendTo="body" [style]="{'width':'100%'}" (onChange)="onCambiarTipoRepuesto($event, i)">
+                </p-select>
+              </td>
+
+              <!-- 2. Repuesto del catálogo (filtrado por tipo) -->
+              <td>
+                <p-select [options]="getRepuestosParaFila(i)" formControlName="sysRepuestoIdFk" optionLabel="label"
+                  optionValue="value" placeholder="Seleccione" appendTo="body" [style]="{'width':'100%'}"
+                  [disabled]="!repuestosFormArray.at(i).get('tipoRepuestoIdFk')?.value" (onChange)="onSeleccionarRepuesto($event, i)">
+                </p-select>
+              </td>
+
+              <td>
+                <input pInputText formControlName="cantidad" class="w-full" placeholder="Cant." />
+              </td>
+
+              <td class="text-center">
+                <button pButton type="button" icon="pi pi-trash" class="p-button-danger p-button-rounded p-button-text"
+                  (click)="eliminarRepuesto(i)">
+                </button>
+              </td>
+
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="footer">
+            <tr>
+              <td colspan="6" class="text-right">
+                <button pButton label="Agregar Insumo" icon="pi pi-plus" class="p-button-sm p-button-outlined"
+                  (click)="agregarRepuesto()" type="button">
+                </button>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
 
       <div style="margin-top: 3%;"></div>
 
@@ -267,6 +253,7 @@
         <div></div>
         <div></div>
       </div>
+
     </form>
   </p-card>
 </div>

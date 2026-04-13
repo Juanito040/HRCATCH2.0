@@ -189,7 +189,7 @@ export const routes: Routes = [
   { path: 'adminsistemas/hojavida/:equipoId', component: SysHojaVidaComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER'] } },
   { path: 'adminsistemas/trazabilidad', component: SysTrazabilidadGlobalComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER'] } },
    { path: 'adminsistemas/planMantenimiento', component: ProgramarMantenimientoComponent, canActivate: [authGuard], data: { roles: ['SYSTEMADMIN', 'SYSTEMUSER', 'SUPERADMIN'] } },
-  { path: 'adminsistemas/repuestos', component: SisRepuestosComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'ADMINISTRADOR', 'AG'] } },
+  { path: 'adminsistemas/repuestos', component: SisRepuestosComponent, canActivate: [authGuard], data: { roles: ['SYSTEMADMIN', 'SYSTEMUSER', 'SUPERADMIN'] } },
 
   { path: 'intranet', component: IntranetComponent }
 ];
