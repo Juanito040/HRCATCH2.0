@@ -4,16 +4,11 @@ const { Op } = require('sequelize');
 const { BackupSistema, SistemaInformacion } = require('../../models/Biomedica');
 const { checkToken } = require('../../utilities/middleware');
 
-// GET /backups/alertas — retorna registros BackupSistema con estado Pendiente cuya fecha ya llegó o pasó
+// GET /backups/alertas — retorna todos los BackupSistema con estado Pendiente
 router.get('/backups/alertas', checkToken, async (req, res) => {
     try {
-        const ahora = new Date();
-        const hoy = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}-${String(ahora.getDate()).padStart(2, '0')}`;
         const pendientes = await BackupSistema.findAll({
-            where: {
-                estado: 'Pendiente',
-                fecha: { [Op.lte]: hoy }
-            },
+            where: { estado: 'Pendiente' },
             include: [{
                 model: SistemaInformacion,
                 as: 'sistema',
@@ -22,16 +17,16 @@ router.get('/backups/alertas', checkToken, async (req, res) => {
             order: [['fecha', 'ASC']]
         });
 
-        const alertas = pendientes.map(b => ({
-            id: b.id,
-            sistemaId: b.sistema.id,
-            nombre: b.sistema.nombre,
-            frecuencia_backup: b.frecuencia_backup,
-            fecha: b.fecha,
-            ultimoBackup: null,
-            diasDesdeUltimo: null,
-            mensaje: `Backup pendiente programado para ${b.fecha}`
-        }));
+        const alertas = pendientes
+            .filter(b => b.sistema !== null)
+            .map(b => ({
+                id: b.id,
+                sistemaId: b.sistema.id,
+                nombre: b.sistema.nombre,
+                frecuencia_backup: b.frecuencia_backup,
+                fecha: b.fecha,
+                mensaje: `Backup pendiente programado para ${b.fecha}`
+            }));
 
         res.json(alertas);
     } catch (error) {

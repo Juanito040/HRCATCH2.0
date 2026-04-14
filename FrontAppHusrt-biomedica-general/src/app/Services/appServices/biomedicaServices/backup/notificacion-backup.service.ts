@@ -1,4 +1,5 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { firstValueFrom, BehaviorSubject, Observable } from 'rxjs';
 import { API_URL } from '../../../../constantes';
@@ -9,6 +10,7 @@ import { API_URL } from '../../../../constantes';
 export class NotificacionBackupService {
 
     private httpClient = inject(HttpClient);
+    private platformId = inject(PLATFORM_ID);
 
     private _alertas$ = new BehaviorSubject<any[]>([]);
     alertas$: Observable<any[]> = this._alertas$.asObservable();
@@ -16,14 +18,21 @@ export class NotificacionBackupService {
     private pollingId: any = null;
 
     async cargarAlertas(): Promise<void> {
-        const alertas = await firstValueFrom(
-            this.httpClient.get<any[]>(`${API_URL}/backups/alertas`, this.createHeaders())
-        );
-        this._alertas$.next(alertas);
-        this.conteoAlertas = alertas.length;
+        if (!isPlatformBrowser(this.platformId)) return;
+        try {
+            const respuesta = await firstValueFrom(
+                this.httpClient.get<any[]>(`${API_URL}/backups/alertas`, this.createHeaders())
+            );
+            const alertas = Array.isArray(respuesta) ? respuesta : [];
+            this._alertas$.next(alertas);
+            this.conteoAlertas = alertas.length;
+        } catch (err) {
+            console.error('[NotificacionBackupService] Error al cargar alertas:', err);
+        }
     }
 
     iniciarPolling(intervalMs: number = 60000): void {
+        this.detenerPolling();
         this.cargarAlertas();
         this.pollingId = setInterval(() => this.cargarAlertas(), intervalMs);
     }
