@@ -143,8 +143,13 @@ exports.exportarPdfReporte = async (req, res) => {
         const M   = 30;
         const PW  = 612 - M * 2; // 552
         const val  = (v) => (v !== undefined && v !== null && v !== '') ? String(v) : '';
-        const fmtF = (v) => { if (!v) return ''; try { return new Date(v).toLocaleDateString('es-CO'); } catch { return String(v); } };
-        const today = fmtF(r.fecha) || new Date().toLocaleDateString('es-CO');
+        const fmtF = (v) => {
+            if (!v) return '';
+            const m = String(v).match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if (m) return `${m[3]}/${m[2]}/${m[1]}`;
+            try { return new Date(v).toLocaleDateString('es-CO'); } catch { return String(v); }
+        };
+        const today = fmtF(r.fecha);
 
         // ── helpers ────────────────────────────────────────────────────────────
         function drawRect(x, cy, w, h, fillColor) {
@@ -511,8 +516,13 @@ exports.exportarPdfBaja = async (req, res) => {
         const M   = 30;
         const PW  = 612 - M * 2; // 552
         const val  = (v) => (v !== undefined && v !== null && v !== '') ? String(v) : '';
-        const fmtF = (v) => { if (!v) return ''; try { return new Date(v).toLocaleDateString('es-CO'); } catch { return String(v); } };
-        const today = fmtF(b.fecha_baja) || new Date().toLocaleDateString('es-CO');
+        const fmtF = (v) => {
+            if (!v) return '';
+            const m = String(v).match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if (m) return `${m[3]}/${m[2]}/${m[1]}`;
+            try { return new Date(v).toLocaleDateString('es-CO'); } catch { return String(v); }
+        };
+        const today = fmtF(b.fecha_baja);
 
         const doc = new PDFDocument({ size: 'LETTER', margin: 0, bufferPages: true });
         doc.registerFont('Arial',      'C:/Windows/Fonts/arial.ttf');

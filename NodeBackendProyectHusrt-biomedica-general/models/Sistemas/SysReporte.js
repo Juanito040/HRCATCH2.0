@@ -17,17 +17,15 @@ const SysReporte = sequelize.define('SysReporte', {
   realizado_por:       { type: DataTypes.STRING(255),    allowNull: true },
   recibido_por:        { type: DataTypes.STRING(255),    allowNull: true },
   observaciones:       { type: DataTypes.TEXT,           allowNull: true },
-  id_sysequipo_fk:     { type: DataTypes.INTEGER,        allowNull: true,
-                         references: { model: SysEquipo, key: 'id_sysequipo' } },
-  id_sysusuario_fk:    { type: DataTypes.INTEGER,        allowNull: true,
-                         references: { model: Usuario,   key: 'id' } }
+  id_sysequipo_fk:     { type: DataTypes.INTEGER,        allowNull: true },
+  id_sysusuario_fk:    { type: DataTypes.INTEGER,        allowNull: true }
 }, {
   tableName: 'SysReporte',
   timestamps: true
 });
 
-SysReporte.belongsTo(SysEquipo, { foreignKey: 'id_sysequipo_fk', as: 'equipo' });
-SysEquipo.hasMany(SysReporte,   { foreignKey: 'id_sysequipo_fk', as: 'reportes' });
-SysReporte.belongsTo(Usuario,   { foreignKey: 'id_sysusuario_fk', as: 'usuario' });
+SysReporte.belongsTo(SysEquipo, { foreignKey: 'id_sysequipo_fk', as: 'equipo', constraints: false });
+SysEquipo.hasMany(SysReporte,   { foreignKey: 'id_sysequipo_fk', as: 'reportes', constraints: false });
+SysReporte.belongsTo(Usuario,   { foreignKey: 'id_sysusuario_fk', as: 'usuario', constraints: false });
 
 module.exports = SysReporte;

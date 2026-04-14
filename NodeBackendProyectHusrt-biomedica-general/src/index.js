@@ -83,6 +83,7 @@ const CondicionInicialRoutes = require('./../routes/biomedica/condicionInicialRo
 app.use(CondicionInicialRoutes, checkToken);
 
 // ===== MÓDULO SISTEMAS =====
+require('../models/Sistemas/SysEquipo');
 require('../models/Sistemas/SysHojaVida');
 require('../models/Sistemas/SysBaja');
 require('../models/Sistemas/SysMantenimiento');
@@ -117,10 +118,39 @@ app.use('/cargos', checkToken, cargoRoutes);
 // Moved up
 
 
-sequelize.sync({ alter: false })
+sequelize.query('SET FOREIGN_KEY_CHECKS = 0')
+  .then(() => sequelize.query('DROP TABLE IF EXISTS `SysReporte`'))
+  .then(() => sequelize.query(`
+    CREATE TABLE \`SysReporte\` (
+      id_sysreporte INTEGER AUTO_INCREMENT PRIMARY KEY,
+      fecha DATE NULL,
+      hora_llamado VARCHAR(10) NULL,
+      hora_inicio VARCHAR(10) NULL,
+      hora_terminacion VARCHAR(10) NULL,
+      servicio_anterior VARCHAR(255) NULL,
+      ubicacion_anterior VARCHAR(255) NULL,
+      servicio_nuevo VARCHAR(255) NULL,
+      ubicacion_nueva VARCHAR(255) NULL,
+      ubicacion_especifica VARCHAR(255) NULL,
+      realizado_por VARCHAR(255) NULL,
+      recibido_por VARCHAR(255) NULL,
+      observaciones TEXT NULL,
+      id_sysequipo_fk INTEGER NULL,
+      id_sysusuario_fk INTEGER NULL,
+      createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `))
+  .then(() => sequelize.query('SET FOREIGN_KEY_CHECKS = 1'))
+  .then(() => {
+    console.log('[DB] Tabla SysReporte lista');
+    return sequelize.sync({ alter: false });
+  })
   .then(() => {
     app.listen(3005, '0.0.0.0', () => {
       console.log('Server is running on http://localhost:3005');
     });
   })
-  .catch(err => console.log('Error:', err));
+  .catch(err => {
+    console.log('[DB ERROR]', err.message || err);
+  });
