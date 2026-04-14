@@ -7,6 +7,8 @@ import { TooltipModule } from 'primeng/tooltip';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { DialogModule } from 'primeng/dialog';
 import Swal from 'sweetalert2';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 import { BackupSistemaService } from '../../../Services/appServices/biomedicaServices/backup/backup-sistema.service';
 import { NotificacionBackupService } from '../../../Services/appServices/biomedicaServices/backup/notificacion-backup.service';
 
@@ -147,16 +149,104 @@ export class CalendarioBackupsComponent implements OnInit {
         const result = await Swal.fire({
             title: '¿Marcar como Completado?',
             text: `Backup de ${this.backupSeleccionado.sistemaNombre}`,
+            input: 'textarea',
+            inputPlaceholder: 'Agregar observación (opcional)',
+            inputAttributes: { 'aria-label': 'Observación' },
             icon: 'question',
             showCancelButton: true,
             confirmButtonText: 'Sí, completar',
             cancelButtonText: 'Cancelar'
         });
         if (result.isConfirmed) {
-            await this.backupService.updateBackup(this.backupSeleccionado.id, { estado: 'Completado' });
+            const payload: any = { estado: 'Completado' };
+            const obs = (result.value as string)?.trim();
+            if (obs) payload.observacion = obs;
+            await this.backupService.updateBackup(this.backupSeleccionado.id, payload);
             this.cerrarDetalle();
             await this.cargarBackupsDelMes();
             await this.notificacionService.cargarAlertas();
         }
+    }
+
+    exportarExcel(): void {
+        const meses = ['enero','febrero','marzo','abril','mayo','junio','julio',
+                       'agosto','septiembre','octubre','noviembre','diciembre'];
+        const mes = this.fechaSeleccionada.getMonth();
+        const anio = this.fechaSeleccionada.getFullYear();
+        const mesNombre = meses[mes];
+        const titulo = `CALENDARIO DE BACKUPS — ${mesNombre.toUpperCase()} ${anio}`;
+        const nombreArchivo = `backups-${mesNombre}-${anio}.xlsx`;
+        const ahora = new Date().toLocaleString('es-CO');
+
+        const completados = this.backupsDelMes.filter(b => b.estado === 'Completado').length;
+        const pendientes  = this.backupsDelMes.filter(b => b.estado === 'Pendiente').length;
+        const fallidos    = this.backupsDelMes.filter(b => b.estado === 'Fallido').length;
+
+        const aoa: any[][] = [
+            [titulo, '', '', '', '', '', ''],
+            [`Generado el: ${ahora}`, '', '', '', '', '', ''],
+            [],
+            ['#', 'Fecha', 'Sistema de Información', 'Tipo', 'Frecuencia', 'Estado', 'Observación'],
+            ...this.backupsDelMes.map((b, i) => [
+                i + 1,
+                b.fecha ?? '—',
+                b.sistemaNombre ?? '—',
+                b.tipo ?? '—',
+                b.frecuencia_backup ?? '—',
+                b.estado ?? '—',
+                b.observacion ?? '—'
+            ]),
+            [`Pendientes: ${pendientes}`, `Completados: ${completados}`, `Fallidos: ${fallidos}`, '', '', '', '']
+        ];
+
+        const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+        ws['!cols'] = [
+            { wch: 4 }, { wch: 12 }, { wch: 30 }, { wch: 15 },
+            { wch: 15 }, { wch: 12 }, { wch: 30 }
+        ];
+
+        ws['!merges'] = [
+            { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } },
+            { s: { r: 1, c: 0 }, e: { r: 1, c: 6 } }
+        ];
+
+        // Estilos en celdas (requiere xlsx con soporte de estilos)
+        const titleCell = XLSX.utils.encode_cell({ r: 0, c: 0 });
+        if (ws[titleCell]) {
+            ws[titleCell].s = {
+                font: { bold: true, color: { rgb: 'FFFFFF' } },
+                fill: { fgColor: { rgb: '1E3A5F' } },
+                alignment: { horizontal: 'center' }
+            };
+        }
+
+        for (let c = 0; c < 7; c++) {
+            const cellRef = XLSX.utils.encode_cell({ r: 3, c });
+            if (ws[cellRef]) {
+                ws[cellRef].s = { font: { bold: true }, fill: { fgColor: { rgb: 'D3D3D3' } } };
+            }
+        }
+
+        const colorMap: Record<string, string> = {
+            'Completado': 'd4edda',
+            'Pendiente':  'fff3cd',
+            'Fallido':    'f8d7da'
+        };
+
+        this.backupsDelMes.forEach((b, i) => {
+            const color = colorMap[b.estado] ?? 'FFFFFF';
+            for (let c = 0; c < 7; c++) {
+                const cellRef = XLSX.utils.encode_cell({ r: 4 + i, c });
+                if (ws[cellRef]) {
+                    ws[cellRef].s = { fill: { fgColor: { rgb: color } } };
+                }
+            }
+        });
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Backups');
+        const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+        saveAs(new Blob([wbout], { type: 'application/octet-stream' }), nombreArchivo);
     }
 }

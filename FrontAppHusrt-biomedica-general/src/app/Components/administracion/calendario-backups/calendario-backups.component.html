@@ -21,6 +21,11 @@
             <p-button icon="pi pi-refresh" [outlined]="true" label="Actualizar"
                       (onClick)="cargarBackupsDelMes()">
             </p-button>
+            <p-button icon="pi pi-file-excel" [outlined]="true" label="Exportar Excel"
+                      styleClass="p-button-success"
+                      [disabled]="backupsDelMes.length === 0"
+                      (onClick)="exportarExcel()">
+            </p-button>
         </div>
     </div>
 
