@@ -11,7 +11,7 @@ import { SysEquipoDetailModalComponent } from '../equipo-detail-modal/equipo-det
 import { SysHistorialEquipoComponent } from '../historial-equipo/historial-equipo.component';
 import { SysDeleteConfirmationDialogComponent, DeleteAction } from '../delete-confirmation-dialog/delete-confirmation-dialog.component';
 import { SysReportesEquipoComponent } from '../sys-reportes-equipo/sys-reportes-equipo.component';
-import { SysReporteService } from '../../../Services/appServices/sistemasServices/sysreporte/sysreporte.service';
+import { SysReporteEntregaService } from '../../../Services/appServices/sistemasServices/sysreporteentrega/sysreporteentrega.service';
 import { getDecodedAccessToken } from '../../../utilidades';
 import { MenuItem } from 'primeng/api';
 import { firstValueFrom } from 'rxjs';
@@ -97,7 +97,7 @@ export class EquiposSedesSisComponent implements OnInit {
   private sedeService = inject(SedeService);
   private servicioService = inject(ServicioService);
   private planService = inject(SysplanmantenimientoService);
-  private reporteService = inject(SysReporteService);
+  private reporteService = inject(SysReporteEntregaService);
 
   get isAdmin(): boolean {
     const decoded = getDecodedAccessToken();

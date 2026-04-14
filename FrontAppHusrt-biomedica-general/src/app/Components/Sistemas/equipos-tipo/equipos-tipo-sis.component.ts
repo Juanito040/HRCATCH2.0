@@ -10,7 +10,7 @@ import { SysEquipoDetailModalComponent } from '../equipo-detail-modal/equipo-det
 import { SysHistorialEquipoComponent } from '../historial-equipo/historial-equipo.component';
 import { SysDeleteConfirmationDialogComponent, DeleteAction } from '../delete-confirmation-dialog/delete-confirmation-dialog.component';
 import { SysReportesEquipoComponent } from '../sys-reportes-equipo/sys-reportes-equipo.component';
-import { SysReporteService } from '../../../Services/appServices/sistemasServices/sysreporte/sysreporte.service';
+import { SysReporteEntregaService } from '../../../Services/appServices/sistemasServices/sysreporteentrega/sysreporteentrega.service';
 import { getDecodedAccessToken } from '../../../utilidades';
 import { MenuItem } from 'primeng/api';
 import Swal from 'sweetalert2';
@@ -91,7 +91,7 @@ export class EquiposTipoSisComponent implements OnInit {
   private sysequiposService = inject(SysequiposService);
   private tipoEquipoService = inject(TipoEquipoService);
   private planService = inject(SysplanmantenimientoService);
-  private reporteService = inject(SysReporteService);
+  private reporteService = inject(SysReporteEntregaService);
 
   get isAdmin(): boolean {
     const decoded = getDecodedAccessToken();

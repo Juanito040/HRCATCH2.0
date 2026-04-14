@@ -10,7 +10,7 @@ import { SysDeleteConfirmationDialogComponent, DeleteAction } from '../delete-co
 import { SysReactivarEquipoModalComponent, ReactivarEquipoData } from '../reactivar-equipo-modal/reactivar-equipo-modal.component';
 import { SysHistorialEquipoComponent } from '../historial-equipo/historial-equipo.component';
 import { SysReportesEquipoComponent } from '../sys-reportes-equipo/sys-reportes-equipo.component';
-import { SysReporteService } from '../../../Services/appServices/sistemasServices/sysreporte/sysreporte.service';
+import { SysReporteEntregaService } from '../../../Services/appServices/sistemasServices/sysreporteentrega/sysreporteentrega.service';
 import { getDecodedAccessToken } from '../../../utilidades';
 import { MenuItem } from 'primeng/api';
 import Swal from 'sweetalert2';
@@ -108,7 +108,7 @@ export class SisEquiposComponent implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private planService = inject(SysplanmantenimientoService);
-  private reporteService = inject(SysReporteService);
+  private reporteService = inject(SysReporteEntregaService);
 
   constructor(private sysequiposService: SysequiposService) {}
 

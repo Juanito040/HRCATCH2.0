@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { SysReporteService, SysReporte } from '../../../Services/appServices/sistemasServices/sysreporte/sysreporte.service';
+import { SysReporteEntregaEntregaService, SysReporteEntregaEntrega } from '../../../Services/appServices/sistemasServices/sysreporteentrega/sysreporteentrega.service';
 import { ServicioService } from '../../../Services/appServices/general/servicio/servicio.service';
 import { SysequiposService } from '../../../Services/appServices/sistemasServices/sysequipos/sysequipos.service';
 import { getDecodedAccessToken } from '../../../utilidades';
@@ -15,7 +15,7 @@ import Swal from 'sweetalert2';
   templateUrl: './sys-reporte-form.component.html',
   styleUrls: ['./sys-reporte-form.component.css']
 })
-export class SysReporteFormComponent implements OnInit {
+export class SysReporteEntregaFormComponent implements OnInit {
 
   equipo: any = null;
   origenRuta: string = '/adminsistemas/equipos';
@@ -28,11 +28,11 @@ export class SysReporteFormComponent implements OnInit {
   equiposList: any[] = [];
   equipoRetirado: string = '';
 
-  form: SysReporte = this.emptyForm();
+  form: SysReporteEntrega = this.emptyForm();
 
   constructor(
     private router: Router,
-    private reporteService: SysReporteService,
+    private reporteService: SysReporteEntregaService,
     private servicioService: ServicioService,
     private sysequiposService: SysequiposService
   ) {}
@@ -48,7 +48,7 @@ export class SysReporteFormComponent implements OnInit {
     this.loadLookupData();
   }
 
-  private emptyForm(): SysReporte {
+  private emptyForm(): SysReporteEntrega {
     const hoy = new Date().toISOString().split('T')[0];
     const ahora = new Date().toTimeString().slice(0, 5);
     return {
