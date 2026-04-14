@@ -91,7 +91,7 @@ require('../models/Sistemas/SysRepuesto');
 require('../models/Sistemas/SysTrazabilidad');
 require('../models/Sistemas/SysProtocoloPreventivo');
 require('../models/Sistemas/SysPlanMantenimiento');
-require('../models/Sistemas/SysReporte');
+require('../models/Sistemas/SysReporteEntrega');
 require('../models/Sistemas/SysTipoUso');
 const sysEquipoRoutes = require('./../routes/sistemas/sysEquipoRoutes');
 const sysMantenimientoRoutes = require('./../routes/sistemas/sysMantenimientoRoutes');
@@ -99,7 +99,7 @@ const sysHojaVidaRoutes = require('./../routes/sistemas/sysHojaVidaRoutes');
 const sysTrazabilidadRoutes = require('./../routes/sistemas/sysTrazabilidadRoutes');
 const sysProtocoloPreventivoRoutes = require('./../routes/sistemas/sysProtocoloPreventivoRoutes');
 const sysPlanMantenimientoRoutes = require('./../routes/sistemas/sysPlanMantenimientoRoutes');
-const sysReporteRoutes = require('./../routes/sistemas/sysReporteRoutes');
+const sysReporteEntregaRoutes = require('./../routes/sistemas/sysReporteEntregaRoutes');
 const sysTipoUsoRoutes = require('./../routes/sistemas/sysTipoUsoRoutes');
 app.use('/sysequipo', checkToken, sysEquipoRoutes);
 app.use('/sysmantenimiento', checkToken, sysMantenimientoRoutes);
@@ -107,7 +107,7 @@ app.use('/syshojavida', checkToken, sysHojaVidaRoutes);
 app.use('/systrazabilidad', checkToken, sysTrazabilidadRoutes);
 app.use('/sysprotocolo', checkToken, sysProtocoloPreventivoRoutes);
 app.use('/sysplanmantenimiento', checkToken, sysPlanMantenimientoRoutes);
-app.use('/sysreporte', checkToken, sysReporteRoutes);
+app.use('/sysreporteentrega', checkToken, sysReporteEntregaRoutes);
 app.use('/systipouso', checkToken, sysTipoUsoRoutes);
 
 
@@ -119,9 +119,9 @@ app.use('/cargos', checkToken, cargoRoutes);
 
 
 sequelize.query('SET FOREIGN_KEY_CHECKS = 0')
-  .then(() => sequelize.query('DROP TABLE IF EXISTS `SysReporte`'))
+  .then(() => sequelize.query('DROP TABLE IF EXISTS `SysReporteEntrega`'))
   .then(() => sequelize.query(`
-    CREATE TABLE \`SysReporte\` (
+    CREATE TABLE \`SysReporteEntrega\` (
       id_sysreporte INTEGER AUTO_INCREMENT PRIMARY KEY,
       fecha DATE NULL,
       hora_llamado VARCHAR(10) NULL,
@@ -143,7 +143,7 @@ sequelize.query('SET FOREIGN_KEY_CHECKS = 0')
   `))
   .then(() => sequelize.query('SET FOREIGN_KEY_CHECKS = 1'))
   .then(() => {
-    console.log('[DB] Tabla SysReporte lista');
+    console.log('[DB] Tabla SysReporteEntrega lista');
     return sequelize.sync({ alter: false });
   })
   .then(() => {
