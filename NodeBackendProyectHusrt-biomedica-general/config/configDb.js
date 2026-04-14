@@ -1,20 +1,9 @@
-require('dotenv').config();
 const { Sequelize } = require('sequelize');
 
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT) || 3306,
-    dialect: 'mariadb',
-    dialectOptions: {
-      allowPublicKeyRetrieval: true,
-      connectTimeout: 10000,
-    },
-    logging: false,
-  }
-);
+// Configuración de la conexión a la base de datos
+const sequelize = new Sequelize('dbnewapphusrt', 'root', 'Millos310114$', {
+  host: 'localhost',
+  dialect: 'mariadb',
+});
 
 module.exports = sequelize;

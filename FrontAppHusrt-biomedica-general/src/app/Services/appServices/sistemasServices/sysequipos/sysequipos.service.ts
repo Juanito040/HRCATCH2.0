@@ -59,8 +59,10 @@ export class SysequiposService {
     return this.http.get<SysEquipoResponse>(this.apiUrl, { params });
   }
 
-  getEquipoById(id: number): Observable<SysEquipoResponse> {
-    return this.http.get<SysEquipoResponse>(`${this.apiUrl}/${id}`);
+  getEquipoById(id: any) {
+    return firstValueFrom(
+      this.http.get<any>(`${this.apiUrl}/${id}`)
+    )
   }
 
   createEquipo(equipo: any): Observable<SysEquipoResponse> {

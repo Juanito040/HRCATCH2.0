@@ -48,14 +48,26 @@
     </div>
 
     <!-- Gestión de mantenimientos -->
-    <div class="dashboard-card" (click)="irAMantenimientosEquipos()">
+    <div class="dashboard-card mantenimiento-card">
       <div class="card-icon-container gradient-blue">
         <i class="pi pi-briefcase" style="font-size: 4rem;"></i>
       </div>
       <div class="card-content">
         <h3>Mantenimiento</h3>
         <p>Gestión de mantenimientos de equipos de sistemas.</p>
-        <span class="card-action">Acceder <i class="pi pi-arrow-right"></i></span>
+        <div class="sub-actions">
+
+          <button class="sub-action-btn" (click)="irACalendarioEquipo()">
+            <i class="pi pi-th-large"></i>
+            <span>Programar Mantenimiento</span>
+            <i class="pi pi-arrow-right sub-arrow"></i>
+          </button>
+          <button class="sub-action-btn" (click)="irAMantenimientosEquipos()">
+            <i class="fas fa-warehouse"></i>
+            <span>Realizar Mantenimiento</span>
+            <i class="pi pi-arrow-right sub-arrow"></i>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -82,6 +94,15 @@
         <span class="card-action">Acceder <i class="pi pi-arrow-right"></i></span>
       </div>
     </div>
-
+    <div class="dashboard-card" (click)="irARepuestos()">
+      <div class="card-icon-container gradient-blue">
+        <i class="pi pi-box" style="font-size: 4rem;"></i>
+      </div>
+      <div class="card-content">
+        <h3>Inventario de Repuestos</h3>
+        <p>Gestión de piezas, componentes y tipos de repuestos.</p>
+        <span class="card-action">Acceder <i class="pi pi-arrow-right"></i></span>
+      </div>
+    </div>
   </div>
 </div>

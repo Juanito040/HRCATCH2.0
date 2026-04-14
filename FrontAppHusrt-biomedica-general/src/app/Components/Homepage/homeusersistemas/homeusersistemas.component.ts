@@ -20,4 +20,6 @@ export class HomeusersistemasComponent {
   irAMantenimientosEquipos() { this.router.navigate(['/adminsistemas/mantenimientos']); }
   irAServiciosSis()          { this.router.navigate(['/adminsistemas/servicios']); }
   irASedesSis()              { this.router.navigate(['/adminsistemas/sedes']); }
+  irACalendarioEquipo()      { this.router.navigate(['/adminsistemas/planMantenimiento']); }
+  irARepuestos()             { this.router.navigate(['/adminsistemas/repuestos']); }
 }

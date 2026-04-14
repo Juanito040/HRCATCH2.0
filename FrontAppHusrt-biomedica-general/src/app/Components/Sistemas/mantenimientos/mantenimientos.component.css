@@ -153,8 +153,8 @@
 }
 
 .btn-icon {
-  background: none;
-  border: none;
+  background: var(--gray-500);
+  border: 1px solid black;
   font-size: 1.1rem;
   cursor: pointer;
   padding: 0.3rem 0.4rem;

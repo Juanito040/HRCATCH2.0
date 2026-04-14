@@ -8,6 +8,12 @@ router.get('/baja/:bajaId/pdf', ctrl.exportarPdfBaja);
 // PDF de reporte de entrega
 router.get('/:id/pdf', ctrl.exportarPdfReporte);
 
+router.get('/catalogos/tipos-mantenimiento', ctrl.getCatalogoTiposMantenimiento);
+router.get('/catalogos/tipos-falla', ctrl.getCatalogoTiposFalla);
+router.get('/dashboard', ctrl.getDashboard);
+router.get('/equipo/:idEquipo', ctrl.getByEquipo);
+router.get('/tecnico/:idUsuario', ctrl.getByTecnico);
+
 // CRUD
 router.get('/',        ctrl.getAllReportes);
 router.get('/:id',     ctrl.getReporteById);

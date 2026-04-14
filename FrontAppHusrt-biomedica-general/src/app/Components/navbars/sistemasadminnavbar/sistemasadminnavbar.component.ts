@@ -44,6 +44,11 @@ export class SistemasadminnavbarComponent implements OnInit {
       { label: 'Inventario',     icon: 'pi pi-box',    items: inventarioItemsUser },
       { label: 'Mantenimientos', icon: 'pi pi-wrench', routerLink: '/adminsistemas/mantenimientos' },
       { label: 'Trazabilidad',   icon: 'pi pi-history', routerLink: '/adminsistemas/trazabilidad' },
+      {
+        label: 'Repuestos',
+        icon: 'pi pi-box',
+        routerLink: '/adminsistemas/repuestos'
+      },
     ];
 
     this.items = this.isSystemUser ? itemsUser : itemsAdmin;

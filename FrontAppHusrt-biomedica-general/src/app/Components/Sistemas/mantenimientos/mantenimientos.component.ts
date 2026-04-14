@@ -1,90 +1,93 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { SysmantenimientoService, SysMantenimiento, CatalogoItem } from '../../../Services/appServices/sistemasServices/sysmantenimiento/sysmantenimiento.service';
-import { SysequiposService, SysEquipo } from '../../../Services/appServices/sistemasServices/sysequipos/sysequipos.service';
+import { Router } from '@angular/router';
+import { Table, TableModule } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { TagModule } from 'primeng/tag';
+import { DialogModule } from 'primeng/dialog';
+import { CardModule } from 'primeng/card';
+import { InputTextModule } from 'primeng/inputtext';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { TooltipModule } from 'primeng/tooltip';
 import Swal from 'sweetalert2';
+
+import {
+  SysmantenimientoService,
+  SysMantenimiento,
+} from '../../../Services/appServices/sistemasServices/sysmantenimiento/sysmantenimiento.service';
+import { ArchivosService } from '../../../Services/appServices/general/archivos/archivos.service';
 
 @Component({
   selector: 'app-sis-mantenimientos',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    TableModule,
+    ButtonModule,
+    TagModule,
+    DialogModule,
+    CardModule,
+    InputTextModule,
+    IconFieldModule,
+    InputIconModule,
+    TooltipModule,
+  ],
   templateUrl: './mantenimientos.component.html',
   styleUrls: ['./mantenimientos.component.css']
 })
 export class SisMantenimientosComponent implements OnInit {
 
+  @ViewChild('dt') dt!: Table;
+
+  router = inject(Router);
+  private mantenimientoService = inject(SysmantenimientoService);
+  private archivosService = inject(ArchivosService);
+
+  // ── Datos ─────────────────────────────────────────────────────────────────
   mantenimientos: SysMantenimiento[] = [];
-  filteredMantenimientos: SysMantenimiento[] = [];
-  equipos: SysEquipo[] = [];
-  tiposMantenimiento: CatalogoItem[] = [];
-  tiposFalla: CatalogoItem[] = [];
+  displayRecords: SysMantenimiento[] = [];
 
+  // ── UI State ──────────────────────────────────────────────────────────────
   isLoading = false;
+  isModalLoading = false;           // spinner solo para el modal
   error: string | null = null;
+  activeTab: 'todos' | 'Preventivo' | 'Correctivo' | 'Predictivo' = 'todos';
 
-  searchTerm = '';
-  filterTipo: number | '' = '';
+  // ── Filtros ───────────────────────────────────────────────────────────────
   filterFechaInicio = '';
   filterFechaFin = '';
 
-  // Dashboard
-  dashboardData: any = null;
-  isDashboardLoading = false;
-  activeView: 'list' | 'dashboard' = 'list';
+  // ── Modal Ver ─────────────────────────────────────────────────────────────
+  modalReport = false;
+  reportSelected: SysMantenimiento | undefined = undefined;
+  selectedFile: File | null = null;
 
-  // Modal
-  isModalOpen = false;
-  isEditing = false;
-  selectedMantenimiento: SysMantenimiento | null = null;
-  formData: Partial<SysMantenimiento> = {};
+  // ── Stats ─────────────────────────────────────────────────────────────────
+  stats = { total: 0, realizados: 0, programados: 0, pendientes: 0, correctivos: 0 };
 
-  constructor(
-    private mantenimientoService: SysmantenimientoService,
-    private sysequiposService: SysequiposService
-  ) {}
+  // ─────────────────────────────────────────────────────────────────────────
 
-  ngOnInit() {
-    this.loadCatalogos();
+  async ngOnInit() {
     this.loadMantenimientos();
-    this.loadEquipos();
   }
 
-  loadCatalogos() {
-    this.mantenimientoService.getTiposMantenimiento().subscribe({
-      next: (res) => { if (res.success) this.tiposMantenimiento = res.data; }
-    });
-    this.mantenimientoService.getTiposFalla().subscribe({
-      next: (res) => { if (res.success) this.tiposFalla = res.data; }
-    });
-  }
-
-  loadEquipos() {
-    this.sysequiposService.getEquipos({ activo: true }).subscribe({
-      next: (res) => {
-        if (res.success) {
-          this.equipos = Array.isArray(res.data) ? res.data : [res.data];
-        }
-      }
-    });
-  }
+  // ── Carga principal ───────────────────────────────────────────────────────
 
   loadMantenimientos() {
     this.isLoading = true;
-    this.error = null;
     const filters: any = {};
-    if (this.filterTipo) filters.tipo_mantenimiento = this.filterTipo;
     if (this.filterFechaInicio) filters.fecha_inicio = this.filterFechaInicio;
     if (this.filterFechaFin) filters.fecha_fin = this.filterFechaFin;
 
     this.mantenimientoService.getAll(filters).subscribe({
-      next: (res) => {
-        if (res.success) {
-          this.mantenimientos = Array.isArray(res.data) ? res.data : [res.data];
-          this.applySearch();
-        } else {
-          this.error = res.message || 'Error al cargar mantenimientos';
-        }
+      next: (res: any) => {
+        const raw: SysMantenimiento[] = Array.isArray(res) ? res : (res?.data ?? []);
+        this.mantenimientos = raw.map(m => ({ ...m, _status: this.getReportStatus(m) }));
+        this.calculateStats();
+        this.updateDisplayRecords();
         this.isLoading = false;
       },
       error: () => {
@@ -94,142 +97,164 @@ export class SisMantenimientosComponent implements OnInit {
     });
   }
 
-  loadDashboard() {
-    this.isDashboardLoading = true;
-    const filters: any = {};
-    if (this.filterFechaInicio) filters.fecha_inicio = this.filterFechaInicio;
-    if (this.filterFechaFin) filters.fecha_fin = this.filterFechaFin;
+  // ── Estado del registro ────────────────────────────────────────────────────
 
-    this.mantenimientoService.getDashboard(filters).subscribe({
-      next: (res) => {
-        if (res.success) this.dashboardData = res.data;
-        this.isDashboardLoading = false;
-      },
-      error: () => { this.isDashboardLoading = false; }
-    });
+  getReportStatus(m: SysMantenimiento): string {
+    const realizado = !!m.fechaRealizado;
+    if (realizado) return m.rutaPdf ? 'COMPLETADO' : 'REALIZADO';
+    const vencido = !this.verificarVencimiento(m.mesProgramado, m.añoProgramado);
+    return vencido ? 'PENDIENTE' : 'PROGRAMADO';
   }
 
-  applySearch() {
-    if (!this.searchTerm) {
-      this.filteredMantenimientos = this.mantenimientos;
-      return;
+  verificarVencimiento(mes: number | undefined, anio: number | undefined): boolean {
+    if (!mes || !anio) return true;
+    const ahora = new Date();
+    const mesActual = ahora.getMonth() + 1;
+    const anioActual = ahora.getFullYear();
+    if (anioActual < anio) return true;
+    if (anioActual === anio && mesActual <= mes) return true;
+    return false;
+  }
+
+  // ── Stats ──────────────────────────────────────────────────────────────────
+
+  calculateStats() {
+    const ahora = new Date();
+    const mesActual = ahora.getMonth() + 1;
+    const anioActual = ahora.getFullYear();
+
+    this.stats.total = this.mantenimientos.length;
+    this.stats.realizados = this.mantenimientos.filter(m => !!m.fechaRealizado).length;
+    this.stats.programados = this.mantenimientos.filter(m => (m as any)._status === 'PROGRAMADO').length;
+    this.stats.pendientes = this.mantenimientos.filter(m =>
+      !m.fechaRealizado && m.añoProgramado === anioActual && (m.mesProgramado ?? 0) < mesActual
+    ).length;
+    this.stats.correctivos = this.mantenimientos.filter(m => m.tipoMantenimiento === 'Correctivo').length;
+  }
+
+  // ── Tabs ───────────────────────────────────────────────────────────────────
+
+  switchTab(tab: 'todos' | 'Preventivo' | 'Correctivo' | 'Predictivo') {
+    this.activeTab = tab;
+    this.updateDisplayRecords();
+  }
+
+  updateDisplayRecords() {
+    this.displayRecords = this.activeTab === 'todos'
+      ? this.mantenimientos
+      : this.mantenimientos.filter(m => m.tipoMantenimiento === this.activeTab);
+  }
+
+  // ── Filtros ────────────────────────────────────────────────────────────────
+
+  applyFilters() { this.loadMantenimientos(); }
+
+  clearFilters() {
+    this.filterFechaInicio = '';
+    this.filterFechaFin = '';
+    this.loadMantenimientos();
+  }
+
+  // ── Búsqueda global ────────────────────────────────────────────────────────
+
+  onGlobalFilter(event: Event) {
+    this.dt.filterGlobal((event.target as HTMLInputElement).value, 'contains');
+  }
+
+  // ── Modal Ver Detalles ────────────────────────────────────────────────────
+  // CLAVE: primero cargamos la data, y solo cuando está lista abrimos el modal.
+  // Así el template nunca ve reportSelected como undefined dentro del dialog.
+
+  async viewModalReport(id: number) {
+    if (!id) return;
+    this.isModalLoading = true;
+    this.reportSelected = undefined;
+    try {
+      const res: any = await this.mantenimientoService.getById(id);
+      // El backend retorna { success: true, data: {...} } — desempacamos .data
+      this.reportSelected = res?.data ?? res;
+      this.modalReport = true;
+    } catch {
+      Swal.fire('Error', 'No se pudo cargar la información del reporte.', 'error');
+    } finally {
+      this.isModalLoading = false;
     }
-    const term = this.searchTerm.toLowerCase();
-    this.filteredMantenimientos = this.mantenimientos.filter(m =>
-      m.numero_reporte?.toLowerCase().includes(term) ||
-      m.autor_realizado?.toLowerCase().includes(term) ||
-      m.equipo?.nombre_equipo?.toLowerCase().includes(term) ||
-      m.equipo?.placa_inventario?.toLowerCase().includes(term)
+  }
+
+  // ── Acciones de navegación ────────────────────────────────────────────────
+
+  nuevoReporte(idSysEquipo: number, tipoMantenimiento: string | undefined) {
+    localStorage.setItem('TipoMantenimiento', this.mapTipoToCode(tipoMantenimiento));
+    localStorage.removeItem('idMantenimiento');
+    this.router.navigate(['adminsistemas/reporteMantenimiento', idSysEquipo]);
+  }
+
+  editarMantenimiento(idSysEquipo: number, idMantenimiento: number, tipoMantenimiento: string | undefined) {
+    localStorage.setItem('TipoMantenimiento', this.mapTipoToCode(tipoMantenimiento));
+    localStorage.setItem('idMantenimiento', idMantenimiento.toString());
+    this.router.navigate(['adminsistemas/reporteMantenimiento', idSysEquipo]);
+  }
+
+  editarReporte() {
+    if (!this.reportSelected?.equipo?.id_sysequipo || !this.reportSelected?.id) return;
+    this.modalReport = false;
+    this.editarMantenimiento(
+      this.reportSelected.equipo.id_sysequipo,
+      this.reportSelected.id,
+      this.reportSelected.tipoMantenimiento
     );
   }
 
-  onSearch(event: Event) {
-    this.searchTerm = (event.target as HTMLInputElement).value;
-    this.applySearch();
+  verHistorialEquipo(idSysEquipo: number | undefined) {
+    if (!idSysEquipo) return;
+    this.router.navigate(['adminsistemas/historial', idSysEquipo]);
   }
 
-  applyFilters() {
-    this.loadMantenimientos();
-    if (this.activeView === 'dashboard') this.loadDashboard();
+  private mapTipoToCode(tipo: string | undefined): string {
+    if (tipo === 'Correctivo') return 'C';
+    if (tipo === 'Predictivo') return 'PD';
+    return 'P';
   }
 
-  clearFilters() {
-    this.filterTipo = '';
-    this.filterFechaInicio = '';
-    this.filterFechaFin = '';
-    this.searchTerm = '';
-    this.loadMantenimientos();
-  }
+  // ── PDF ───────────────────────────────────────────────────────────────────
 
-  switchView(view: 'list' | 'dashboard') {
-    this.activeView = view;
-    if (view === 'dashboard' && !this.dashboardData) this.loadDashboard();
-  }
-
-  getLabelTipo(value: number | undefined): string {
-    if (!value) return 'N/A';
-    return this.tiposMantenimiento.find(t => t.value === value)?.label || value.toString();
-  }
-
-  getLabelFalla(value: number | undefined): string {
-    if (!value) return 'N/A';
-    return this.tiposFalla.find(t => t.value === value)?.label || value.toString();
-  }
-
-  getTipoBadgeClass(tipo: number | undefined): string {
-    const map: Record<number, string> = { 1: 'badge-danger', 2: 'badge-success', 3: 'badge-info', 4: 'badge-secondary' };
-    return `badge ${tipo ? map[tipo] || 'badge-secondary' : 'badge-secondary'}`;
-  }
-
-  openCreateModal() {
-    this.isEditing = false;
-    this.selectedMantenimiento = null;
-    this.formData = { fecha: new Date().toISOString().split('T')[0] };
-    this.isModalOpen = true;
-  }
-
-  openEditModal(m: SysMantenimiento) {
-    this.isEditing = true;
-    this.selectedMantenimiento = m;
-    this.formData = { ...m };
-    this.isModalOpen = true;
-  }
-
-  closeModal() {
-    this.isModalOpen = false;
-    this.selectedMantenimiento = null;
-    this.formData = {};
-  }
-
-  saveMantenimiento() {
-    if (!this.formData.id_sysequipo_fk) {
-      Swal.fire({ icon: 'warning', title: 'Campo requerido', text: 'Debe seleccionar un equipo' });
-      return;
-    }
-
-    if (this.isEditing && this.selectedMantenimiento?.id_sysmtto) {
-      this.mantenimientoService.update(this.selectedMantenimiento.id_sysmtto, this.formData).subscribe({
-        next: (res) => {
-          if (res.success) {
-            Swal.fire({ icon: 'success', title: 'Actualizado', text: 'Mantenimiento actualizado exitosamente', timer: 2000, showConfirmButton: false });
-            this.closeModal();
-            this.loadMantenimientos();
-          } else {
-            Swal.fire({ icon: 'error', title: 'Error', text: res.message || 'Error al actualizar' });
-          }
-        },
-        error: (err) => Swal.fire({ icon: 'error', title: 'Error', text: err.error?.message || 'Error al conectar con el servidor' })
-      });
-    } else {
-      this.mantenimientoService.create(this.formData).subscribe({
-        next: (res) => {
-          if (res.success) {
-            Swal.fire({ icon: 'success', title: 'Creado', text: 'Mantenimiento registrado exitosamente', timer: 2000, showConfirmButton: false });
-            this.closeModal();
-            this.loadMantenimientos();
-          } else {
-            Swal.fire({ icon: 'error', title: 'Error', text: res.message || 'Error al crear' });
-          }
-        },
-        error: (err) => Swal.fire({ icon: 'error', title: 'Error', text: err.error?.message || 'Error al conectar con el servidor' })
-      });
+  async viewPdf(ruta: string | undefined) {
+    if (!ruta) return;
+    try {
+      const blob = await this.archivosService.getArchivo(ruta);
+      if (blob.type === 'application/pdf') {
+        window.open(URL.createObjectURL(blob), '_blank');
+      }
+    } catch {
+      Swal.fire('Error', 'No se pudo abrir el PDF', 'error');
     }
   }
+
+  onFileSelected(event: any) {
+    this.selectedFile = event.target.files[0];
+  }
+
+  async subirPdf() {
+    Swal.fire('Próximamente', 'La subida de PDF se habilitará pronto.', 'info');
+    this.selectedFile = null;
+  }
+
+  // ── Eliminar ──────────────────────────────────────────────────────────────
 
   confirmDelete(m: SysMantenimiento) {
     Swal.fire({
       title: '¿Eliminar mantenimiento?',
-      text: `¿Está seguro de eliminar el reporte ${m.numero_reporte || '#' + m.id_sysmtto}?`,
+      text: `¿Está seguro de eliminar el reporte #${m.id}?`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
       confirmButtonText: 'Sí, eliminar',
       cancelButtonText: 'Cancelar'
-    }).then((result) => {
-      if (result.isConfirmed && m.id_sysmtto) {
-        this.mantenimientoService.delete(m.id_sysmtto).subscribe({
-          next: (res) => {
+    }).then(result => {
+      if (result.isConfirmed && m.id) {
+        this.mantenimientoService.delete(m.id).subscribe({
+          next: res => {
             if (res.success) {
               Swal.fire({ icon: 'success', title: 'Eliminado', text: 'Mantenimiento eliminado exitosamente', timer: 2000, showConfirmButton: false });
               this.loadMantenimientos();
@@ -239,5 +264,33 @@ export class SisMantenimientosComponent implements OnInit {
         });
       }
     });
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+
+  getMesProgramado(mes: number | undefined): string {
+    if (!mes) return '—';
+    const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    return meses[mes - 1] ?? '—';
+  }
+
+  getTipoSeverity(tipo: string | undefined): 'success' | 'danger' | 'info' | 'secondary' {
+    const map: Record<string, 'success' | 'danger' | 'info' | 'secondary'> = {
+      'Preventivo': 'success',
+      'Correctivo': 'danger',
+      'Predictivo': 'info',
+    };
+    return tipo ? (map[tipo] ?? 'secondary') : 'secondary';
+  }
+
+  getStatusSeverity(status: string): 'success' | 'info' | 'danger' | 'warn' | 'secondary' {
+    const map: Record<string, 'success' | 'info' | 'danger' | 'warn'> = {
+      'COMPLETADO': 'success',
+      'REALIZADO': 'info',
+      'PENDIENTE': 'danger',
+      'PROGRAMADO': 'warn',
+    };
+    return map[status] ?? 'secondary';
   }
 }

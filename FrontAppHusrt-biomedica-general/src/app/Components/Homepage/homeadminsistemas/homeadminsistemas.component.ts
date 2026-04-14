@@ -34,4 +34,6 @@ export class HomeadminsistemasComponent implements OnInit {
   irAParametrizacion() { this.router.navigate(['/adminsistemas/parametrizacion']); }
   irAMesa() { this.router.navigate(['/adminmesaservicios/casos']); }
   irAUsuarios() { this.router.navigate(['/admusuarios']); }
+  irACalendarioEquipo() { this.router.navigate(['/adminsistemas/planMantenimiento']); }
+  irARepuestos() { this.router.navigate(['/adminsistemas/repuestos']); }
 }

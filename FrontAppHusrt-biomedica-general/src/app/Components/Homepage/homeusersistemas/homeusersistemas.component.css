@@ -1,5 +1,7 @@
 .inventario-card { cursor: default; }
 .inventario-card:hover { transform: none; box-shadow: var(--shadow-sm); }
+.mantenimiento-card { cursor: default; }
+.mantenimiento-card:hover { transform: none; box-shadow: var(--shadow-sm); }
 
 .sub-actions { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.75rem; }
 

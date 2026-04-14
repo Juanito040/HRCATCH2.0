@@ -51,4 +51,24 @@ export class SysplanmantenimientoService {
   reemplazarPlanesEquipo(idEquipo: number, planes: Partial<SysPlanMantenimiento>[]): Promise<SysPlanMantenimiento[]> {
     return firstValueFrom(this.http.put<SysPlanMantenimiento[]>(`${this.apiUrl}/equipo/${idEquipo}/reemplazar`, { planes }));
   }
+  getScheduledMonths() {
+    return firstValueFrom(
+      this.http.get<any>(`${this.apiUrl}/programacionPreventivaMeses`)
+    )
+  }
+    getPlanMantenimientoTipoEquipo(idTipoEquipo: any) {
+    return firstValueFrom(
+      this.http.get<any>(`${this.apiUrl}/planmantenimientotipoequipo/` + idTipoEquipo)
+    )
+  }
+    getPlanMantenimientoServicio(idServicio: any) {
+    return firstValueFrom(
+      this.http.get<any>(`${this.apiUrl}/planmantenimientoservicio/` + idServicio)
+    )
+  }
+   programacionMantenimiento(date: any) {
+    return firstValueFrom(
+      this.http.post<any>(`${API_URL}/sysprogramacion/programacion-preventivos`, date)
+    )
+  }
 }

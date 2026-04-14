@@ -1,42 +1,143 @@
-const SysReporte        = require('../../models/Sistemas/SysReporte');
-const SysEquipo         = require('../../models/Sistemas/SysEquipo');
-const SysBaja           = require('../../models/Sistemas/SysBaja');
-const SysTrazabilidad   = require('../../models/Sistemas/SysTrazabilidad');
-const SysMantenimiento  = require('../../models/Sistemas/SysMantenimiento');
-const Servicio          = require('../../models/generales/Servicio');
-const TipoEquipo        = require('../../models/generales/TipoEquipo');
-const Usuario           = require('../../models/generales/Usuario');
+const { Op } = require('sequelize');
+const SysReporte = require('../../models/Sistemas/SysReporte');
+const SysEquipo = require('../../models/Sistemas/SysEquipo');
+const SysBaja = require('../../models/Sistemas/SysBaja');
+const SysTrazabilidad = require('../../models/Sistemas/SysTrazabilidad');
+const Servicio = require('../../models/generales/Servicio');
+const TipoEquipo = require('../../models/generales/TipoEquipo');
+const Usuario = require('../../models/generales/Usuario');
+const Sede = require('../../models/generales/Sede');
+const Cargo = require('../../models/generales/Cargo');
 
 const EQUIPO_INCLUDE = {
     model: SysEquipo, as: 'equipo',
     attributes: ['id_sysequipo', 'nombre_equipo', 'marca', 'modelo', 'serie',
-                 'placa_inventario', 'ubicacion', 'ubicacion_especifica'],
+        'placa_inventario', 'ubicacion', 'ubicacion_especifica'],
     include: [
-        { model: Servicio,   as: 'servicio',    attributes: ['id', 'nombres'] },
-        { model: TipoEquipo, as: 'tipoEquipo',  attributes: ['id', 'nombres'] }
+        { model: Servicio, as: 'servicio', attributes: ['id', 'nombres'] },
+        { model: TipoEquipo, as: 'tipoEquipo', attributes: ['id', 'nombres'] }
     ]
 };
+const INCLUDES_FULL = [
+    {
+        model: SysEquipo, as: 'equipo',
+        attributes: ['id_sysequipo', 'nombre_equipo', 'marca', 'modelo', 'serie',
+            'placa_inventario', 'ubicacion', 'ubicacion_especifica'],
+        include: [
+            { model: Servicio, as: 'servicio', attributes: ['id', 'nombres'] },
+            { model: TipoEquipo, as: 'tipoEquipo', attributes: ['id', 'nombres'] }
+        ]
+    },
+    { model: Usuario, as: 'usuario', attributes: ['id', 'nombres', 'apellidos'] }
+];
 
+const getAllTiposMantenimiento = () => [
+    { id: 1, nombre: 'Correctivo' },
+    { id: 2, nombre: 'Preventivo' },
+    { id: 3, nombre: 'Predictivo' },
+    { id: 4, nombre: 'Otro' }
+];
+
+const getAllTiposFalla = () => [
+    { id: 1, nombre: 'Desgaste' },
+    { id: 2, nombre: 'Operación Indebida' },
+    { id: 3, nombre: 'Causa Externa' },
+    { id: 4, nombre: 'Accesorios' },
+    { id: 5, nombre: 'Desconocido' },
+    { id: 6, nombre: 'Sin Falla' },
+    { id: 7, nombre: 'Otros' },
+    { id: 8, nombre: 'No Registra' }
+];
 // ── GET ALL ─────────────────────────────────────────────────────────────────
 exports.getAllReportes = async (req, res) => {
     try {
-        const { page = 1, limit = 20, equipoId } = req.query;
-        const where  = equipoId ? { id_sysequipo_fk: equipoId } : {};
-        const offset = (page - 1) * limit;
-
-        const { count, rows } = await SysReporte.findAndCountAll({
-            where,
-            include: [EQUIPO_INCLUDE,
-                { model: Usuario, as: 'usuario', attributes: ['id', 'nombres', 'apellidos'] }],
-            limit: parseInt(limit), offset: parseInt(offset),
-            order: [['createdAt', 'DESC']]
+        const reportes = await SysReporte.findAll({
+            include: [
+                { model: SysEquipo, as: 'equipo' },
+                {
+                    model: Servicio,
+                    as: 'servicio',
+                    include: [{ model: Sede, as: 'sede' }]
+                },
+                {
+                    model: Usuario,
+                    as: 'usuario',
+                    include: [{ model: Cargo, as: 'cargo' }]
+                }
+            ],
+            order: [['fechaRealizado', 'DESC'], ['createdAt', 'DESC']]
         });
+        res.json(reportes);
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener los reportes', detalle: error.message });
+    }
+};
+exports.getDashboard = async (req, res) => {
+    try {
+        let { fecha_inicio, fecha_fin } = req.query;
+        if (!fecha_inicio || !fecha_fin) {
+            const hoy = new Date();
+            fecha_inicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1).toISOString().split('T')[0];
+            fecha_fin = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).toISOString().split('T')[0];
+        }
 
-        res.json({ success: true, data: rows, total: count,
-                   page: parseInt(page), totalPages: Math.ceil(count / limit) });
-    } catch (err) {
-        console.error('getAllReportes:', err);
-        res.status(500).json({ success: false, message: 'Error al obtener reportes', error: err.message });
+        const where = { fecha: { [Op.between]: [fecha_inicio, fecha_fin] } };
+
+        const [total, correctivos, preventivos, predictivos, otros, recientes] = await Promise.all([
+            SysReporte.count({ where }),
+            SysReporte.count({ where: { ...where, tipo_mantenimiento: 1 } }),
+            SysReporte.count({ where: { ...where, tipo_mantenimiento: 2 } }),
+            SysReporte.count({ where: { ...where, tipo_mantenimiento: 3 } }),
+            SysReporte.count({ where: { ...where, tipo_mantenimiento: 4 } }),
+            SysReporte.findAll({ where, include: INCLUDES_FULL, order: [['fecha', 'DESC']], limit: 20 })
+        ]);
+
+        res.json({
+            success: true,
+            data: {
+                total,
+                estadisticasTipo: [
+                    { tipo: 'Correctivo', cantidad: correctivos },
+                    { tipo: 'Preventivo', cantidad: preventivos },
+                    { tipo: 'Predictivo', cantidad: predictivos },
+                    { tipo: 'Otro', cantidad: otros }
+                ],
+                mantenimientosRecientes: recientes,
+                fecha_inicio,
+                fecha_fin
+            }
+        });
+    } catch (error) {
+        console.error('Error getDashboard SysReporte:', error);
+        res.status(500).json({ success: false, message: 'Error al obtener dashboard' });
+    }
+};
+exports.getByTecnico = async (req, res) => {
+    try {
+        const where = { id_sysusuario_fk: req.params.idUsuario };
+        if (req.query.fecha_inicio && req.query.fecha_fin) {
+            where.fecha = { [Op.between]: [req.query.fecha_inicio, req.query.fecha_fin] };
+        }
+        const data = await SysReporte.findAll({
+            where,
+            include: INCLUDES_FULL,
+            order: [['fecha', 'DESC']]
+        });
+        res.json({ success: true, count: data.length, data });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error al obtener reportes del técnico' });
+    }
+};
+exports.getByEquipo = async (req, res) => {
+    try {
+        const data = await SysReporte.findAll({
+            where: { id_sysequipo_fk: req.params.idEquipo },
+            include: INCLUDES_FULL,
+            order: [['fecha', 'DESC']]
+        });
+        res.json({ success: true, count: data.length, data });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error al obtener reportes del equipo' });
     }
 };
 
@@ -58,7 +159,8 @@ exports.getReporteById = async (req, res) => {
 exports.createReporte = async (req, res) => {
     try {
         const reporte = await SysReporte.create(req.body);
-        const result  = await SysReporte.findByPk(reporte.id_sysreporte, {
+        console.log('reporte.id:', reporte.id, 'reporte.id_sysreporte:', reporte.id_sysreporte);
+        const result = await SysReporte.findByPk(reporte.id, {
             include: [EQUIPO_INCLUDE]
         });
 
@@ -68,9 +170,9 @@ exports.createReporte = async (req, res) => {
             const detalles = [
                 eq ? `Equipo: ${eq.nombre_equipo}` : '',
                 reporte.servicio_anterior ? `De: ${reporte.servicio_anterior}` : '',
-                reporte.servicio_nuevo    ? `Hacia: ${reporte.servicio_nuevo}` : '',
-                reporte.realizado_por     ? `Por: ${reporte.realizado_por}`    : '',
-                reporte.recibido_por      ? `Recibido por: ${reporte.recibido_por}` : ''
+                reporte.servicio_nuevo ? `Hacia: ${reporte.servicio_nuevo}` : '',
+                reporte.realizado_por ? `Por: ${reporte.realizado_por}` : '',
+                reporte.recibido_por ? `Recibido por: ${reporte.recibido_por}` : ''
             ].filter(Boolean).join(' · ');
 
             SysTrazabilidad.create({
@@ -113,6 +215,14 @@ exports.deleteReporte = async (req, res) => {
         res.status(500).json({ success: false, message: 'Error al eliminar reporte', error: err.message });
     }
 };
+exports.getCatalogoTiposMantenimiento = (req, res) => {
+    res.json({ success: true, data: getAllTiposMantenimiento() });
+};
+
+exports.getCatalogoTiposFalla = (req, res) => {
+    res.json({ success: true, data: getAllTiposFalla() });
+};
+
 
 // ── PDF REPORTE DE ENTREGA ────────────────────────────────────────────────────
 // Formato S-F-03 v05 — ENTREGA DE EQUIPOS HRCATCH
@@ -124,7 +234,7 @@ exports.exportarPdfReporte = async (req, res) => {
         });
         if (!reporte) return res.status(404).json({ success: false, message: 'Reporte no encontrado' });
 
-        const r  = reporte.toJSON();
+        const r = reporte.toJSON();
         const eq = r.equipo || {};
 
         const PDFDocument = require('pdfkit');
@@ -140,6 +250,7 @@ exports.exportarPdfReporte = async (req, res) => {
             `attachment; filename="EntregaEquipos_${r.id_sysreporte}.pdf"`);
         doc.pipe(res);
 
+<<<<<<< HEAD
         const M   = 30;
         const PW  = 612 - M * 2; // 552
         const val  = (v) => (v !== undefined && v !== null && v !== '') ? String(v) : '';
@@ -169,6 +280,31 @@ exports.exportarPdfReporte = async (req, res) => {
                    align: opts.align || 'left',
                    lineBreak: opts.wrap !== false
                });
+=======
+        const M = 30;
+        const PW = 552;
+        const val = (v) => (v !== undefined && v !== null && v !== '') ? String(v) : '';
+        const fmtF = (v) => { if (!v) return ''; try { return new Date(v).toLocaleDateString('es-CO'); } catch { return String(v); } };
+
+        function cell(x, cy, w, h, label, value) {
+            doc.rect(x, cy, w, h).stroke('#999');
+            if (label) {
+                doc.font('Helvetica-Bold').fontSize(5.5).fillColor('#444')
+                    .text(label, x + 2, cy + 2, { width: w - 4, lineBreak: false });
+            }
+            doc.font('Helvetica').fontSize(7.5).fillColor('#111')
+                .text(String(value || ''), x + 3, label ? cy + 11 : cy + 4,
+                    { width: w - 6, lineBreak: false });
+        }
+
+        function sectionBar(cy, title) {
+            const bH = 14;
+            doc.rect(M, cy, PW, bH).fill('#1a3a6c');
+            doc.fillColor('white').font('Helvetica-Bold').fontSize(7.5)
+                .text(title, M + 6, cy + 3, { width: PW - 12, lineBreak: false });
+            doc.fillColor('#111');
+            return cy + bH;
+>>>>>>> origin/Diego
         }
 
         // ── Detección de fila activa ───────────────────────────────────────────
@@ -208,6 +344,7 @@ exports.exportarPdfReporte = async (req, res) => {
 
         let y = M;
 
+<<<<<<< HEAD
         // ══════════════════════════════════════════════════════════════════════
         // ENCABEZADO — idéntico al de Hoja de Vida (S-F-06)
         // 3 columnas × 3 filas
@@ -464,6 +601,98 @@ exports.exportarPdfReporte = async (req, res) => {
         const dValX = MID + 4 + dLblW;
         const dValW = M + PW - dValX - 2;
         doc.moveTo(dValX, y + FTR_H - 2).lineTo(dValX + dValW, y + FTR_H - 2).stroke('#000');
+=======
+        // ── CABECERA ──
+        doc.rect(M, y, PW, 60).stroke('#555');
+        doc.rect(M + PW - 122, y, 122, 60).stroke('#555');
+        doc.font('Helvetica-Bold').fontSize(9).fillColor('#1a3a6c')
+            .text('E.S.E HOSPITAL UNIVERSITARIO SAN RAFAEL DE TUNJA', M + 6, y + 6, { width: PW - 134, lineBreak: false });
+        doc.font('Helvetica').fontSize(7.5).fillColor('#333')
+            .text('II NIVEL DE ATENCIÓN  ·  NIT: 891.800.611-7', M + 6, y + 18, { width: PW - 134, lineBreak: false });
+        doc.font('Helvetica-Bold').fontSize(9).fillColor('#2c5282')
+            .text('REPORTE DE ENTREGA DE EQUIPO DE SISTEMAS', M + 6, y + 32, { width: PW - 134, lineBreak: false });
+
+        const cx = M + PW - 120;
+        doc.font('Helvetica-Bold').fontSize(5.5).fillColor('#555')
+            .text('CÓDIGO:', cx + 2, y + 6, { lineBreak: false });
+        doc.font('Helvetica').fontSize(6.5).fillColor('#000')
+            .text('GI-F-014', cx + 38, y + 6, { lineBreak: false });
+        doc.font('Helvetica-Bold').fontSize(5.5).fillColor('#555')
+            .text('VERSIÓN:', cx + 2, y + 16, { lineBreak: false });
+        doc.font('Helvetica').fontSize(6.5).fillColor('#000')
+            .text('01', cx + 38, y + 16, { lineBreak: false });
+        doc.font('Helvetica-Bold').fontSize(7).fillColor('#1a3a6c')
+            .text(`N° ${String(r.id_sysreporte).padStart(4, '0')}`, cx + 2, y + 32, { width: 116, align: 'center', lineBreak: false });
+        doc.fillColor('#111');
+        y += 60;
+
+        // ── DATOS DEL REPORTE ──
+        y = sectionBar(y, 'DATOS DEL REPORTE');
+        const c3 = Math.floor(PW / 3);
+        cell(M, y, c3, 22, 'NÚMERO DE REPORTE', String(r.id_sysreporte).padStart(4, '0'));
+        cell(M + c3, y, c3, 22, 'PLACA DE INVENTARIO', val(eq.placa_inventario));
+        cell(M + c3 * 2, y, PW - c3 * 2, 22, 'FECHA', fmtF(r.fecha));
+        y += 22;
+
+        cell(M, y, c3, 22, 'SERVICIO ANTERIOR', val(r.servicio_anterior || eq.servicio?.nombres));
+        cell(M + c3, y, c3, 22, 'UBICACIÓN ANTERIOR', val(r.ubicacion_anterior || eq.ubicacion));
+        cell(M + c3 * 2, y, PW - c3 * 2, 22, 'EQUIPO', val(eq.nombre_equipo));
+        y += 22;
+
+        const c4 = Math.floor(PW / 3);
+        cell(M, y, c4, 20, 'HORA DE LLAMADO', val(r.hora_llamado));
+        cell(M + c4, y, c4, 20, 'HORA DE INICIO', val(r.hora_inicio));
+        cell(M + c4 * 2, y, PW - c4 * 2, 20, 'HORA DE TERMINACIÓN', val(r.hora_terminacion));
+        y += 20;
+
+        // ── DATOS DE ENTREGA ──
+        y = sectionBar(y, 'DATOS DE ENTREGA');
+        const h2 = Math.floor(PW / 2);
+        cell(M, y, h2, 22, 'SERVICIO DESTINO', val(r.servicio_nuevo));
+        cell(M + h2, y, PW - h2, 22, 'UBICACIÓN DESTINO', val(r.ubicacion_nueva));
+        y += 22;
+        cell(M, y, h2, 22, 'UBICACIÓN ESPECÍFICA', val(r.ubicacion_especifica));
+        cell(M + h2, y, PW - h2, 22, 'TIPO DE EQUIPO', val(eq.tipoEquipo?.nombres));
+        y += 22;
+        cell(M, y, h2, 22, 'REALIZADO POR', val(r.realizado_por));
+        cell(M + h2, y, PW - h2, 22, 'RECIBIDO POR', val(r.recibido_por));
+        y += 22;
+
+        // ── DATOS TÉCNICOS DEL EQUIPO ──
+        y = sectionBar(y, 'DATOS TÉCNICOS DEL EQUIPO');
+        cell(M, y, c3, 20, 'MARCA', val(eq.marca));
+        cell(M + c3, y, c3, 20, 'MODELO', val(eq.modelo));
+        cell(M + c3 * 2, y, PW - c3 * 2, 20, 'SERIE', val(eq.serie));
+        y += 20;
+
+        // ── OBSERVACIONES ──
+        y = sectionBar(y, 'OBSERVACIONES');
+        const obsH = 55;
+        doc.rect(M, y, PW, obsH).stroke('#999');
+        doc.font('Helvetica').fontSize(8).fillColor('#111')
+            .text(val(r.observaciones), M + 5, y + 5, { width: PW - 10, height: obsH - 10 });
+        y += obsH;
+
+        // ── FIRMAS ──
+        y = sectionBar(y, 'FIRMAS DE CONFORMIDAD');
+        const fw = Math.floor(PW / 2);
+        doc.rect(M, y, fw, 60).stroke('#999');
+        doc.rect(M + fw, y, PW - fw, 60).stroke('#999');
+        doc.font('Helvetica-Bold').fontSize(6).fillColor('#555')
+            .text('ENTREGADO POR', M + 2, y + 4, { width: fw - 4, align: 'center', lineBreak: false })
+            .text('RECIBIDO POR', M + fw + 2, y + 4, { width: PW - fw - 4, align: 'center', lineBreak: false });
+        doc.moveTo(M + 10, y + 50).lineTo(M + fw - 10, y + 50).stroke('#888');
+        doc.moveTo(M + fw + 10, y + 50).lineTo(M + PW - 10, y + 50).stroke('#888');
+        doc.font('Helvetica').fontSize(6).fillColor('#666')
+            .text(val(r.realizado_por), M + 2, y + 52, { width: fw - 4, align: 'center', lineBreak: false })
+            .text(val(r.recibido_por), M + fw + 2, y + 52, { width: PW - fw - 4, align: 'center', lineBreak: false });
+        y += 60;
+
+        y += 8;
+        doc.font('Helvetica').fontSize(6).fillColor('#888')
+            .text('NO ES VÁLIDO SIN REGISTRO EN EL SISTEMA DE GESTIÓN DEL APLICATIVO',
+                M, y, { width: PW, align: 'center', lineBreak: false });
+>>>>>>> origin/Diego
 
         doc.end();
 
@@ -484,9 +713,13 @@ exports.exportarPdfBaja = async (req, res) => {
                 {
                     model: SysEquipo, as: 'equipo',
                     attributes: ['id_sysequipo', 'nombre_equipo', 'marca', 'modelo',
+<<<<<<< HEAD
                                  'serie', 'placa_inventario', 'ubicacion'],
+=======
+                        'serie', 'placa_inventario', 'ubicacion', 'ubicacion_especifica'],
+>>>>>>> origin/Diego
                     include: [
-                        { model: Servicio,   as: 'servicio',   attributes: ['id', 'nombres'] },
+                        { model: Servicio, as: 'servicio', attributes: ['id', 'nombres'] },
                         { model: TipoEquipo, as: 'tipoEquipo', attributes: ['id', 'nombres'] }
                     ]
                 },
@@ -496,7 +729,7 @@ exports.exportarPdfBaja = async (req, res) => {
 
         if (!baja) return res.status(404).json({ success: false, message: 'Registro de baja no encontrado' });
 
-        const b  = baja.toJSON();
+        const b = baja.toJSON();
         const eq = b.equipo || {};
 
         // Último mantenimiento del equipo para la sección 2
@@ -509,6 +742,7 @@ exports.exportarPdfBaja = async (req, res) => {
             });
         }
 
+<<<<<<< HEAD
         const PDFDocument = require('pdfkit');
         const path        = require('path');
         const fs          = require('fs');
@@ -527,12 +761,19 @@ exports.exportarPdfBaja = async (req, res) => {
         const doc = new PDFDocument({ size: 'LETTER', margin: 0, bufferPages: true });
         doc.registerFont('Arial',      'C:/Windows/Fonts/arial.ttf');
         doc.registerFont('Arial-Bold', 'C:/Windows/Fonts/arialbd.ttf');
+=======
+        const M = 30;
+        const PW = 552;
+        const val = (v) => (v !== undefined && v !== null && v !== '') ? String(v) : '';
+        const fmtF = (v) => { if (!v) return ''; try { return new Date(v).toLocaleDateString('es-CO'); } catch { return String(v); } };
+>>>>>>> origin/Diego
 
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition',
             `attachment; filename="Baja_${val(eq.placa_inventario) || bajaId}.pdf"`);
         doc.pipe(res);
 
+<<<<<<< HEAD
         // ── helpers ────────────────────────────────────────────────────────────
         function drawRect(x, cy, w, h, fillColor) {
             if (fillColor) {
@@ -540,15 +781,34 @@ exports.exportarPdfBaja = async (req, res) => {
             } else {
                 doc.rect(x, cy, w, h).stroke('#000');
             }
+=======
+        function cell(x, cy, w, h, label, value) {
+            doc.rect(x, cy, w, h).stroke('#999');
+            if (label) {
+                doc.font('Helvetica-Bold').fontSize(5.5).fillColor('#444')
+                    .text(label, x + 2, cy + 2, { width: w - 4, lineBreak: false });
+            }
+            doc.font('Helvetica').fontSize(7.5).fillColor('#111')
+                .text(String(value || ''), x + 3, label ? cy + 11 : cy + 4,
+                    { width: w - 6, lineBreak: false });
+>>>>>>> origin/Diego
         }
 
         // Barra de sección — verde #009688 con texto blanco (mismo color que PDFs biomédica)
         function sectionBar(cy, title) {
+<<<<<<< HEAD
             const bH = 17;
             doc.rect(M, cy, PW, bH).fill('#009688').stroke('#000');
             doc.font('Arial-Bold').fontSize(8).fillColor('#ffffff')
                .text(title, M + 4, cy + (bH - 8) / 2, { width: PW - 8, align: 'center', lineBreak: false });
             doc.fillColor('#000');
+=======
+            const bH = 14;
+            doc.rect(M, cy, PW, bH).fill('#7b1f1f');
+            doc.fillColor('white').font('Helvetica-Bold').fontSize(7.5)
+                .text(title, M + 6, cy + 3, { width: PW - 12, lineBreak: false });
+            doc.fillColor('#111');
+>>>>>>> origin/Diego
             return cy + bH;
         }
 
@@ -585,6 +845,7 @@ exports.exportarPdfBaja = async (req, res) => {
 
         let y = M;
 
+<<<<<<< HEAD
         // ══════════════════════════════════════════════════════════════════════
         // ENCABEZADO — idéntico estructura a Hoja de Vida (3 col × 3 filas)
         // ══════════════════════════════════════════════════════════════════════
@@ -596,6 +857,34 @@ exports.exportarPdfBaja = async (req, res) => {
         const row1H = 22;
         const row2H = 22;
         const row3H = hdrH - row1H - row2H; // 24
+=======
+        // ── CABECERA ──
+        doc.rect(M, y, PW, 62).stroke('#555');
+        doc.rect(M + PW - 122, y, 122, 62).stroke('#555');
+        doc.font('Helvetica-Bold').fontSize(9).fillColor('#7b1f1f')
+            .text('E.S.E HOSPITAL UNIVERSITARIO SAN RAFAEL DE TUNJA', M + 6, y + 6, { width: PW - 134, lineBreak: false });
+        doc.font('Helvetica').fontSize(7.5).fillColor('#333')
+            .text('II NIVEL DE ATENCIÓN  ·  NIT: 891.800.611-7', M + 6, y + 18, { width: PW - 134, lineBreak: false });
+        doc.font('Helvetica-Bold').fontSize(8.5).fillColor('#7b1f1f')
+            .text('CONCEPTO TÉCNICO PARA EVIDENCIA DE', M + 6, y + 32, { width: PW - 134, lineBreak: false })
+            .text('BAJA DE TECNOLOGÍA (CTEBT)', M + 6, y + 43, { width: PW - 134, lineBreak: false });
+
+        const cx = M + PW - 120;
+        doc.font('Helvetica-Bold').fontSize(5.5).fillColor('#555')
+            .text('CÓDIGO:', cx + 2, y + 6, { lineBreak: false });
+        doc.font('Helvetica').fontSize(6.5).fillColor('#000')
+            .text('GI-F-015', cx + 38, y + 6, { lineBreak: false });
+        doc.font('Helvetica-Bold').fontSize(5.5).fillColor('#555')
+            .text('VERSIÓN:', cx + 2, y + 16, { lineBreak: false });
+        doc.font('Helvetica').fontSize(6.5).fillColor('#000')
+            .text('01', cx + 38, y + 16, { lineBreak: false });
+        doc.font('Helvetica-Bold').fontSize(5.5).fillColor('#555')
+            .text('FECHA:', cx + 2, y + 26, { lineBreak: false });
+        doc.font('Helvetica').fontSize(6.5).fillColor('#000')
+            .text(fmtF(b.fecha_baja), cx + 38, y + 26, { lineBreak: false });
+        doc.fillColor('#111');
+        y += 62;
+>>>>>>> origin/Diego
 
         // Borde exterior
         doc.rect(M, y, PW, hdrH).stroke('#000');
@@ -662,6 +951,7 @@ exports.exportarPdfBaja = async (req, res) => {
         // 1. INFORMACIÓN GENERAL
         // ══════════════════════════════════════════════════════════════════════
         y = sectionBar(y, '1. INFORMACIÓN GENERAL');
+<<<<<<< HEAD
 
         const RH = 26; // altura de fila — espacio suficiente para texto
         const nombreLblW = 100, marcaLblW = 55;
@@ -803,6 +1093,76 @@ exports.exportarPdfBaja = async (req, res) => {
            .text('Firma', M + fw + 8, y + fH - 15, { lineBreak: false });
 
         y += fH;
+=======
+        const c3 = Math.floor(PW / 3);
+        cell(M, y, c3, 22, 'FECHA DE BAJA', fmtF(b.fecha_baja));
+        cell(M + c3, y, c3, 22, 'SERVICIO', val(eq.servicio?.nombres));
+        cell(M + c3 * 2, y, PW - c3 * 2, 22, 'RESPONSABLE', `${val(b.usuarioBaja?.nombres)} ${val(b.usuarioBaja?.apellidos)}`);
+        y += 22;
+
+        // ── SECCIÓN 2: RELACIÓN DEL EQUIPO ──
+        y = sectionBar(y, '2. RELACIÓN DEL EQUIPO');
+        const h2 = Math.floor(PW / 2);
+        cell(M, y, h2, 20, 'NOMBRE DEL EQUIPO', val(eq.nombre_equipo));
+        cell(M + h2, y, PW - h2, 20, 'TIPO DE EQUIPO', val(eq.tipoEquipo?.nombres));
+        y += 20;
+        cell(M, y, c3, 20, 'MARCA', val(eq.marca));
+        cell(M + c3, y, c3, 20, 'MODELO', val(eq.modelo));
+        cell(M + c3 * 2, y, PW - c3 * 2, 20, 'SERIE', val(eq.serie));
+        y += 20;
+        cell(M, y, h2, 20, 'PLACA / ACTIVO', val(eq.placa_inventario));
+        cell(M + h2, y, PW - h2, 20, 'UBICACIÓN', val(eq.ubicacion));
+        y += 20;
+
+        // ── SECCIÓN 3: JUSTIFICACIÓN / DESCRIPCIÓN ──
+        y = sectionBar(y, '3. JUSTIFICACIÓN DE LA BAJA');
+        const j1H = 70;
+        doc.rect(M, y, PW, j1H).stroke('#999');
+        doc.font('Helvetica').fontSize(8).fillColor('#111')
+            .text(val(b.justificacion_baja), M + 5, y + 5, { width: PW - 10, height: j1H - 10 });
+        y += j1H;
+
+        // ── SECCIÓN 4: ACCESORIOS REUTILIZABLES ──
+        y = sectionBar(y, '4. ACCESORIOS / COMPONENTES REUTILIZABLES');
+        const a1H = 55;
+        doc.rect(M, y, PW, a1H).stroke('#999');
+        const accesorios = val(b.accesorios_reutilizables) || 'Ninguno';
+        doc.font('Helvetica').fontSize(8).fillColor('#111')
+            .text(accesorios, M + 5, y + 5, { width: PW - 10, height: a1H - 10 });
+        y += a1H;
+
+        // ── SECCIÓN 5: CONCEPTO TÉCNICO ──
+        y = sectionBar(y, '5. CONCEPTO TÉCNICO');
+        const ct = 60;
+        doc.rect(M, y, PW, ct).stroke('#999');
+        doc.font('Helvetica').fontSize(8).fillColor('#555')
+            .text('El equipo descrito ha sido evaluado técnicamente y se determina que no es viable su reparación o reutilización, ' +
+                'por lo que se procede a dar de baja definitiva del inventario institucional.',
+                M + 5, y + 5, { width: PW - 10, height: ct - 10 });
+        y += ct;
+
+        // ── SECCIÓN 6: FIRMAS ──
+        y = sectionBar(y, '6. FIRMAS DE CONFORMIDAD');
+        const fw = Math.floor(PW / 2);
+        const fhH = 65;
+        doc.rect(M, y, fw, fhH).stroke('#999');
+        doc.rect(M + fw, y, PW - fw, fhH).stroke('#999');
+        doc.font('Helvetica-Bold').fontSize(6).fillColor('#555')
+            .text('RESPONSABLE TÉCNICO', M + 2, y + 4, { width: fw - 4, align: 'center', lineBreak: false })
+            .text('JEFE DE SERVICIO', M + fw + 2, y + 4, { width: PW - fw - 4, align: 'center', lineBreak: false });
+        doc.moveTo(M + 15, y + 53).lineTo(M + fw - 15, y + 53).stroke('#888');
+        doc.moveTo(M + fw + 15, y + 53).lineTo(M + PW - 15, y + 53).stroke('#888');
+        doc.font('Helvetica').fontSize(6).fillColor('#666')
+            .text(`${val(b.usuarioBaja?.nombres)} ${val(b.usuarioBaja?.apellidos)}`,
+                M + 2, y + 55, { width: fw - 4, align: 'center', lineBreak: false })
+            .text('_______________________',
+                M + fw + 2, y + 55, { width: PW - fw - 4, align: 'center', lineBreak: false });
+        y += fhH + 8;
+
+        doc.font('Helvetica').fontSize(6).fillColor('#888')
+            .text('NO ES VÁLIDO SIN REGISTRO EN EL SISTEMA DE GESTIÓN DEL APLICATIVO',
+                M, y, { width: PW, align: 'center', lineBreak: false });
+>>>>>>> origin/Diego
 
         doc.end();
 
