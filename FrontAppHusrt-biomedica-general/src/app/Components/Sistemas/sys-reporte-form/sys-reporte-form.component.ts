@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { SysReporteEntregaEntregaService, SysReporteEntregaEntrega } from '../../../Services/appServices/sistemasServices/sysreporteentrega/sysreporteentrega.service';
+import { SysReporteEntregaService, SysReporteEntrega } from '../../../Services/appServices/sistemasServices/sysreporteentrega/sysreporteentrega.service';
 import { ServicioService } from '../../../Services/appServices/general/servicio/servicio.service';
 import { SysequiposService } from '../../../Services/appServices/sistemasServices/sysequipos/sysequipos.service';
 import { getDecodedAccessToken } from '../../../utilidades';
@@ -15,7 +15,7 @@ import Swal from 'sweetalert2';
   templateUrl: './sys-reporte-form.component.html',
   styleUrls: ['./sys-reporte-form.component.css']
 })
-export class SysReporteEntregaFormComponent implements OnInit {
+export class SysReporteFormComponent implements OnInit {
 
   equipo: any = null;
   origenRuta: string = '/adminsistemas/equipos';
@@ -141,7 +141,7 @@ export class SysReporteEntregaFormComponent implements OnInit {
     }
 
     this.reporteService.create(this.form).subscribe({
-      next: (res) => {
+      next: (res: any) => {
         if (res.success) {
           this.savedReporteId = res.data?.id_sysreporte ?? null;
           this.limpiarFormulario();
@@ -157,7 +157,7 @@ export class SysReporteEntregaFormComponent implements OnInit {
         }
         this.isSubmitting = false;
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('createReporte:', err);
         Swal.fire('Error', 'Error al conectar con el servidor.', 'error');
         this.isSubmitting = false;

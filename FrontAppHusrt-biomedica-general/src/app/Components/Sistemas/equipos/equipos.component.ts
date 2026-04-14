@@ -582,15 +582,18 @@ export class SisEquiposComponent implements OnInit {
   }
 
   calcularFechas() {
-    if (!this.intervencionesAnuales || this.intervencionesAnuales <= 0) return;
-    const interval = 12 / this.intervencionesAnuales;
+    const intv = Number(this.intervencionesAnuales);
+    const mes  = Number(this.mesInicio);
+    const anio = Number(this.anioInicio);
+    if (!intv || intv <= 0 || !mes || !anio) return;
+    const interval = 12 / intv;
     const nuevos: { mes: number; ano: number }[] = [];
 
-    for (let i = 0; i < this.intervencionesAnuales; i++) {
-      let calcMonth = this.mesInicio + i * interval;
-      const calcYear = this.anioInicio + Math.floor((calcMonth - 1) / 12);
+    for (let i = 0; i < intv; i++) {
+      let calcMonth = mes + i * interval;
+      const calcYear = anio + Math.floor((calcMonth - 1) / 12);
       calcMonth = ((calcMonth - 1) % 12) + 1;
-      nuevos.push({ mes: Math.floor(calcMonth), ano: calcYear });
+      nuevos.push({ mes: Math.round(calcMonth), ano: calcYear });
     }
 
     this.selectedPlanes = nuevos;

@@ -104,6 +104,7 @@ export class SysProtocolosComponent implements OnInit {
       }
       this.closeDialog();
       await this.onTipoEquipoChange();
+      Swal.fire({ icon: 'success', title: this.isEditing ? 'Paso actualizado' : 'Paso agregado', timer: 1500, showConfirmButton: false });
     } catch (e) {
       this.dialogError = 'Error al guardar el protocolo. Intente nuevamente.';
     } finally {

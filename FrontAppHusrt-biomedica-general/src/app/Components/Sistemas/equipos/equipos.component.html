@@ -208,7 +208,7 @@
 
 <!-- Modal Plan de Mantenimiento -->
 @if (isPlanDialogOpen) {
-  <div class="modal-overlay" (click)="closePlanDialog()">
+  <div class="modal-overlay">
     <div class="plan-modal" (click)="$event.stopPropagation()">
 
       <div class="plan-modal-header">
@@ -225,7 +225,7 @@
 
         <div class="plan-field">
           <label>Intervenciones por año</label>
-          <select [(ngModel)]="intervencionesAnuales" (change)="calcularFechas()">
+          <select [(ngModel)]="intervencionesAnuales" (ngModelChange)="calcularFechas()">
             @for (opt of intervencionOptions; track opt.value) {
               <option [value]="opt.value">{{ opt.label }}</option>
             }
@@ -235,7 +235,7 @@
         <div class="plan-row">
           <div class="plan-field">
             <label>Mes de inicio</label>
-            <select [(ngModel)]="mesInicio" (change)="calcularFechas()">
+            <select [(ngModel)]="mesInicio" (ngModelChange)="calcularFechas()">
               @for (m of monthOptions; track m.value) {
                 <option [value]="m.value">{{ m.label }}</option>
               }
@@ -243,7 +243,7 @@
           </div>
           <div class="plan-field">
             <label>Año de inicio</label>
-            <select [(ngModel)]="anioInicio" (change)="calcularFechas()">
+            <select [(ngModel)]="anioInicio" (ngModelChange)="calcularFechas()">
               @for (a of anioOptions; track a) {
                 <option [value]="a">{{ a }}</option>
               }

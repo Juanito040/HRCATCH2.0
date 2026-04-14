@@ -5,7 +5,7 @@ const SysEquipo = require('../../models/Sistemas/SysEquipo');
 const TipoEquipo = require('../../models/generales/TipoEquipo');
 const Servicio = require('../../models/generales/Servicio');
 const SysProtocoloPreventivo = require('../../models/Sistemas/SysProtocoloPreventivo');
-const SysMantenimiento = require('../../models/Sistemas/SysMantenimiento');
+const SysReporte = require('../../models/Sistemas/SysReporte');
 const SysHojaVida = require('../../models/Sistemas/SysHojaVida');
 const { Op } = require('sequelize');
 
@@ -85,8 +85,8 @@ router.get('/exportar', async (req, res) => {
           ]
         },
         { model: Servicio, as: 'servicio', attributes: ['id', 'nombres'] },
-        { model: SysMantenimiento, as: 'mantenimientos',
-          attributes: ['tipo_mantenimiento', 'fecha', 'observacionesh', 'observacioness'],
+        { model: SysReporte, as: 'sysReportes',
+          attributes: ['tipoMantenimiento'],
           required: false },
         { model: SysHojaVida, as: 'hojaVida', required: false }
       ],
@@ -140,8 +140,8 @@ router.get('/exportar', async (req, res) => {
       { header: 'Comodato',         key: 'comodato',              width: 12 },
       // Protocolos y mantenimientos
       { header: 'Protocolos Preventivos', key: 'protocolos_preventivos', width: 55 },
-      { header: 'Último Mant. Preventivo', key: 'ultimo_preventivo',     width: 22 },
-      { header: 'Último Mant. Correctivo', key: 'ultimo_correctivo',     width: 22 }
+      { header: 'N° Mant. Preventivos',   key: 'conteo_preventivos',     width: 20 },
+      { header: 'N° Mant. Correctivos',   key: 'conteo_correctivos',     width: 20 }
     ];
 
     // Estilo de cabecera (asignación directa de propiedades ExcelJS)
@@ -169,18 +169,16 @@ router.get('/exportar', async (req, res) => {
     equipos.forEach((eq, index) => {
       const estadoTexto = eq.activo ? 'Activo' : 'En Bodega';
 
-      // Protocolos preventivos del tipo de equipo (pasos activos)
+      // Protocolos preventivos del tipo de equipo (pasos activos, separados por coma)
       const protocolos = (eq.tipoEquipo?.sysProtocolos || []);
       const protocolosTexto = protocolos.length > 0
-        ? protocolos.map((p, i) => `${i + 1}. ${p.paso}`).join('\n')
+        ? protocolos.map(p => p.paso).join(', ')
         : 'Sin protocolos definidos';
 
-      // Último mantenimiento preventivo y correctivo
-      const mantenimientos = eq.mantenimientos || [];
-      const preventivos = mantenimientos.filter(m => m.tipo_mantenimiento === 2).sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-      const correctivos = mantenimientos.filter(m => m.tipo_mantenimiento === 1).sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-      const ultimoPreventivo = preventivos[0]?.fecha || 'Sin registros';
-      const ultimoCorrectivo = correctivos[0]?.fecha || 'Sin registros';
+      // Conteo de mantenimientos por tipo
+      const reportes = eq.sysReportes || [];
+      const conteoPreventivos = reportes.filter(r => r.tipoMantenimiento === 'Preventivo').length;
+      const conteoCorrectivos = reportes.filter(r => r.tipoMantenimiento === 'Correctivo').length;
 
       const hv = eq.hojaVida || {};
       const fmtBool = v => v ? 'Sí' : 'No';
@@ -226,8 +224,8 @@ router.get('/exportar', async (req, res) => {
         comodato:              hv.comodato          != null ? fmtBool(hv.comodato)    : '',
         // Protocolos y mantenimientos
         protocolos_preventivos: protocolosTexto,
-        ultimo_preventivo:     ultimoPreventivo,
-        ultimo_correctivo:     ultimoCorrectivo
+        conteo_preventivos:    conteoPreventivos,
+        conteo_correctivos:    conteoCorrectivos
       });
 
       const fillColor = index % 2 === 0 ? 'FFFFFFFF' : 'FFF0F4FF';

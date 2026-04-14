@@ -517,7 +517,7 @@
 <!-- ══════════════════════════════════════════════════════
      MODAL — CREAR / EDITAR REPUESTO
 ═══════════════════════════════════════════════════════ -->
-<div class="modal-overlay" *ngIf="isRepuestoModalOpen" (click)="closeRepuestoModal()">
+<div class="modal-overlay" *ngIf="isRepuestoModalOpen">
   <div class="modal-card" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <h3>{{ isEditMode ? 'Editar Repuesto' : 'Nuevo Repuesto' }}</h3>
@@ -577,7 +577,7 @@
 <!-- ══════════════════════════════════════════════════════
      MODAL — MOVIMIENTO DE STOCK (INGRESO / EGRESO)
 ═══════════════════════════════════════════════════════ -->
-<div class="modal-overlay" *ngIf="isMovimientoModalOpen" (click)="closeMovimientoModal()">
+<div class="modal-overlay" *ngIf="isMovimientoModalOpen">
   <div class="modal-card" style="max-width: 500px;" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <h3><i class="pi pi-arrows-v"></i> Movimiento de Stock</h3>
@@ -638,7 +638,7 @@
 <!-- ══════════════════════════════════════════════════════
      MODAL — CREAR / EDITAR TIPO
 ═══════════════════════════════════════════════════════ -->
-<div class="modal-overlay" *ngIf="isTipoModalOpen" (click)="closeTipoModal()">
+<div class="modal-overlay" *ngIf="isTipoModalOpen">
   <div class="modal-card" style="max-width:520px" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <h3>{{ isTipoEditMode ? 'Editar Tipo' : 'Nuevo Tipo' }}</h3>
@@ -674,7 +674,7 @@
 <!-- ══════════════════════════════════════════════════════
      MODAL — DETALLES DEL REPUESTO
 ═══════════════════════════════════════════════════════ -->
-<div class="modal-overlay" *ngIf="isDetallesModalOpen" (click)="closeDetallesModal()">
+<div class="modal-overlay" *ngIf="isDetallesModalOpen">
   <div class="modal-card" style="max-width: 650px;" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <h3><i class="pi pi-id-card" style="color:var(--primary-color)"></i> Detalles del Repuesto</h3>
