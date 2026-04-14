@@ -38,6 +38,7 @@ export class SysReporteFormComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    window.scrollTo({ top: 0, behavior: 'instant' });
     const raw = sessionStorage.getItem('equipoParaReporte');
     if (raw) {
       this.equipo = JSON.parse(raw);
@@ -105,6 +106,27 @@ export class SysReporteFormComponent implements OnInit {
     this.initForm();
   }
 
+  private limpiarFormulario() {
+    const hoy = new Date().toISOString().split('T')[0];
+    const ahora = new Date().toTimeString().slice(0, 5);
+    const realizadoPor = this.form.realizado_por;
+    this.form = {
+      fecha: hoy,
+      hora_llamado: ahora,
+      hora_inicio: '',
+      hora_terminacion: '',
+      servicio_anterior: this.equipo?.servicio?.nombres || '',
+      ubicacion_anterior: this.equipo?.ubicacion || '',
+      servicio_nuevo: '',
+      ubicacion_nueva: '',
+      ubicacion_especifica: '',
+      realizado_por: realizadoPor,
+      recibido_por: '',
+      observaciones: ''
+    };
+    this.equipoRetirado = '';
+  }
+
   async onSubmit() {
     if (!this.equipo?.id_sysequipo) return;
 
@@ -122,6 +144,7 @@ export class SysReporteFormComponent implements OnInit {
       next: (res) => {
         if (res.success) {
           this.savedReporteId = res.data?.id_sysreporte ?? null;
+          this.limpiarFormulario();
           Swal.fire({
             icon: 'success',
             title: 'Reporte guardado',

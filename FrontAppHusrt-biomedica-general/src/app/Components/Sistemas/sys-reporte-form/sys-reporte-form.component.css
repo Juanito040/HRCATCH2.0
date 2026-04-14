@@ -1,3 +1,12 @@
+fieldset:disabled input,
+fieldset:disabled select,
+fieldset:disabled textarea {
+  background: #f0f2f5;
+  color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.75;
+}
+
 .page-wrapper {
   min-height: 100vh;
   background: #e8edf2;
