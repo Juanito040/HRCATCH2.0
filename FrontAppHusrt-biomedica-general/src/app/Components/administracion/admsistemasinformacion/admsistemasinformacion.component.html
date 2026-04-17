@@ -14,7 +14,7 @@
     </p-toolbar>
 
     <p-table #dt [value]="sistemas" [rows]="10" [paginator]="true" [loading]="loading"
-        [globalFilterFields]="['nombre', 'tipo', 'tecnologia', 'responsableObj.nombres', 'proveedorObj.nombres', 'periodicidad']"
+        [globalFilterFields]="['nombre', 'tipo', 'tecnologia', 'responsableObj.nombres', 'proveedorObj.nombres']"
         [tableStyle]="{ 'min-width': '75rem' }" [rowHover]="true" dataKey="id"
         currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
         [showCurrentPageReport]="true">
@@ -35,7 +35,7 @@
                 <th pSortableColumn="tipo">Tipo <p-sortIcon field="tipo"></p-sortIcon></th>
                 <th pSortableColumn="version">Versión <p-sortIcon field="version"></p-sortIcon></th>
                 <th pSortableColumn="tecnologia">Tecnología <p-sortIcon field="tecnologia"></p-sortIcon></th>
-                <th pSortableColumn="periodicidad">Periodicidad <p-sortIcon field="periodicidad"></p-sortIcon></th>
+                <th>Periodicidad</th>
                 <th>Responsable</th>
                 <th>Proveedor</th>
                 <th pSortableColumn="estado">Estado <p-sortIcon field="estado"></p-sortIcon></th>
@@ -49,7 +49,7 @@
                 <td>{{ sistema.tipo }}</td>
                 <td>{{ sistema.version }}</td>
                 <td>{{ sistema.tecnologia }}</td>
-                <td>{{ sistema.periodicidad }}</td>
+                <td>{{ sistema.backups?.[0]?.frecuencia_backup ?? '—' }}</td>
                 <td>{{ sistema.responsableObj?.nombres }} {{ sistema.responsableObj?.apellidos }}</td>
                 <td>{{ sistema.proveedorObj?.nombres }}</td>
                 <td>
@@ -109,13 +109,6 @@
                     <input type="text" pInputText id="tecnologia" formControlName="tecnologia" required
                         class="w-full" />
                 </div>
-                <div class="field">
-                    <label for="periodicidad">Periodicidad</label>
-                    <p-select id="periodicidad" [options]="periodicidadOptions" formControlName="periodicidad"
-                        optionLabel="label" optionValue="value" placeholder="Seleccione periodicidad"
-                        class="w-full" appendTo="body"></p-select>
-                </div>
-
                 <div class="field">
                     <label for="proveedorId">Proveedor</label>
                     <p-select id="proveedorId" [options]="proveedores" formControlName="proveedorId"
@@ -186,10 +179,14 @@
                         </td>
                         <td>{{ backup.observacion }}</td>
                         <td>
-                            <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="secondary"
-                                (onClick)="editarBackup(backup)" pTooltip="Editar"></p-button>
-                            <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger"
-                                (onClick)="eliminarBackup(backup)" pTooltip="Eliminar"></p-button>
+                            <div class="backup-acciones">
+                                <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info"
+                                    (onClick)="editarBackup(backup)" pTooltip="Editar" tooltipPosition="top"
+                                    styleClass="accion-btn accion-btn--editar"></p-button>
+                                <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger"
+                                    (onClick)="eliminarBackup(backup)" pTooltip="Eliminar" tooltipPosition="top"
+                                    styleClass="accion-btn accion-btn--eliminar"></p-button>
+                            </div>
                         </td>
                     </tr>
                 </ng-template>
@@ -252,6 +249,6 @@
     <ng-template pTemplate="footer">
         <p-button label="Cancelar" icon="pi pi-times" severity="secondary" [text]="true"
             (onClick)="viewFormBackup = false"></p-button>
-        <p-button [label]="isEditingBackup ? 'Guardar cambios' : 'Registrar Backup'" icon="pi pi-check" (onClick)="guardarBackup()" [disabled]="guardandoBackup" [loading]="guardandoBackup"></p-button>
+        <p-button [label]="isEditingBackup ? 'Guardar cambios' : 'Registrar Backup'" icon="pi pi-check" severity="primary" (onClick)="guardarBackup()" [disabled]="guardandoBackup" [loading]="guardandoBackup"></p-button>
     </ng-template>
 </p-dialog>

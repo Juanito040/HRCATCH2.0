@@ -19,7 +19,8 @@ const BackupSistema = sequelize.define('BackupSistema', {
         type: DataTypes.STRING
     },
     estado: {
-        type: DataTypes.STRING
+        type: DataTypes.ENUM('Pendiente', 'Completado', 'Fallido', 'No realizado'),
+        allowNull: true
     },
     frecuencia_backup: {
         type: DataTypes.ENUM('Anual', 'Mensual', 'Semanal', 'Diario'),

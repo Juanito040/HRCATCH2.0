@@ -27,3 +27,22 @@
         top: 0.5rem;
     }
 }
+
+/* Bell ring animation when there are active alerts */
+.campana-activa {
+    animation: campana-ring 3s ease-in-out infinite;
+    transform-origin: top center;
+}
+
+@keyframes campana-ring {
+    0%, 100% { transform: rotate(0deg); }
+    6%        { transform: rotate(18deg); }
+    12%       { transform: rotate(-16deg); }
+    18%       { transform: rotate(12deg); }
+    24%       { transform: rotate(-8deg); }
+    30%       { transform: rotate(0deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .campana-activa { animation: none; }
+}

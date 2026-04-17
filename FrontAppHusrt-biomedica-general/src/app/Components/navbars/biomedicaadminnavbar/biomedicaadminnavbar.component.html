@@ -15,6 +15,7 @@
                 <div class="relative mr-2">
                     <button pButton icon="pi pi-bell"
                             class="p-button-rounded p-button-text p-button-secondary"
+                            [class.campana-activa]="notificacionService.conteoAlertas > 0"
                             pTooltip="Alertas de Backup" tooltipPosition="bottom"
                             (click)="opAlertas.toggle($event)">
                     </button>

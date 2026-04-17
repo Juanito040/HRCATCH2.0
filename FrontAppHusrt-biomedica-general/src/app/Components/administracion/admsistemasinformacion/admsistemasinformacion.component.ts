@@ -59,13 +59,6 @@ export class AmdSistemasInformacionComponent implements OnInit {
     isEditingBackup: boolean = false;
     backupEditandoId: number | null = null;
 
-    periodicidadOptions = [
-        { label: 'Diario', value: 'Diario' },
-        { label: 'Semanal', value: 'Semanal' },
-        { label: 'Mensual', value: 'Mensual' },
-        { label: 'Anual', value: 'Anual' }
-    ];
-
     tipoBackupOptions = [
         { label: 'Completo', value: 'Completo' },
         { label: 'Incremental', value: 'Incremental' },
@@ -73,9 +66,10 @@ export class AmdSistemasInformacionComponent implements OnInit {
     ];
 
     estadoBackupOptions = [
-        { label: 'Pendiente', value: 'Pendiente' },
-        { label: 'Completado', value: 'Completado' },
-        { label: 'Fallido', value: 'Fallido' }
+        { label: 'Pendiente',    value: 'Pendiente' },
+        { label: 'Completado',   value: 'Completado' },
+        { label: 'Fallido',      value: 'Fallido' },
+        { label: 'No realizado', value: 'No realizado' }
     ];
 
     frecuenciaBackupOptions = [
@@ -95,8 +89,7 @@ export class AmdSistemasInformacionComponent implements OnInit {
             version: ['', Validators.required],
             tecnologia: ['', Validators.required],
             responsableId: ['', Validators.required],
-            proveedorId: ['', Validators.required],
-            periodicidad: ['']
+            proveedorId: ['', Validators.required]
         });
     }
 
@@ -137,8 +130,7 @@ export class AmdSistemasInformacionComponent implements OnInit {
             version: sistema.version,
             tecnologia: sistema.tecnologia,
             responsableId: sistema.responsableId,
-            proveedorId: sistema.proveedorId,
-            periodicidad: sistema.periodicidad
+            proveedorId: sistema.proveedorId
         });
         this.viewModal = true;
     }

@@ -1,30 +1,60 @@
 <div class="panel-alertas">
-    <div class="flex align-items-center justify-content-between mb-3">
+
+    <!-- Header -->
+    <div class="panel-header">
         <div class="flex align-items-center gap-2">
-            <i class="pi pi-bell text-primary"></i>
+            <i class="pi pi-bell text-primary" style="font-size: 1.1rem;"></i>
             <span class="font-bold text-lg">Alertas de Backup</span>
         </div>
         <button pButton icon="pi pi-refresh" label="Actualizar"
-                class="p-button-text p-button-sm"
+                class="p-button-text p-button-sm p-button-rounded"
                 (click)="actualizar()">
         </button>
     </div>
 
-    <div class="alertas-lista" style="max-height: 420px; overflow-y: auto;">
+    <!-- Lista -->
+    <div class="alertas-lista">
         <ng-container *ngIf="alertas$ | async as alertas">
-            <div *ngIf="alertas.length === 0" class="flex align-items-center gap-2 p-3">
-                <i class="pi pi-check-circle" style="color: var(--green-500); font-size: 1.2rem;"></i>
-                <span class="text-secondary">Sin alertas pendientes</span>
+
+            <!-- Estado vacío -->
+            <div *ngIf="alertas.length === 0" class="empty-state">
+                <div class="empty-icon">
+                    <i class="pi pi-check-circle"></i>
+                </div>
+                <span class="empty-titulo">Todo al día</span>
+                <span class="empty-subtitulo">No hay alertas de backup pendientes</span>
             </div>
 
-            <div *ngFor="let alerta of alertas" class="alerta-item flex align-items-start gap-2">
-                <i class="pi pi-exclamation-triangle mt-1" style="color: var(--orange-500); font-size: 1.1rem;"></i>
-                <div class="flex flex-column gap-1 flex-1">
-                    <span class="font-bold">{{ alerta.nombre }}</span>
-                    <span class="text-secondary text-sm">{{ alerta.frecuencia_backup }}</span>
-                    <span class="text-sm">{{ alerta.mensaje }}</span>
-                    <span class="text-xs text-secondary">Fecha: {{ alerta.fecha }}</span>
+            <!-- Tarjetas de alerta -->
+            <div *ngFor="let alerta of alertas"
+                 class="alerta-card"
+                 [class.alerta-card--pendiente]="alerta.estado === 'Pendiente'"
+                 [class.alerta-card--no-realizado]="alerta.estado === 'No realizado'">
+
+                <div class="alerta-card__icon-wrap">
+                    <i class="pi"
+                       [class.pi-exclamation-triangle]="alerta.estado !== 'No realizado'"
+                       [class.pi-times-circle]="alerta.estado === 'No realizado'">
+                    </i>
                 </div>
+
+                <div class="alerta-card__content">
+                    <div class="flex align-items-center justify-content-between gap-1">
+                        <span class="alerta-card__nombre">{{ alerta.nombre }}</span>
+                        <span class="alerta-card__badge"
+                              [class.badge--pendiente]="alerta.estado === 'Pendiente'"
+                              [class.badge--no-realizado]="alerta.estado === 'No realizado'">
+                            {{ alerta.estado }}
+                        </span>
+                    </div>
+                    <span class="alerta-card__frecuencia">{{ alerta.frecuencia_backup }}</span>
+                    <span class="alerta-card__mensaje">{{ alerta.mensaje }}</span>
+                    <span class="alerta-card__fecha">
+                        <i class="pi pi-calendar"></i>
+                        {{ alerta.fecha }}
+                    </span>
+                </div>
+
             </div>
         </ng-container>
     </div>

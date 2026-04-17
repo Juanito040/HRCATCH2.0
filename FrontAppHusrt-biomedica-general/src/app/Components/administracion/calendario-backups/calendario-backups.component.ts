@@ -126,6 +126,7 @@ export class CalendarioBackupsComponent implements OnInit {
     getClaseChip(estado: string): string {
         if (estado === 'Completado') return 'backup-chip-completado';
         if (estado === 'Fallido') return 'backup-chip-fallido';
+        if (estado === 'No realizado') return 'backup-chip-no-realizado';
         return 'backup-chip-pendiente';
     }
 
@@ -142,6 +143,7 @@ export class CalendarioBackupsComponent implements OnInit {
     getClaseEstadoModal(estado: string): string {
         if (estado === 'Completado') return 'estado-completado';
         if (estado === 'Fallido') return 'estado-fallido';
+        if (estado === 'No realizado') return 'estado-no-realizado';
         return 'estado-pendiente';
     }
 
@@ -178,9 +180,10 @@ export class CalendarioBackupsComponent implements OnInit {
         const nombreArchivo = `backups-${mesNombre}-${anio}.xlsx`;
         const ahora = new Date().toLocaleString('es-CO');
 
-        const completados = this.backupsDelMes.filter(b => b.estado === 'Completado').length;
-        const pendientes  = this.backupsDelMes.filter(b => b.estado === 'Pendiente').length;
-        const fallidos    = this.backupsDelMes.filter(b => b.estado === 'Fallido').length;
+        const completados   = this.backupsDelMes.filter(b => b.estado === 'Completado').length;
+        const pendientes    = this.backupsDelMes.filter(b => b.estado === 'Pendiente').length;
+        const fallidos      = this.backupsDelMes.filter(b => b.estado === 'Fallido').length;
+        const noRealizados  = this.backupsDelMes.filter(b => b.estado === 'No realizado').length;
 
         const aoa: any[][] = [
             [titulo, '', '', '', '', '', ''],
@@ -196,7 +199,7 @@ export class CalendarioBackupsComponent implements OnInit {
                 b.estado ?? '—',
                 b.observacion ?? '—'
             ]),
-            [`Pendientes: ${pendientes}`, `Completados: ${completados}`, `Fallidos: ${fallidos}`, '', '', '', '']
+            [`Pendientes: ${pendientes}`, `Completados: ${completados}`, `Fallidos: ${fallidos}`, `No realizados: ${noRealizados}`, '', '', '']
         ];
 
         const ws = XLSX.utils.aoa_to_sheet(aoa);
@@ -229,9 +232,10 @@ export class CalendarioBackupsComponent implements OnInit {
         }
 
         const colorMap: Record<string, string> = {
-            'Completado': 'd4edda',
-            'Pendiente':  'fff3cd',
-            'Fallido':    'f8d7da'
+            'Completado':   'd4edda',
+            'Pendiente':    'fff3cd',
+            'Fallido':      'f8d7da',
+            'No realizado': 'e0e0e0'
         };
 
         this.backupsDelMes.forEach((b, i) => {

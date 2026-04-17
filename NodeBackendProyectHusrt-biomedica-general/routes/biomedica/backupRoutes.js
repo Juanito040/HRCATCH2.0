@@ -4,11 +4,32 @@ const { Op } = require('sequelize');
 const { BackupSistema, SistemaInformacion } = require('../../models/Biomedica');
 const { checkToken } = require('../../utilities/middleware');
 
-// GET /backups/alertas — retorna todos los BackupSistema con estado Pendiente
+const ESTADOS_VALIDOS = ['Pendiente', 'Completado', 'Fallido', 'No realizado'];
+
+// Marca como 'No realizado' los backups Pendiente cuya fecha ya pasó (anterior a hoy).
+// Op.lt excluye hoy para que los Pendiente de hoy sigan generando alerta.
+async function autoTransicionarVencidos() {
+    const hoy = new Date().toISOString().split('T')[0]; // 'YYYY-MM-DD'
+    await BackupSistema.update(
+        { estado: 'No realizado' },
+        { where: { estado: 'Pendiente', fecha: { [Op.lt]: hoy } } }
+    );
+}
+
+// GET /backups/alertas — retorna backups Pendiente (fecha <= hoy) y No realizados.
+// Ejecuta la auto-transición antes de consultar para convertir Pendientes vencidos.
 router.get('/backups/alertas', checkToken, async (req, res) => {
     try {
-        const pendientes = await BackupSistema.findAll({
-            where: { estado: 'Pendiente' },
+        await autoTransicionarVencidos();
+
+        const hoy = new Date().toISOString().split('T')[0];
+        const backupsAlerta = await BackupSistema.findAll({
+            where: {
+                [Op.or]: [
+                    { estado: 'Pendiente',    fecha: { [Op.lte]: hoy } },
+                    { estado: 'No realizado' }
+                ]
+            },
             include: [{
                 model: SistemaInformacion,
                 as: 'sistema',
@@ -17,7 +38,7 @@ router.get('/backups/alertas', checkToken, async (req, res) => {
             order: [['fecha', 'ASC']]
         });
 
-        const alertas = pendientes
+        const alertas = backupsAlerta
             .filter(b => b.sistema !== null)
             .map(b => ({
                 id: b.id,
@@ -25,7 +46,10 @@ router.get('/backups/alertas', checkToken, async (req, res) => {
                 nombre: b.sistema.nombre,
                 frecuencia_backup: b.frecuencia_backup,
                 fecha: b.fecha,
-                mensaje: `Backup pendiente programado para ${b.fecha}`
+                estado: b.estado,
+                mensaje: b.estado === 'No realizado'
+                    ? `Backup no realizado — programado para ${b.fecha}`
+                    : `Backup pendiente programado para ${b.fecha}`
             }));
 
         res.json(alertas);
@@ -37,6 +61,8 @@ router.get('/backups/alertas', checkToken, async (req, res) => {
 // GET /backups/todos/mes — lista todos los backups de todos los sistemas en un mes/año
 router.get('/backups/todos/mes', checkToken, async (req, res) => {
     try {
+        await autoTransicionarVencidos();
+
         const { mes, anio } = req.query;
         const diasEnMes = new Date(anio, mes, 0).getDate();
         const primerDia = `${anio}-${String(mes).padStart(2, '0')}-01`;
@@ -68,6 +94,8 @@ router.get('/backups/todos/mes', checkToken, async (req, res) => {
 // GET /backups/:sistemaId — lista todos los backups del sistema
 router.get('/backups/:sistemaId', async (req, res) => {
     try {
+        await autoTransicionarVencidos();
+
         const sistemaId = parseInt(req.params.sistemaId, 10);
         const backups = await BackupSistema.findAll({
             where: { sistemaInformacionId: sistemaId },
@@ -110,6 +138,9 @@ router.post('/backups', async (req, res) => {
         if (!req.body.frecuencia_backup || !valoresFrecuencia.includes(req.body.frecuencia_backup)) {
             return res.status(400).json({ error: 'frecuencia_backup es obligatorio y debe ser: Anual, Mensual, Semanal o Diario' });
         }
+        if (req.body.estado !== undefined && !ESTADOS_VALIDOS.includes(req.body.estado)) {
+            return res.status(400).json({ error: `estado debe ser uno de: ${ESTADOS_VALIDOS.join(', ')}` });
+        }
         const nuevoBackup = await BackupSistema.create(req.body);
         res.status(201).json(nuevoBackup);
     } catch (error) {
@@ -123,6 +154,9 @@ router.put('/backups/:id', async (req, res) => {
         const valoresFrecuencia = ['Anual', 'Mensual', 'Semanal', 'Diario'];
         if (req.body.frecuencia_backup !== undefined && !valoresFrecuencia.includes(req.body.frecuencia_backup)) {
             return res.status(400).json({ error: 'frecuencia_backup debe ser: Anual, Mensual, Semanal o Diario' });
+        }
+        if (req.body.estado !== undefined && !ESTADOS_VALIDOS.includes(req.body.estado)) {
+            return res.status(400).json({ error: `estado debe ser uno de: ${ESTADOS_VALIDOS.join(', ')}` });
         }
         const backup = await BackupSistema.findByPk(req.params.id);
         if (!backup) {

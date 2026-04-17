@@ -34,10 +34,6 @@ const SistemaInformacion = sequelize.define('SistemaInformacion', {
         type: DataTypes.STRING,
         allowNull: true,
     },
-    periodicidad: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
     responsableId: {
         type: DataTypes.INTEGER,
         allowNull: true,

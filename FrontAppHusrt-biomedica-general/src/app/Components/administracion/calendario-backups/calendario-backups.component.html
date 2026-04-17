@@ -34,6 +34,7 @@
         <div class="backup-chip backup-chip-completado leyenda-chip">Completado</div>
         <div class="backup-chip backup-chip-fallido leyenda-chip">Fallido</div>
         <div class="backup-chip backup-chip-pendiente leyenda-chip">Pendiente</div>
+        <div class="backup-chip backup-chip-no-realizado leyenda-chip">No realizado</div>
     </div>
 
     <!-- Loading -->
@@ -127,7 +128,7 @@
     </ng-template>
 
     <ng-template pTemplate="footer">
-        <button *ngIf="backupSeleccionado?.estado === 'Pendiente'"
+        <button *ngIf="backupSeleccionado?.estado === 'Pendiente' || backupSeleccionado?.estado === 'No realizado'"
                 pButton label="Marcar como Completado"
                 icon="pi pi-check"
                 class="p-button-success p-button-sm"

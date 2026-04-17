@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { SistemaInformacion, Responsable, Usuario } = require('../../models/Biomedica');
+const { SistemaInformacion, Responsable, Usuario, BackupSistema } = require('../../models/Biomedica');
 
 // Obtener todos los sistemas de información
 router.get('/sistemasinformacion', async (req, res) => {
@@ -9,6 +9,14 @@ router.get('/sistemasinformacion', async (req, res) => {
             include: [
                 { model: Usuario, as: 'responsableObj', attributes: ['id', 'nombres', 'apellidos'] },
                 { model: Responsable, as: 'proveedorObj' },
+                {
+                    model: BackupSistema,
+                    as: 'backups',
+                    attributes: ['frecuencia_backup'],
+                    order: [['fecha', 'DESC']],
+                    limit: 1,
+                    separate: true   // requerido para que limit aplique por sistema y no globalmente
+                }
             ],
         });
         res.json(sistemas);
@@ -24,6 +32,14 @@ router.get('/sistemainformacion/:id', async (req, res) => {
             include: [
                 { model: Usuario, as: 'responsableObj', attributes: ['id', 'nombres', 'apellidos'] },
                 { model: Responsable, as: 'proveedorObj' },
+                {
+                    model: BackupSistema,
+                    as: 'backups',
+                    attributes: ['frecuencia_backup'],
+                    order: [['fecha', 'DESC']],
+                    limit: 1,
+                    separate: true
+                }
             ],
         });
         if (!sistema) {
