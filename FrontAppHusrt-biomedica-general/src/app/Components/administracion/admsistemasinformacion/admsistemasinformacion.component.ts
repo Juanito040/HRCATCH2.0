@@ -275,6 +275,30 @@ export class AmdSistemasInformacionComponent implements OnInit {
         await this.cargarBackupsDelMes();
     }
 
+    async eliminarTodosLosBackups() {
+        if (!this.sistemaSeleccionado) return;
+        const result = await Swal.fire({
+            title: '¿Eliminar todos los backups?',
+            text: `Se eliminarán todos los backups del sistema "${this.sistemaSeleccionado.nombre}". Esta acción no se puede deshacer.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Sí, eliminar todos',
+            cancelButtonText: 'Cancelar'
+        });
+        if (result.isConfirmed) {
+            try {
+                await this.backupService.deleteAllBackupsBySistema(this.sistemaSeleccionado.id);
+                this.notificacionService.cargarAlertas();
+                await this.cargarBackupsDelMes();
+                Swal.fire('Eliminados', 'Todos los backups fueron eliminados correctamente', 'success');
+            } catch (error) {
+                console.error(error);
+                Swal.fire('Error', 'No se pudieron eliminar los backups', 'error');
+            }
+        }
+    }
+
     async eliminarBackup(backup: any) {
         const result = await Swal.fire({
             title: '¿Eliminar backup?',

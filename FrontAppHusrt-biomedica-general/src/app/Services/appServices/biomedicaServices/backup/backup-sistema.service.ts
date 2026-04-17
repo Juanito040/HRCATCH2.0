@@ -45,6 +45,12 @@ export class BackupSistemaService {
         );
     }
 
+    deleteAllBackupsBySistema(sistemaId: number) {
+        return firstValueFrom(
+            this.httpClient.delete<any>(`${this.baseUrl}/backups/sistema/${sistemaId}`, this.createHeaders())
+        );
+    }
+
     getBackupsTodosMes(mes: number, anio: number) {
         return firstValueFrom(
             this.httpClient.get<any[]>(`${this.baseUrl}/backups/todos/mes?mes=${mes}&anio=${anio}`, this.createHeaders())

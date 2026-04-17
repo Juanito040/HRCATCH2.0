@@ -6,6 +6,70 @@ const { checkToken } = require('../../utilities/middleware');
 
 const ESTADOS_VALIDOS = ['Pendiente', 'Completado', 'Fallido', 'No realizado'];
 
+// Genera todas las ocurrencias Pendiente del resto del año en curso a partir del
+// backup recién creado. El registro inicial (con los datos del usuario) ya existe;
+// esta función sólo crea los siguientes, evitando entradas retroactivas o del año próximo.
+function generarOcurrenciasAnio(backup) {
+    const frecuencia = backup.frecuencia_backup;
+    const fechaInicio = new Date(String(backup.fecha) + 'T00:00:00');
+    const anio = fechaInicio.getFullYear();
+    const finAnio = new Date(anio, 11, 31); // 31 de diciembre del año en curso
+
+    const base = {
+        sistemaInformacionId: backup.sistemaInformacionId,
+        tipo: backup.tipo,
+        frecuencia_backup: frecuencia,
+        estado: 'Pendiente'
+    };
+
+    const toFechaStr = d => {
+        const a = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return `${a}-${m}-${dd}`;
+    };
+
+    if (frecuencia === 'Diario') {
+        const ocurrencias = [];
+        const cursor = new Date(fechaInicio);
+        cursor.setDate(cursor.getDate() + 1);
+        while (cursor <= finAnio) {
+            ocurrencias.push({ ...base, fecha: toFechaStr(cursor) });
+            cursor.setDate(cursor.getDate() + 1);
+        }
+        return ocurrencias;
+    }
+
+    if (frecuencia === 'Semanal') {
+        const ocurrencias = [];
+        const cursor = new Date(fechaInicio);
+        cursor.setDate(cursor.getDate() + 7);
+        while (cursor <= finAnio) {
+            ocurrencias.push({ ...base, fecha: toFechaStr(cursor) });
+            cursor.setDate(cursor.getDate() + 7);
+        }
+        return ocurrencias;
+    }
+
+    if (frecuencia === 'Mensual') {
+        const ocurrencias = [];
+        const diaOriginal = fechaInicio.getDate();
+        for (let mes = fechaInicio.getMonth() + 1; mes <= 11; mes++) {
+            // Clamp al último día del mes para meses más cortos (e.g., 31 → 28 en feb)
+            const maxDia = new Date(anio, mes + 1, 0).getDate();
+            const diaFinal = Math.min(diaOriginal, maxDia);
+            ocurrencias.push({
+                ...base,
+                fecha: `${anio}-${String(mes + 1).padStart(2, '0')}-${String(diaFinal).padStart(2, '0')}`
+            });
+        }
+        return ocurrencias;
+    }
+
+    // Anual: el POST inicial ya es la única ocurrencia del año en curso
+    return [];
+}
+
 // Marca como 'No realizado' los backups Pendiente cuya fecha ya pasó (anterior a hoy).
 // Op.lt excluye hoy para que los Pendiente de hoy sigan generando alerta.
 async function autoTransicionarVencidos() {
@@ -131,7 +195,8 @@ router.get('/backups/:sistemaId/mes', async (req, res) => {
     }
 });
 
-// POST /backups — crea un backup programado
+// POST /backups — crea un backup programado y genera todas las ocurrencias
+// Pendiente del resto del año en curso según la frecuencia indicada.
 router.post('/backups', async (req, res) => {
     try {
         const valoresFrecuencia = ['Anual', 'Mensual', 'Semanal', 'Diario'];
@@ -142,13 +207,20 @@ router.post('/backups', async (req, res) => {
             return res.status(400).json({ error: `estado debe ser uno de: ${ESTADOS_VALIDOS.join(', ')}` });
         }
         const nuevoBackup = await BackupSistema.create(req.body);
+        const ocurrencias = generarOcurrenciasAnio(nuevoBackup);
+        if (ocurrencias.length > 0) {
+            await BackupSistema.bulkCreate(ocurrencias);
+        }
         res.status(201).json(nuevoBackup);
     } catch (error) {
         res.status(500).json({ error: 'Error al crear el backup', detalle: error.message });
     }
 });
 
-// PUT /backups/:id — actualiza estado del backup
+// PUT /backups/:id — actualiza estado del backup.
+// La auto-creación de la siguiente ocurrencia fue eliminada: el POST ya pre-genera
+// todas las ocurrencias Pendiente del año en curso, por lo que el PUT solo persiste
+// el cambio de estado sin crear duplicados.
 router.put('/backups/:id', async (req, res) => {
     try {
         const valoresFrecuencia = ['Anual', 'Mensual', 'Semanal', 'Diario'];
@@ -163,31 +235,22 @@ router.put('/backups/:id', async (req, res) => {
             return res.status(404).json({ error: 'Backup no encontrado' });
         }
         await backup.update(req.body);
-
-        if (req.body.estado === 'Completado' && backup.frecuencia_backup) {
-            const diasPorFrecuencia = { 'Diario': 1, 'Semanal': 7, 'Mensual': 30, 'Anual': 365 };
-            const dias = diasPorFrecuencia[backup.frecuencia_backup];
-            if (dias) {
-                // Base: fecha del backup completado (no hoy) para mantener la cadena
-                // programada sin importar cuándo el usuario marque el backup
-                const proximaFecha = new Date(String(backup.fecha) + 'T00:00:00');
-                proximaFecha.setDate(proximaFecha.getDate() + dias);
-                const anio = proximaFecha.getFullYear();
-                const mes  = String(proximaFecha.getMonth() + 1).padStart(2, '0');
-                const dia  = String(proximaFecha.getDate()).padStart(2, '0');
-                await BackupSistema.create({
-                    sistemaInformacionId: backup.sistemaInformacionId,
-                    tipo: backup.tipo,
-                    frecuencia_backup: backup.frecuencia_backup,
-                    estado: 'Pendiente',
-                    fecha: `${anio}-${mes}-${dia}`
-                });
-            }
-        }
-
         res.json(backup);
     } catch (error) {
         res.status(500).json({ error: 'Error al actualizar el backup', detalle: error.message });
+    }
+});
+
+// DELETE /backups/sistema/:sistemaId — elimina todos los backups de un sistema
+router.delete('/backups/sistema/:sistemaId', async (req, res) => {
+    try {
+        const sistemaId = parseInt(req.params.sistemaId, 10);
+        const { count } = await BackupSistema.destroy({
+            where: { sistemaInformacionId: sistemaId }
+        });
+        res.json({ mensaje: `${count} backup(s) eliminados correctamente` });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al eliminar los backups del sistema', detalle: error.message });
     }
 });
 
