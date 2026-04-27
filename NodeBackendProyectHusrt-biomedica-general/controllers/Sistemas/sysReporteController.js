@@ -8,6 +8,9 @@ const TipoEquipo = require('../../models/generales/TipoEquipo');
 const Usuario = require('../../models/generales/Usuario');
 const Sede = require('../../models/generales/Sede');
 const Cargo = require('../../models/generales/Cargo');
+const SysMovimientosStockRepuestos = require('../../models/Sistemas/SysMovimientosStockRepuestos');
+const SysRepuesto = require('../../models/Sistemas/SysRepuesto');
+const SysTipoRepuesto = require('../../models/Sistemas/SysTipoRepuesto');
 
 const EQUIPO_INCLUDE = {
     model: SysEquipo, as: 'equipo',
@@ -145,11 +148,42 @@ exports.getByEquipo = async (req, res) => {
 exports.getReporteById = async (req, res) => {
     try {
         const reporte = await SysReporte.findByPk(req.params.id, {
-            include: [EQUIPO_INCLUDE,
-                { model: Usuario, as: 'usuario', attributes: ['id', 'nombres', 'apellidos'] }]
+            include: [
+                EQUIPO_INCLUDE,
+                { model: Usuario, as: 'usuario', attributes: ['id', 'nombres', 'apellidos'] },
+                {
+                    model: SysMovimientosStockRepuestos,
+                    as: 'movimientosStock',   // ← define esta asociación (ver abajo)
+                    required: false,
+                    where: { tipo: 'egreso' },
+                    include: [{
+                        model: SysRepuesto,
+                        as: 'repuesto',
+                        attributes: ['id_sysrepuesto', 'nombre', 'id_sys_tipo_repuesto_fk'],
+                        include: [{
+                            model: SysTipoRepuesto,
+                            as: 'tipoRepuesto',
+                            attributes: ['id_sys_tipo_repuesto', 'nombre']
+                        }]
+                    }]
+                }
+            ]
         });
         if (!reporte) return res.status(404).json({ success: false, message: 'Reporte no encontrado' });
-        res.json({ success: true, data: reporte });
+
+        // Mapear movimientosStock → repuestos (formato que espera el front)
+        const data = reporte.toJSON();
+        data.repuestos = (data.movimientosStock || []).map(m => ({
+            id: m.id,
+            sysRepuestoIdFk: m.id_repuesto_fk,
+            cantidad: m.cantidad,
+            tipoRepuestoIdFk: m.repuesto?.id_sys_tipo_repuesto_fk ?? null,
+            nombreInsumo: m.repuesto?.nombre ?? '',
+            tipoNombre: m.repuesto?.tipoRepuesto?.nombre ?? ''
+        }));
+        delete data.movimientosStock;
+
+        res.json({ success: true, data });
     } catch (err) {
         res.status(500).json({ success: false, message: 'Error al obtener reporte', error: err.message });
     }

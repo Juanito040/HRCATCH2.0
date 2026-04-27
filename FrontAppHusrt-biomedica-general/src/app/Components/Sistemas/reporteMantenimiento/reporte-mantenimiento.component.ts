@@ -49,7 +49,10 @@ export class CrearMantenimientoComponent implements OnInit {
   selectedPatron: any = null;
   id!: number;
   tiposRepuesto: { label: string; value: number }[] = [];
-  repuestosPorTipo: Map<number, { label: string; value: number }[]> = new Map();
+  repuestosPorTipo: Map<number, { label: string; value: number; stock: number }[]> = new Map();
+  repuestosEliminadosEnEdicion: { id: number; sysRepuestoIdFk: number; cantidad: number }[] = [];
+  repuestosOriginales: { id: number; sysRepuestoIdFk: number; cantidad: number }[] = [];
+
 
   // ─── Servicios ──────────────────────────────────────────────────────────────
   private platformId = inject(PLATFORM_ID);
@@ -249,7 +252,7 @@ export class CrearMantenimientoComponent implements OnInit {
   private async initRelatedEntities() {
     this.iniValoresMediciones();
     this.iniCumplimientoProtocolo();
-    this.iniRepuestos();
+    await this.iniRepuestos();
   }
 
   private populateFormFromMantenimiento() {
@@ -378,7 +381,10 @@ export class CrearMantenimientoComponent implements OnInit {
         id_sysequipo_fk: this.equipo.id_sysequipo ?? this.equipo.id,
         usuarioIdFk: getDecodedAccessToken().id,
         mediciones: medicionesPayload,
-        repuestos: this.mantenimientoForm.value.repuestos,
+        repuestos: this.mantenimientoForm.value.repuestos.filter((r: any) => !r.id),
+        repuestosEliminadosIds: this.repuestosEliminadosEnEdicion
+          .filter(r => r.id != null)
+          .map(r => r.id),
         equipoPatronIdFk: this.mantenimientoForm.value.equipoPatronIdFk,
         cumplimientoProtocolo: selectedTipo === 'Preventivo'
           ? this.mantenimientoForm.value.cumplimientoProtocolo : []
@@ -389,6 +395,7 @@ export class CrearMantenimientoComponent implements OnInit {
         try {
           await this.mantenimientoServices.update(this.mantenimiento.id, this.mantenimiento);
           await this.guardarCumplimiento(this.mantenimiento.id);
+          await this.ajustarStockEdicion(this.mantenimiento.id);
           Swal.fire({
             icon: 'success',
             title: selectedTipo === 'Preventivo'
@@ -410,6 +417,7 @@ export class CrearMantenimientoComponent implements OnInit {
           const res = await this.mantenimientoServices.create(this.mantenimiento);
           if (res && res.data?.id) {
             await this.guardarCumplimiento(res.data.id);
+            await this.descontarRepuestosUsados(res.data.id);
             Swal.fire({
               icon: 'success',
               title: 'Se almacenó el mantenimiento correctamente',
@@ -505,19 +513,39 @@ export class CrearMantenimientoComponent implements OnInit {
   }
 
   // ─── Repuestos ───────────────────────────────────────────────────────────────
-  iniRepuestos() {
+  async iniRepuestos() {
     const array = this.mantenimientoForm.get('repuestos') as FormArray;
     array.clear();
     if (!this.mantenimiento.repuestos?.length) return;
+    console.log('🔍 Repuestos del backend:', this.mantenimiento.repuestos); // <-- agrega esto
 
+
+    // Primero agrega todas las filas
     this.mantenimiento.repuestos.forEach((r: any) => {
       array.push(this.fb.group({
-        id: [r.id],
+        id: [r.id ?? r.id_repuesto ?? r.repuestoId ?? null],
         tipoRepuestoIdFk: [r.tipoRepuestoIdFk ?? null],
         sysRepuestoIdFk: [r.sysRepuestoIdFk ?? null],
         cantidad: [r.cantidad],
       }));
     });
+    // Guardar snapshot de los repuestos originales para detectar cambios de cantidad
+    this.repuestosOriginales = this.mantenimiento.repuestos
+      .filter((r: any) => r.id ?? r.repuestoId ?? r.id_repuesto)
+      .map((r: any) => ({
+        id: r.id ?? r.repuestoId ?? r.id_repuesto,
+        sysRepuestoIdFk: Number(r.sysRepuestoIdFk),
+        cantidad: Number(r.cantidad)
+      }));
+
+    // Luego carga los dropdowns de cada fila en paralelo
+    const cargas = this.mantenimiento.repuestos.map((r: any, i: number) => {
+      if (r.tipoRepuestoIdFk) {
+        return this.cargarRepuestosPorTipo(r.tipoRepuestoIdFk, i);
+      }
+      return Promise.resolve();
+    });
+    await Promise.all(cargas);
   }
   async cargarRepuestosPorTipo(idTipo: number, rowIndex: number) {
     if (!idTipo) {
@@ -531,14 +559,24 @@ export class CrearMantenimientoComponent implements OnInit {
       const lista = Array.isArray(res?.data) ? res!.data as SysRepuesto[] : [];
       this.repuestosPorTipo.set(rowIndex, lista.map(r => ({
         label: r.nombre,
-        value: r.id_sysrepuesto!
+        value: r.id_sysrepuesto!,
+        stock: r.cantidad_stock ?? 0
       })));
     } catch (error) {
       console.error('Error cargando repuestos por tipo:', error);
       this.repuestosPorTipo.set(rowIndex, []);
     }
   }
+  getStockRepuesto(rowIndex: number): number | null {
+    const idSeleccionado = this.repuestosFormArray.at(rowIndex).get('sysRepuestoIdFk')?.value;
+    if (!idSeleccionado) return null;
+    const repuesto = this.repuestosPorTipo.get(rowIndex)?.find(r => r.value === idSeleccionado);
+    return repuesto?.stock ?? null;
+  }
 
+  getCantidadIngresada(rowIndex: number): number {
+    return Number(this.repuestosFormArray.at(rowIndex).get('cantidad')?.value) || 0;
+  }
   getRepuestosParaFila(rowIndex: number): { label: string; value: number }[] {
     return this.repuestosPorTipo.get(rowIndex) ?? [];
   }
@@ -546,11 +584,46 @@ export class CrearMantenimientoComponent implements OnInit {
     return this.mantenimientoForm.get('repuestos') as FormArray;
   }
   onSeleccionarRepuesto(event: any, rowIndex: number) {
-    const repuestos = this.getRepuestosParaFila(rowIndex);
-    const encontrado = repuestos.find(r => r.value === event.value);
-    this.repuestosFormArray.at(rowIndex).get('nombreInsumo')?.setValue(encontrado?.label ?? '');
-  }
+    // Solo aplica en modo edición
+    if (!this.mantenimiento?.id) {
+      const repuestos = this.getRepuestosParaFila(rowIndex);
+      const encontrado = repuestos.find(r => r.value === event.value);
+      this.repuestosFormArray.at(rowIndex).get('nombreInsumo')?.setValue(encontrado?.label ?? '');
+      return;
+    }
 
+    const idSeleccionado = event.value;
+
+    // Busca si ya existe ese repuesto en otra fila
+    const filaExistenteIndex = this.repuestosFormArray.controls.findIndex(
+      (ctrl, i) => i !== rowIndex && ctrl.get('sysRepuestoIdFk')?.value === idSeleccionado
+    );
+
+    if (filaExistenteIndex !== -1) {
+      // Sumar cantidades en la fila existente
+      const cantidadExistente = Number(this.repuestosFormArray.at(filaExistenteIndex).get('cantidad')?.value) || 0;
+      const cantidadNueva = Number(this.repuestosFormArray.at(rowIndex).get('cantidad')?.value) || 0;
+      const cantidadTotal = cantidadExistente + cantidadNueva;
+
+      this.repuestosFormArray.at(filaExistenteIndex).get('cantidad')?.setValue(cantidadTotal);
+
+      // Eliminar la fila duplicada sin registrarla como "eliminada" (nunca afectó el stock)
+      this.repuestosFormArray.removeAt(rowIndex);
+
+      Swal.fire({
+        icon: 'info',
+        title: 'Repuesto duplicado',
+        text: `Ya tenías ese repuesto en la lista. Se sumó la cantidad. Total: ${cantidadTotal}`,
+        timer: 2500,
+        showConfirmButton: false
+      });
+    } else {
+      // No hay duplicado, solo setear el nombre normal
+      const repuestos = this.getRepuestosParaFila(rowIndex);
+      const encontrado = repuestos.find(r => r.value === idSeleccionado);
+      this.repuestosFormArray.at(rowIndex).get('nombreInsumo')?.setValue(encontrado?.label ?? '');
+    }
+  }
   onCambiarTipoRepuesto(event: any, rowIndex: number) {
     this.cargarRepuestosPorTipo(event.value, rowIndex);
     this.repuestosFormArray.at(rowIndex).get('sysRepuestoIdFk')?.setValue(null);
@@ -566,6 +639,17 @@ export class CrearMantenimientoComponent implements OnInit {
   }
 
   eliminarRepuesto(index: number) {
+    if (this.mantenimiento?.id) {
+      const fila = this.repuestosFormArray.at(index).value;
+      // ✅ ANTES requería fila.id — ahora solo necesita sysRepuestoIdFk y cantidad
+      if (fila.sysRepuestoIdFk && fila.cantidad && Number(fila.cantidad) > 0) {
+        this.repuestosEliminadosEnEdicion.push({
+          id: fila.id ?? null,                          // id del movimiento (puede ser null si es nuevo)
+          sysRepuestoIdFk: Number(fila.sysRepuestoIdFk),
+          cantidad: Number(fila.cantidad)
+        });
+      }
+    }
     this.repuestosFormArray.removeAt(index);
   }
 
@@ -591,6 +675,116 @@ export class CrearMantenimientoComponent implements OnInit {
 
   convertirMayusculas(texto: string): string {
     return texto ? texto.toUpperCase() : '';
+  }
+
+  // ─── Solo para CREAR: descuenta todos los repuestos del formulario ────────────
+  private async descontarRepuestosUsados(mantenimientoId: number): Promise<void> {
+    const repuestosForm: any[] = this.mantenimientoForm.value.repuestos ?? [];
+    const repuestosValidos = repuestosForm
+      .filter(r => r.sysRepuestoIdFk && r.cantidad && Number(r.cantidad) > 0)
+      .map(r => ({ sysRepuestoIdFk: Number(r.sysRepuestoIdFk), cantidad: Number(r.cantidad) }));
+
+    if (repuestosValidos.length === 0) return;
+
+    try {
+      const res = await this.sysRepuestosService
+        .descontarStock(repuestosValidos, mantenimientoId)
+        .toPromise();
+
+      if ((res?.errores?.length ?? 0) > 0) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Advertencia de inventario',
+          html: `El reporte se guardó, pero hubo problemas al actualizar el stock:<br><br>
+               <ul style="text-align:left">${res?.errores?.map((e: string) => `<li>${e}</li>`).join('')}</ul>`,
+          confirmButtonText: 'Entendido'
+        });
+      }
+    } catch {
+      Swal.fire({
+        icon: 'warning', title: 'Advertencia de inventario',
+        text: 'El reporte se guardó, pero no se pudo actualizar el stock. Revise el inventario manualmente.',
+        confirmButtonText: 'Entendido'
+      });
+    }
+  }
+
+  // ─── Solo para EDITAR: devuelve eliminados y descuenta nuevos ─────────────────
+  private async ajustarStockEdicion(mantenimientoId: number): Promise<void> {
+    const repuestosForm: any[] = this.mantenimientoForm.value.repuestos ?? [];
+
+    // 1. Nuevos: no tienen id → descontar todo
+    const repuestosNuevos = repuestosForm
+      .filter(r => !r.id && r.sysRepuestoIdFk && r.cantidad && Number(r.cantidad) > 0)
+      .map(r => ({ sysRepuestoIdFk: Number(r.sysRepuestoIdFk), cantidad: Number(r.cantidad) }));
+
+    // 2. Eliminados: tenían id en BD → devolver al stock
+    const repuestosEliminados = this.repuestosEliminadosEnEdicion
+      .filter(r => r.id != null)
+      .map(r => ({ sysRepuestoIdFk: r.sysRepuestoIdFk, cantidad: r.cantidad }));
+
+    // 3. Modificados: misma fila (mismo id) pero cantidad diferente → ajustar diferencia
+    const repuestosModificados: { sysRepuestoIdFk: number; cantidad: number }[] = [];
+    const repuestosADevolver: { sysRepuestoIdFk: number; cantidad: number }[] = [];
+
+    for (const filaActual of repuestosForm) {
+      if (!filaActual.id || !filaActual.sysRepuestoIdFk) continue; // skip nuevos
+
+      const original = this.repuestosOriginales.find(o => o.id === filaActual.id);
+      if (!original) continue;
+
+      const cantidadActual = Number(filaActual.cantidad) || 0;
+      const cantidadOriginal = Number(original.cantidad) || 0;
+      const diferencia = cantidadActual - cantidadOriginal;
+
+      if (diferencia > 0) {
+        // Aumentó → descontar la diferencia del stock
+        repuestosModificados.push({
+          sysRepuestoIdFk: Number(filaActual.sysRepuestoIdFk),
+          cantidad: diferencia
+        });
+      } else if (diferencia < 0) {
+        // Disminuyó → devolver la diferencia al stock
+        repuestosADevolver.push({
+          sysRepuestoIdFk: Number(filaActual.sysRepuestoIdFk),
+          cantidad: Math.abs(diferencia)
+        });
+      }
+      // diferencia === 0 → no se toca
+    }
+
+    // Combinar con los arrays principales
+    const totalNuevos = [...repuestosNuevos, ...repuestosModificados];
+    const totalEliminados = [...repuestosEliminados, ...repuestosADevolver];
+
+    if (totalNuevos.length === 0 && totalEliminados.length === 0) return;
+
+    try {
+      const res = await this.sysRepuestosService
+        .ajustarStockEdicion({
+          repuestosEliminados: totalEliminados,
+          repuestosNuevos: totalNuevos,
+          mantenimientoId
+        })
+        .toPromise();
+
+      if ((res?.errores?.length ?? 0) > 0) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Advertencia de inventario',
+          html: `El reporte se actualizó, pero hubo problemas con el stock:<br><br>
+               <ul style="text-align:left">${res.errores.map((e: string) => `<li>${e}</li>`).join('')}</ul>`,
+          confirmButtonText: 'Entendido'
+        });
+      }
+    } catch {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Advertencia de inventario',
+        text: 'El reporte se actualizó, pero no se pudo ajustar el stock. Revise el inventario manualmente.',
+        confirmButtonText: 'Entendido'
+      });
+    }
   }
 
   goBack(): void {

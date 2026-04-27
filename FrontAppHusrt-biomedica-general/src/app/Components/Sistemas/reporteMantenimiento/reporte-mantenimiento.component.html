@@ -209,7 +209,8 @@
               <!-- 1. Tipo de repuesto -->
               <td>
                 <p-select [options]="tiposRepuesto" formControlName="tipoRepuestoIdFk" optionLabel="label"
-                  optionValue="value" placeholder="Tipo" appendTo="body" [style]="{'width':'100%'}" (onChange)="onCambiarTipoRepuesto($event, i)">
+                  optionValue="value" placeholder="Tipo" appendTo="body" [style]="{'width':'100%'}"
+                  (onChange)="onCambiarTipoRepuesto($event, i)">
                 </p-select>
               </td>
 
@@ -217,12 +218,23 @@
               <td>
                 <p-select [options]="getRepuestosParaFila(i)" formControlName="sysRepuestoIdFk" optionLabel="label"
                   optionValue="value" placeholder="Seleccione" appendTo="body" [style]="{'width':'100%'}"
-                  [disabled]="!repuestosFormArray.at(i).get('tipoRepuestoIdFk')?.value" (onChange)="onSeleccionarRepuesto($event, i)">
+                  [disabled]="!repuestosFormArray.at(i).get('tipoRepuestoIdFk')?.value"
+                  (onChange)="onSeleccionarRepuesto($event, i)">
                 </p-select>
               </td>
 
               <td>
-                <input pInputText formControlName="cantidad" class="w-full" placeholder="Cant." />
+                <input pInputText formControlName="cantidad" class="w-full" placeholder="Cant."
+                  [ngClass]="{'ng-invalid ng-dirty': getStockRepuesto(i) !== null && getCantidadIngresada(i) > getStockRepuesto(i)!}" />
+
+                <small *ngIf="getStockRepuesto(i) !== null" [ngClass]="{
+      'text-red-500 font-semibold': getCantidadIngresada(i) > getStockRepuesto(i)!,
+      'text-green-600': getCantidadIngresada(i) <= getStockRepuesto(i)!
+    }">
+                  {{ getCantidadIngresada(i) > getStockRepuesto(i)!
+                  ? '⚠ Supera stock disponible (' + getStockRepuesto(i) + ')'
+                  : 'Stock disponible: ' + getStockRepuesto(i) }}
+                </small>
               </td>
 
               <td class="text-center">

@@ -60,4 +60,5 @@ export class SysReporteService {
       this.http.get(`${this.base}/baja/${bajaId}/pdf`, { responseType: 'blob' })
     );
   }
+  
 }

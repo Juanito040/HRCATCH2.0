@@ -6,16 +6,16 @@ import { API_URL } from '../../../../constantes';
 // ── Interfaces alineadas con la respuesta real del backend ──────────────────
 
 export interface SysMantenimiento {
-  id?: number;                        // era id_sysmtto, el backend retorna 'id'
+  id?: number;
   añoProgramado?: number;
   mesProgramado?: number;
-  fechaRealizado?: string;            // era 'fecha'
-  horaInicio?: string;               // camelCase como el backend
+  fechaRealizado?: string;
+  horaInicio?: string;
   fechaFin?: string;
   horaTerminacion?: string;
   horaTotal?: string;
-  tipoMantenimiento?: string;        // era number, el backend retorna string: "Preventivo"
-  tipoFalla?: string;                // era number, el backend retorna string o null
+  tipoMantenimiento?: string;
+  tipoFalla?: string;
   estadoOperativo?: string;
   motivo?: string;
   trabajoRealizado?: string;
@@ -35,14 +35,13 @@ export interface SysMantenimiento {
     marca: string;
     modelo: string;
     serie: string;
+    servicio?: {
+      id: number;
+      nombres: string;
+    };
     placa_inventario: string;
     ubicacion?: string;
     ubicacion_especifica?: string;
-  };
-  servicio?: {
-    id: number;
-    nombres: string;
-    ubicacion?: string;
   };
   usuario?: {
     id: number;

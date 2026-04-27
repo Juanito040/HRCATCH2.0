@@ -5,6 +5,7 @@ const SysReporte = require('../../models/Sistemas/SysReporte');
 const SysEquipo = require('../../models/Sistemas/SysEquipo');
 const SysProgramacionPreventivoMes = require('../../models/Sistemas/Sysprogramacionpreventivomes');
 const SysPlanMantenimiento = require('../../models/Sistemas/SysPlanMantenimiento');
+const Usuario = require('../../models/generales/Usuario');
 
 /**
  * POST /sysprogramacion/programacion-preventivos
@@ -35,10 +36,10 @@ router.post('/programacion-preventivos', async (req, res) => {
         }
 
         const planes = await SysPlanMantenimiento.findAll({
-            where: { mes, ano: anio },  // ← ajusta 'ano' al nombre real de tu columna
+            where: { mes, ano: anio },
             include: [{
                 model: SysEquipo,
-                as: 'equipo',  // ← ajusta al alias real de tu asociación
+                as: 'equipo',
                 where: {
                     preventivo_s: true,
                     estado_baja: false,
@@ -66,6 +67,48 @@ router.post('/programacion-preventivos', async (req, res) => {
                 id_sysequipo_fk: equipo.id_sysequipo
             });
             reportes.push(nuevoMtto);
+        }
+
+        // ─── Asignación de técnicos de sistemas (rolId 10) ───────────────────
+        const tecnicos = await Usuario.findAll({
+            where: { estado: true, rolId: 10 },
+            attributes: ['id']
+        });
+
+        if (tecnicos.length === 0) {
+            // Si no hay técnicos igual se guardan los reportes sin asignar
+            console.warn('No hay técnicos de sistemas (rol 10) disponibles para asignar');
+        } else {
+            // Contar cuántos mantenimientos pendientes (no realizados) tiene cada técnico
+            const conteos = await Promise.all(
+                tecnicos.map(async (t) => {
+                    const count = await SysReporte.count({
+                        where: {
+                            usuarioIdFk: t.id,
+                            realizado: false
+                        }
+                    });
+                    return { id: t.id, tareas: count };
+                })
+            );
+
+            // taskCounts arranca con las tareas actuales en BD, no desde 0
+            const taskCounts = {};
+            conteos.forEach(c => { taskCounts[c.id] = c.tareas; });
+
+            // Asignar cada reporte al técnico con menos tareas en ese momento
+            const reportesCreados = await SysReporte.findAll({
+                where: { id: reportes.map(r => r.id) }
+            });
+
+            for (const reporte of reportesCreados) {
+                const asignado = tecnicos.reduce((prev, curr) =>
+                    taskCounts[prev.id] <= taskCounts[curr.id] ? prev : curr
+                );
+                reporte.usuarioIdFk = asignado.id;
+                taskCounts[asignado.id]++;
+                await reporte.save();
+            }
         }
 
         await SysProgramacionPreventivoMes.create({ mes, anio });
