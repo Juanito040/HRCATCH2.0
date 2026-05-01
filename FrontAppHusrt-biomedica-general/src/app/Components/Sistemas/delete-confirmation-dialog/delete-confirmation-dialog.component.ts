@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import Swal from 'sweetalert2';
@@ -15,12 +15,14 @@ export interface DeleteAction {
   templateUrl: './delete-confirmation-dialog.component.html',
   styleUrls: ['./delete-confirmation-dialog.component.css']
 })
-export class SysDeleteConfirmationDialogComponent implements OnChanges {
+export class SysDeleteConfirmationDialogComponent implements OnChanges, OnDestroy {
   @Input() isOpen = false;
   @Input() itemName = '';
   @Input() itemType = 'equipo';
   @Input() isAdmin = false;
   @Input() hideBodegaOption = false;
+  @Input() hideBajaOption = false;
+  @Input() initialAction: 'bodega' | 'baja' | null = null;
   @Output() closed = new EventEmitter<void>();
   @Output() confirmed = new EventEmitter<DeleteAction>();
 
@@ -32,9 +34,16 @@ export class SysDeleteConfirmationDialogComponent implements OnChanges {
   justificacion_baja = '';
   accesorios_reutilizables = '';
 
+  ngOnDestroy() {
+    if (typeof document !== 'undefined') document.body.style.overflow = '';
+  }
+
   ngOnChanges(changes: SimpleChanges) {
+    if (changes['isOpen'] && typeof document !== 'undefined') {
+      document.body.style.overflow = changes['isOpen'].currentValue ? 'hidden' : '';
+    }
     if (changes['isOpen']?.currentValue === true) {
-      this.selectedAction = this.hideBodegaOption ? 'baja' : 'bodega';
+      this.selectedAction = this.initialAction ?? (this.hideBodegaOption ? 'baja' : 'bodega');
       this.password = '';
       this.passwordError = '';
       this.motivo = '';
@@ -78,7 +87,7 @@ export class SysDeleteConfirmationDialogComponent implements OnChanges {
 
   onActionChange() { this.password = ''; this.passwordError = ''; this.motivo = ''; this.justificacion_baja = ''; this.accesorios_reutilizables = ''; }
   onPasswordInput() { this.passwordError = ''; }
-  resetForm() { this.selectedAction = this.hideBodegaOption ? 'baja' : 'bodega'; this.password = ''; this.passwordError = ''; this.isSubmitting = false; this.motivo = ''; this.justificacion_baja = ''; this.accesorios_reutilizables = ''; }
+  resetForm() { this.selectedAction = this.initialAction ?? (this.hideBodegaOption ? 'baja' : 'bodega'); this.password = ''; this.passwordError = ''; this.isSubmitting = false; this.motivo = ''; this.justificacion_baja = ''; this.accesorios_reutilizables = ''; }
   resetSubmitting() { this.isSubmitting = false; }
   showError(message: string) { this.passwordError = message; this.isSubmitting = false; }
 

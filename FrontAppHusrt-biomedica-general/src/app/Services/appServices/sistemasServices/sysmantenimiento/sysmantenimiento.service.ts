@@ -1,44 +1,71 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 import { API_URL } from '../../../../constantes';
 
+// ── Interfaces alineadas con la respuesta real del backend ──────────────────
+
 export interface SysMantenimiento {
-  id_sysmtto?: number;
-  numero_reporte?: string;
-  fecha?: string;
-  hora_llamado?: string;
-  hora_inicio?: string;
-  hora_terminacion?: string;
-  tipo_mantenimiento?: number;
-  tipo_falla?: number;
-  mphardware?: boolean;
-  mpsoftware?: boolean;
-  rutinah?: string;
-  rutinas?: string;
-  observacionesh?: string;
-  observacioness?: string;
-  autor_realizado?: string;
-  autor_recibido?: string;
-  tiempo_fuera_servicio?: number;
-  dano?: boolean;
-  entega?: boolean;
-  rutahardware?: string;
-  rutasoftware?: string;
-  rutaentrega?: string;
+  id?: number;
+  añoProgramado?: number;
+  mesProgramado?: number;
+  fechaRealizado?: string;
+  horaInicio?: string;
+  fechaFin?: string;
+  horaTerminacion?: string;
+  horaTotal?: string;
+  tipoMantenimiento?: string;
+  tipoFalla?: string;
+  estadoOperativo?: string;
+  motivo?: string;
+  trabajoRealizado?: string;
+  calificacion?: any;
+  nombreRecibio?: string;
+  cedulaRecibio?: string;
+  observaciones?: string;
+  mantenimientoPropio?: any;
+  realizado?: any;
+  rutaPdf?: string;
   id_sysequipo_fk?: number;
-  id_sysusuario_fk?: number;
-  equipo?: any;
-  usuario?: any;
+  usuarioIdFk?: number;
+  servicioIdFk?: number;
+  equipo?: {
+    id_sysequipo: number;
+    nombre_equipo: string;
+    marca: string;
+    modelo: string;
+    serie: string;
+    servicio?: {
+      id: number;
+      nombres: string;
+    };
+    placa_inventario: string;
+    ubicacion?: string;
+    ubicacion_especifica?: string;
+  };
+  usuario?: {
+    id: number;
+    nombres: string;
+    apellidos: string;
+  } | null;
+
+  valoresMediciones?: any[];
+  repuestos?: any[];
+
   createdAt?: string;
   updatedAt?: string;
 }
 
+// El backend retorna array directo, NO envuelto en { success, data }
+export type SysMantenimientoListResponse = SysMantenimiento[];
+
+// Para endpoints que sí retornan { success, data } (create, update, delete)
 export interface SysMantenimientoResponse {
   success: boolean;
-  data: SysMantenimiento | SysMantenimiento[];
+  data?: SysMantenimiento;
   message?: string;
   count?: number;
+  error?: string;
 }
 
 export interface DashboardMantenimientoResponse {
@@ -60,58 +87,80 @@ export interface CatalogoItem {
 @Injectable({ providedIn: 'root' })
 export class SysmantenimientoService {
   private http = inject(HttpClient);
-  private apiUrl = `${API_URL}/sysmantenimiento`;
+  private apiUrl = `${API_URL}/sysreporte`;
 
-  getAll(filters?: { id_equipo?: number; tipo_mantenimiento?: number; fecha_inicio?: string; fecha_fin?: string }): Observable<SysMantenimientoResponse> {
+  // GET /sysreporte → retorna array directo
+  getAll(filters?: {
+    id_equipo?: number;
+    tipo_mantenimiento?: string;
+    fecha_inicio?: string;
+    fecha_fin?: string;
+  }): Observable<SysMantenimiento[]> {
     let params = new HttpParams();
     if (filters) {
       if (filters.id_equipo) params = params.set('id_equipo', filters.id_equipo.toString());
-      if (filters.tipo_mantenimiento) params = params.set('tipo_mantenimiento', filters.tipo_mantenimiento.toString());
+      if (filters.tipo_mantenimiento) params = params.set('tipo_mantenimiento', filters.tipo_mantenimiento);
       if (filters.fecha_inicio) params = params.set('fecha_inicio', filters.fecha_inicio);
       if (filters.fecha_fin) params = params.set('fecha_fin', filters.fecha_fin);
     }
-    return this.http.get<SysMantenimientoResponse>(this.apiUrl, { params });
+    return this.http.get<SysMantenimiento[]>(this.apiUrl, { params });
   }
 
-  getById(id: number): Observable<SysMantenimientoResponse> {
-    return this.http.get<SysMantenimientoResponse>(`${this.apiUrl}/${id}`);
+  async getById(id: number): Promise<SysMantenimiento> {
+    return firstValueFrom(
+      this.http.get<SysMantenimiento>(`${this.apiUrl}/${id}`)
+    );
   }
 
-  getByEquipo(idEquipo: number): Observable<SysMantenimientoResponse> {
-    return this.http.get<SysMantenimientoResponse>(`${this.apiUrl}/equipo/${idEquipo}`);
+  getByEquipo(idEquipo: number): Observable<SysMantenimiento[]> {
+    return this.http.get<SysMantenimiento[]>(`${this.apiUrl}/equipo/${idEquipo}`);
   }
 
-  getByTecnico(idUsuario: number, filters?: { fecha_inicio?: string; fecha_fin?: string }): Observable<SysMantenimientoResponse> {
+  getByTecnico(idUsuario: number, filters?: {
+    fecha_inicio?: string;
+    fecha_fin?: string;
+  }): Observable<SysMantenimiento[]> {
     let params = new HttpParams();
     if (filters?.fecha_inicio) params = params.set('fecha_inicio', filters.fecha_inicio);
     if (filters?.fecha_fin) params = params.set('fecha_fin', filters.fecha_fin);
-    return this.http.get<SysMantenimientoResponse>(`${this.apiUrl}/tecnico/${idUsuario}`, { params });
+    return this.http.get<SysMantenimiento[]>(`${this.apiUrl}/tecnico/${idUsuario}`, { params });
   }
 
-  getDashboard(filters?: { fecha_inicio?: string; fecha_fin?: string }): Observable<DashboardMantenimientoResponse> {
+  getDashboard(filters?: {
+    fecha_inicio?: string;
+    fecha_fin?: string;
+  }): Observable<DashboardMantenimientoResponse> {
     let params = new HttpParams();
     if (filters?.fecha_inicio) params = params.set('fecha_inicio', filters.fecha_inicio);
     if (filters?.fecha_fin) params = params.set('fecha_fin', filters.fecha_fin);
     return this.http.get<DashboardMantenimientoResponse>(`${this.apiUrl}/dashboard`, { params });
   }
 
-  create(mantenimiento: Partial<SysMantenimiento>): Observable<SysMantenimientoResponse> {
-    return this.http.post<SysMantenimientoResponse>(this.apiUrl, mantenimiento);
+  create(mantenimiento: Partial<SysMantenimiento>): Promise<SysMantenimientoResponse> {
+    return firstValueFrom(
+      this.http.post<SysMantenimientoResponse>(this.apiUrl, mantenimiento)
+    );
   }
 
-  update(id: number, mantenimiento: Partial<SysMantenimiento>): Observable<SysMantenimientoResponse> {
-    return this.http.put<SysMantenimientoResponse>(`${this.apiUrl}/${id}`, mantenimiento);
+  update(id: number, mantenimiento: Partial<SysMantenimiento>): Promise<SysMantenimientoResponse> {
+    return firstValueFrom(
+      this.http.put<SysMantenimientoResponse>(`${this.apiUrl}/${id}`, mantenimiento)
+    );
   }
-
   delete(id: number): Observable<SysMantenimientoResponse> {
     return this.http.delete<SysMantenimientoResponse>(`${this.apiUrl}/${id}`);
   }
 
+  // Catálogos — retornan { success: true, data: [...] }
   getTiposMantenimiento(): Observable<{ success: boolean; data: CatalogoItem[] }> {
-    return this.http.get<{ success: boolean; data: CatalogoItem[] }>(`${this.apiUrl}/catalogos/tipos-mantenimiento`);
+    return this.http.get<{ success: boolean; data: CatalogoItem[] }>(
+      `${this.apiUrl}/catalogos/tipos-mantenimiento`
+    );
   }
 
   getTiposFalla(): Observable<{ success: boolean; data: CatalogoItem[] }> {
-    return this.http.get<{ success: boolean; data: CatalogoItem[] }>(`${this.apiUrl}/catalogos/tipos-falla`);
+    return this.http.get<{ success: boolean; data: CatalogoItem[] }>(
+      `${this.apiUrl}/catalogos/tipos-falla`
+    );
   }
 }

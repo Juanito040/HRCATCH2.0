@@ -1,4 +1,4 @@
-import { Component, DestroyRef, EventEmitter, inject, Input, OnInit, Output, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, inject, Input, OnInit, OnDestroy, Output, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { SysequiposService, SysEquipo } from '../../../Services/appServices/sistemasServices/sysequipos/sysequipos.service';
@@ -19,7 +19,7 @@ interface LookupItem {
   templateUrl: './equipo-modal.component.html',
   styleUrls: ['./equipo-modal.component.css']
 })
-export class SysEquipoModalComponent implements OnInit, OnChanges {
+export class SysEquipoModalComponent implements OnInit, OnChanges, OnDestroy {
   @Input() isOpen: boolean = false;
   @Input() equipo: SysEquipo | null = null;
   @Output() closed = new EventEmitter<void>();
@@ -53,7 +53,14 @@ export class SysEquipoModalComponent implements OnInit, OnChanges {
     this.setupPeriodicidadListener();
   }
 
+  ngOnDestroy() {
+    if (typeof document !== 'undefined') document.body.style.overflow = '';
+  }
+
   ngOnChanges(changes: SimpleChanges) {
+    if (changes['isOpen'] && typeof document !== 'undefined') {
+      document.body.style.overflow = changes['isOpen'].currentValue ? 'hidden' : '';
+    }
     if (changes['isOpen'] && this.isOpen && this.equipoForm) {
       if (this.equipo) {
         this.equipoForm.patchValue({ ...this.equipo });

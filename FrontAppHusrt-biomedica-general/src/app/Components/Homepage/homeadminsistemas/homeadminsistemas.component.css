@@ -1,0 +1,31 @@
+/* Cards más anchas en el selector de módulos */
+:host .dashboard-card {
+  min-width: 340px;
+  max-width: 480px;
+  flex: 1 1 340px;
+}
+
+/* Inventario card no es clickable en el root */
+.inventario-card { cursor: default; }
+.inventario-card:hover { transform: none; box-shadow: var(--shadow-sm); }
+.mantenimiento-card { cursor: default; }
+.mantenimiento-card:hover { transform: none; box-shadow: var(--shadow-sm); }
+/* Sub-actions dentro de la card */
+.sub-actions { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.75rem; }
+
+.sub-action-btn {
+  display: flex; align-items: center; gap: 0.625rem;
+  width: 100%; padding: 0.5rem 0.75rem;
+  background: #f1f5f9; border: 1px solid #e2e8f0;
+  border-radius: 0.5rem; cursor: pointer;
+  font-size: 0.875rem; font-weight: 500; color: #374151;
+  transition: background 0.18s, border-color 0.18s, color 0.18s;
+  text-align: left;
+}
+
+.sub-action-btn:hover {
+  background: #dbeafe; border-color: #93c5fd; color: #1e40af;
+}
+
+.sub-action-btn .sub-arrow { margin-left: auto; font-size: 0.75rem; opacity: 0.6; }
+.sub-action-btn:hover .sub-arrow { opacity: 1; }

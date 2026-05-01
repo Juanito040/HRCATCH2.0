@@ -1,0 +1,141 @@
+@if (isOpen) {
+  <div class="modal-overlay" (click)="close()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="header-info">
+          <h2>Reporte de Entrega</h2>
+          @if (equipo) {
+            <span class="equipo-badge">{{ equipo.nombre_equipo }} — {{ equipo.placa_inventario || 'Sin placa' }}</span>
+          }
+        </div>
+        <button class="btn-close" (click)="close()" type="button">✕</button>
+      </div>
+
+      <div class="modal-body">
+
+        <form (ngSubmit)="onSubmit()" #f="ngForm">
+
+          <!-- Sección: Datos del Reporte -->
+          <div class="form-section">
+            <h3 class="section-title">Datos del Reporte</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="fecha">Fecha <span class="required">*</span></label>
+                <input type="date" id="fecha" name="fecha" [(ngModel)]="form.fecha" required />
+              </div>
+              <div class="form-group">
+                <label for="hora_llamado">Hora de Llamado</label>
+                <input type="time" id="hora_llamado" name="hora_llamado" [(ngModel)]="form.hora_llamado" />
+              </div>
+              <div class="form-group">
+                <label for="hora_inicio">Hora de Inicio</label>
+                <input type="time" id="hora_inicio" name="hora_inicio" [(ngModel)]="form.hora_inicio" />
+              </div>
+              <div class="form-group">
+                <label for="hora_terminacion">Hora de Terminación</label>
+                <input type="time" id="hora_terminacion" name="hora_terminacion" [(ngModel)]="form.hora_terminacion" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Sección: Origen -->
+          <div class="form-section">
+            <h3 class="section-title">Procedencia</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="servicio_anterior">Servicio Anterior</label>
+                <input type="text" id="servicio_anterior" name="servicio_anterior"
+                  [(ngModel)]="form.servicio_anterior"
+                  placeholder="Ej: Urgencias" />
+              </div>
+              <div class="form-group">
+                <label for="ubicacion_anterior">Ubicación Anterior</label>
+                <input type="text" id="ubicacion_anterior" name="ubicacion_anterior"
+                  [(ngModel)]="form.ubicacion_anterior"
+                  placeholder="Ej: Sala 3" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Sección: Destino -->
+          <div class="form-section">
+            <h3 class="section-title">Destino</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="servicio_nuevo">Servicio Destino</label>
+                <input type="text" id="servicio_nuevo" name="servicio_nuevo"
+                  [(ngModel)]="form.servicio_nuevo"
+                  placeholder="Ej: UCI" />
+              </div>
+              <div class="form-group">
+                <label for="ubicacion_nueva">Ubicación Nueva</label>
+                <input type="text" id="ubicacion_nueva" name="ubicacion_nueva"
+                  [(ngModel)]="form.ubicacion_nueva"
+                  placeholder="Ej: Habitación 10" />
+              </div>
+              <div class="form-group">
+                <label for="ubicacion_especifica">Ubicación Específica</label>
+                <input type="text" id="ubicacion_especifica" name="ubicacion_especifica"
+                  [(ngModel)]="form.ubicacion_especifica"
+                  placeholder="Ej: Puesto 2" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Sección: Personal -->
+          <div class="form-section">
+            <h3 class="section-title">Personal</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="realizado_por">Realizado Por <span class="required">*</span></label>
+                <input type="text" id="realizado_por" name="realizado_por"
+                  [(ngModel)]="form.realizado_por" required
+                  placeholder="Nombre del técnico" />
+              </div>
+              <div class="form-group">
+                <label for="recibido_por">Recibido Por</label>
+                <input type="text" id="recibido_por" name="recibido_por"
+                  [(ngModel)]="form.recibido_por"
+                  placeholder="Nombre del receptor" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Sección: Observaciones -->
+          <div class="form-section">
+            <h3 class="section-title">Observaciones</h3>
+            <div class="form-group full-width">
+              <textarea id="observaciones" name="observaciones"
+                [(ngModel)]="form.observaciones"
+                rows="3"
+                placeholder="Observaciones adicionales sobre la entrega..."></textarea>
+            </div>
+          </div>
+
+          <!-- Acciones -->
+          <div class="modal-footer">
+            @if (savedReporteId) {
+              <button type="button" class="btn btn-download"
+                (click)="descargarPdf()" [disabled]="isDownloadingPdf">
+                @if (isDownloadingPdf) {
+                  <i class="fas fa-spinner fa-spin"></i> Generando...
+                } @else {
+                  <i class="fas fa-download"></i> Descargar Reporte
+                }
+              </button>
+            }
+            <button type="button" class="btn btn-outline" (click)="close()">Cancelar</button>
+            <button type="submit" class="btn btn-primary" [disabled]="isSubmitting || f.invalid">
+              @if (isSubmitting) {
+                <i class="fas fa-spinner fa-spin"></i> Guardando...
+              } @else {
+                <i class="fas fa-save"></i> Guardar Reporte
+              }
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+}

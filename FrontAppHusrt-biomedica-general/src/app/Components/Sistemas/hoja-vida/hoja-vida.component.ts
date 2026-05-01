@@ -2,7 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { forkJoin, of } from 'rxjs';
+import { forkJoin, of, from } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { SysHojaVidaService, SysHojaVida } from '../../../Services/appServices/sistemasServices/syshojavida/syshojavida.service';
 import { SysequiposService } from '../../../Services/appServices/sistemasServices/sysequipos/sysequipos.service';
@@ -25,9 +25,10 @@ export class SysHojaVidaComponent implements OnInit {
   hojaVida: SysHojaVida | null = null;
   equipo: any = null;
 
-  isLoading = true;
-  isSaving  = false;
-  isEditing = false;
+  isLoading     = true;
+  isSaving      = false;
+  isEditing     = false;
+  isDownloading = false;
   error: string | null = null;
   isNew = false;
 
@@ -54,7 +55,7 @@ export class SysHojaVidaComponent implements OnInit {
 
     // Carga el equipo y la hoja de vida en paralelo
     forkJoin({
-      equipo: this.equipoSvc.getEquipoById(this.equipoId).pipe(catchError(() => of(null))),
+      equipo: from(this.equipoSvc.getEquipoById(this.equipoId)).pipe(catchError(() => of(null))),
       hoja:   this.svc.getByEquipo(this.equipoId).pipe(catchError(err => of({ _err: err.status })))
     }).subscribe(({ equipo, hoja }) => {
 
@@ -118,5 +119,22 @@ export class SysHojaVidaComponent implements OnInit {
 
   goBack() {
     this.router.navigate(['/adminsistemas/equipos']);
+  }
+
+  async descargarPdf() {
+    this.isDownloading = true;
+    try {
+      const blob = await this.svc.descargarPdf(this.equipoId);
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = `HojaVida_${this.equipo?.placa_inventario ?? this.equipoId}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo generar el PDF' });
+    } finally {
+      this.isDownloading = false;
+    }
   }
 }

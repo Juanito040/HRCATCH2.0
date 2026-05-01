@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -11,7 +11,7 @@ export interface ReactivarEquipoData { ubicacion: string; }
   templateUrl: './reactivar-equipo-modal.component.html',
   styleUrls: ['./reactivar-equipo-modal.component.css']
 })
-export class SysReactivarEquipoModalComponent implements OnChanges {
+export class SysReactivarEquipoModalComponent implements OnChanges, OnDestroy {
   @Input() isOpen = false;
   @Input() equipoNombre = '';
   @Input() ubicacionAnterior = '';
@@ -22,10 +22,17 @@ export class SysReactivarEquipoModalComponent implements OnChanges {
   isSubmitting = false;
 
   ngOnChanges(changes: SimpleChanges) {
+    if (changes['isOpen'] && typeof document !== 'undefined') {
+      document.body.style.overflow = changes['isOpen'].currentValue ? 'hidden' : '';
+    }
     if (changes['isOpen']?.currentValue === true) {
       this.ubicacion = this.ubicacionAnterior || 'Datacenter Principal';
       this.isSubmitting = false;
     }
+  }
+
+  ngOnDestroy() {
+    if (typeof document !== 'undefined') document.body.style.overflow = '';
   }
 
   close() { if (!this.isSubmitting) { this.ubicacion = ''; this.isSubmitting = false; this.closed.emit(); } }

@@ -1,6 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../../config/configDb');
 const SysRepuesto = require('./SysRepuesto');
+const SysReporte = require('./SysReporte'); // ← importar el modelo
 
 const SysMovimientosStockRepuestos = sequelize.define('SysMovimientosStockRepuestos', {
   id: {
@@ -37,6 +38,14 @@ const SysMovimientosStockRepuestos = sequelize.define('SysMovimientosStockRepues
     type: DataTypes.STRING(200),
     allowNull: true
   },
+  sysReporteIdFk: {
+    type: DataTypes.INTEGER,
+    allowNull: true, // null cuando el movimiento es manual (compra, ajuste, etc.)
+    references: {
+      model: 'SysReporte',
+      key: 'id'
+    }
+  },
   usuario: {
     type: DataTypes.STRING(150),
     allowNull: false,
@@ -59,6 +68,16 @@ SysMovimientosStockRepuestos.belongsTo(SysRepuesto, {
 
 SysRepuesto.hasMany(SysMovimientosStockRepuestos, {
   foreignKey: 'id_repuesto_fk',
+  as: 'movimientosStock'
+});
+
+SysMovimientosStockRepuestos.belongsTo(SysReporte, {
+  foreignKey: 'sysReporteIdFk',
+  as: 'reporte'
+});
+
+SysReporte.hasMany(SysMovimientosStockRepuestos, {
+  foreignKey: 'sysReporteIdFk',
   as: 'movimientosStock'
 });
 

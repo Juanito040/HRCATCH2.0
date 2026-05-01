@@ -1,0 +1,101 @@
+@if (isOpen) {
+  <div class="modal-overlay">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="modal-header">
+        <div class="header-content">
+          <div class="header-icon"><i class="fas fa-file-export"></i></div>
+          <div>
+            <h2>Reportes de Entrega</h2>
+            <p class="header-sub">{{ equipo?.nombre_equipo }} · {{ equipo?.placa_inventario || 'Sin placa' }}</p>
+          </div>
+        </div>
+        <button class="btn-close" (click)="close()" title="Cerrar">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body">
+
+        @if (isLoading) {
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Cargando reportes...</p>
+          </div>
+        } @else if (error) {
+          <div class="empty-state">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p>{{ error }}</p>
+            <button class="btn-retry" (click)="cargarReportes()">Reintentar</button>
+          </div>
+        } @else if (reportes.length === 0) {
+          <div class="empty-state">
+            <i class="fas fa-folder-open"></i>
+            <p>Este equipo no tiene reportes de entrega registrados.</p>
+          </div>
+        } @else {
+
+          <div class="resumen-badge">
+            <i class="fas fa-list-ul"></i> {{ reportes.length }} reporte{{ reportes.length !== 1 ? 's' : '' }} registrado{{ reportes.length !== 1 ? 's' : '' }}
+          </div>
+
+          <div class="tabla-wrapper">
+            <table class="reportes-tabla">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Hora inicio</th>
+                  <th>Hora fin</th>
+                  <th>Servicio anterior</th>
+                  <th>Servicio destino</th>
+                  <th>Realizado por</th>
+                  <th>Recibido por</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (r of reportes; track r.id_sysreporte) {
+                  <tr>
+                    <td>{{ formatFecha(r.fecha) }}</td>
+                    <td>{{ r.hora_inicio || '—' }}</td>
+                    <td>{{ r.hora_terminacion || '—' }}</td>
+                    <td>
+                      <span class="ubicacion-text">{{ r.servicio_anterior || '—' }}</span>
+                      @if (r.ubicacion_anterior) {
+                        <span class="ubicacion-sub">{{ r.ubicacion_anterior }}</span>
+                      }
+                    </td>
+                    <td>
+                      <span class="ubicacion-text">{{ r.servicio_nuevo || '—' }}</span>
+                      @if (r.ubicacion_nueva) {
+                        <span class="ubicacion-sub">{{ r.ubicacion_nueva }}</span>
+                      }
+                    </td>
+                    <td>{{ r.realizado_por || '—' }}</td>
+                    <td>{{ r.recibido_por || '—' }}</td>
+                    <td>
+                      <button class="btn-pdf"
+                        (click)="descargarPdf(r)"
+                        [disabled]="downloadingId === r.id_sysreporte"
+                        title="Descargar reporte">
+                        @if (downloadingId === r.id_sysreporte) {
+                          <i class="fas fa-spinner fa-spin"></i> Generando...
+                        } @else {
+                          <i class="fas fa-download"></i> Descargar
+                        }
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+        }
+      </div>
+
+    </div>
+  </div>
+}
