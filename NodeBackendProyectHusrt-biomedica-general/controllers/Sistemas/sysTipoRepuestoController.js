@@ -11,7 +11,7 @@ async function registrarAuditoria({ tabla_origen, id_registro, req, accion, obse
     if (!nombreUsuarioAudit && req.user?.id) {
       const u = await Usuario.findByPk(req.user.id);
       if (u) {
-        nombreUsuarioAudit = u.nombreUsuario;
+        nombreUsuarioAudit = u['nombreUsuario'];
       }
     }
 
@@ -71,7 +71,7 @@ exports.create = async (req, res) => {
       req,
       accion: 'creacion',
       observacion,
-      nombre_item: tipo.nombre
+      nombre_item: tipo['nombre']
     });
 
     res.status(201).json({ success: true, message: 'Tipo de repuesto creado exitosamente', data: tipo });
@@ -118,8 +118,12 @@ exports.toggleActive = async (req, res) => {
     const tipo = await SysTipoRepuesto.findByPk(id);
     if (!tipo) return res.status(404).json({ success: false, message: 'Tipo de repuesto no encontrado' });
 
-    const nuevoEstado = !tipo.is_active;
-    const updateData = { is_active: nuevoEstado };
+    const nuevoEstado = !tipo['is_active'];
+    const updateData = { 
+      is_active: nuevoEstado,
+      fecha_inactivacion: null,
+      usuario_inactivacion: null
+    };
 
     if (!nuevoEstado) {
       updateData.fecha_inactivacion = new Date();
@@ -128,12 +132,9 @@ exports.toggleActive = async (req, res) => {
       let username = req.user?.nombreUsuario || req.user?.nombre;
       if (!username && req.user?.id) {
         const u = await Usuario.findByPk(req.user.id);
-        if (u) username = u.nombreUsuario || u.nombres;
+        if (u) username = u['nombreUsuario'] || u['nombres'];
       }
       updateData.usuario_inactivacion = username || 'desconocido';
-    } else {
-      updateData.fecha_inactivacion = null;
-      updateData.usuario_inactivacion = null;
     }
 
     await tipo.update(updateData);
@@ -144,7 +145,7 @@ exports.toggleActive = async (req, res) => {
       req,
       accion: nuevoEstado ? 'activacion' : 'inactivacion',
       observacion,
-      nombre_item: tipo.nombre
+      nombre_item: tipo['nombre']
     });
 
     const msg = nuevoEstado ? 'activado' : 'desactivado';

@@ -83,6 +83,7 @@ import { SysHojaVidaComponent } from './Components/Sistemas/hoja-vida/hoja-vida.
 import { ClasificacionTipoEquipoSisComponent } from './Components/Sistemas/clasificacion-tipo-equipo/clasificacion-tipo-equipo-sis.component';
 import { EquiposTipoSisComponent } from './Components/Sistemas/equipos-tipo/equipos-tipo-sis.component';
 import { SisRepuestosComponent } from './Components/Sistemas/repuestos/repuestos.component';
+import { SysindicadoresComponent } from './Components/Sistemas/sysindicadores/sysindicadores.component';
 
 export const routes: Routes = [
 
@@ -181,6 +182,7 @@ export const routes: Routes = [
   { path: 'adminsistemas/mantenimientos', component: SisMantenimientosComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'ADMINISTRADOR', 'AG'] } },
   { path: 'adminsistemas/hojavida/:equipoId', component: SysHojaVidaComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'ADMINISTRADOR', 'AG'] } },
   { path: 'adminsistemas/repuestos', component: SisRepuestosComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'ADMINISTRADOR', 'AG'] } },
+  { path: 'adminsistemas/indicadores', component: SysindicadoresComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'ADMINISTRADOR', 'AG'] } },
 
   { path: 'intranet', component: IntranetComponent }
 ];

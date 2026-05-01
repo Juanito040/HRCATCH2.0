@@ -17,7 +17,7 @@ async function registrarAuditoria({ id_registro, req, accion, observacion, nombr
     if (!nombreUsuarioAudit && req.user?.id) {
       const u = await Usuario.findByPk(req.user.id);
       if (u) {
-        nombreUsuarioAudit = u.nombreUsuario;
+        nombreUsuarioAudit = u['nombreUsuario'];
       }
     }
 
@@ -104,7 +104,7 @@ exports.create = async (req, res) => {
       req,
       accion: 'creacion',
       observacion,
-      nombre_item: repuesto.nombre
+      nombre_item: repuesto['nombre']
     });
 
     const repuestoCompleto = await SysRepuesto.findByPk(repuesto.id_sysrepuesto, { include: INCLUDES_BASE });
@@ -160,12 +160,16 @@ exports.toggleActive = async (req, res) => {
     const repuesto = await SysRepuesto.findByPk(id);
     if (!repuesto) return res.status(404).json({ success: false, message: 'Repuesto no encontrado' });
 
-    if (repuesto.is_active && repuesto.cantidad_stock > 0) {
-      return res.status(400).json({ success: false, message: `No se puede dar de baja. Aún hay ${repuesto.cantidad_stock} unidades en stock.` });
+    if (repuesto['is_active'] && repuesto['cantidad_stock'] > 0) {
+      return res.status(400).json({ success: false, message: `No se puede dar de baja. Aún hay ${repuesto['cantidad_stock']} unidades en stock.` });
     }
 
-    const nuevoEstado = !repuesto.is_active;
-    const updateData = { is_active: nuevoEstado };
+    const nuevoEstado = !repuesto['is_active'];
+    const updateData = { 
+      is_active: nuevoEstado,
+      fecha_inactivacion: null,
+      usuario_inactivacion: null
+    };
 
     if (!nuevoEstado) {
       updateData.fecha_inactivacion = new Date();
@@ -174,12 +178,9 @@ exports.toggleActive = async (req, res) => {
       let username = req.user?.nombreUsuario || req.user?.nombre;
       if (!username && req.user?.id) {
         const u = await Usuario.findByPk(req.user.id);
-        if (u) username = u.nombreUsuario || u.nombres;
+        if (u) username = u['nombreUsuario'] || u['nombres'];
       }
       updateData.usuario_inactivacion = username || 'desconocido';
-    } else {
-      updateData.fecha_inactivacion = null;
-      updateData.usuario_inactivacion = null;
     }
 
     await repuesto.update(updateData);
@@ -189,7 +190,7 @@ exports.toggleActive = async (req, res) => {
       req,
       accion: nuevoEstado ? 'activacion' : 'inactivacion',
       observacion,
-      nombre_item: repuesto.nombre
+      nombre_item: repuesto['nombre']
     });
 
     const msg = nuevoEstado ? 'activado' : 'desactivado';

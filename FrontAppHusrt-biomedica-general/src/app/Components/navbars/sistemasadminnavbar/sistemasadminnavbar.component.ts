@@ -59,6 +59,11 @@ export class SistemasadminnavbarComponent implements OnInit {
         icon: 'pi pi-box',
         routerLink: '/adminsistemas/repuestos'
       },
+      {
+        label: 'Indicadores',
+        icon: 'pi pi-chart-bar',
+        routerLink: '/adminsistemas/indicadores'
+      },
     ];
   }
 
