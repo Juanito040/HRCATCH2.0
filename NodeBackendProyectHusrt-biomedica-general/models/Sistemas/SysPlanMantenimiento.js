@@ -9,7 +9,7 @@ const SysPlanMantenimiento = sequelize.define('SysPlanMantenimiento', {
     allowNull: false,
     references: {
       model: SysEquipo,
-      key: 'id'  // Sequelize siempre busca 'id' internamente
+      key: 'id_sysequipo'  // Corrected to match SysEquipo's actual PK
     }
   },
   mes: {

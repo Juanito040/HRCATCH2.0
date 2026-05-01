@@ -105,10 +105,24 @@ export class SysindicadoresComponent {
 
       const res: any = await firstValueFrom(this.srv.getAll({ fecha_inicio: fechaInicioStr, fecha_fin: fechaFinStr }));
       
-      const allData: SysMantenimiento[] = Array.isArray(res.data) ? res.data : [];
+      let allData: SysMantenimiento[] = Array.isArray(res) ? res : (Array.isArray(res.data) ? res.data : []);
 
-      this.allPreventivos.set(allData.filter((r: SysMantenimiento) => r.tipo_mantenimiento === 2));
-      this.allCorrectivos.set(allData.filter((r: SysMantenimiento) => r.tipo_mantenimiento === 1));
+      // Filter locally because backend might ignore the date filters
+      const fInicio = new Date(fechaInicioStr + 'T00:00:00').getTime();
+      const fFin = new Date(fechaFinStr + 'T23:59:59').getTime();
+      
+      allData = allData.filter(r => {
+        if (r.fechaRealizado) {
+          const d = new Date(r.fechaRealizado + 'T00:00:00').getTime();
+          return d >= fInicio && d <= fFin;
+        } else if (r.añoProgramado && r.mesProgramado) {
+          return r.añoProgramado === this.anio && r.mesProgramado >= this.mesInicio && r.mesProgramado <= this.mesFin;
+        }
+        return false; // Excluir si no hay fechas
+      });
+
+      this.allPreventivos.set(allData.filter((r: SysMantenimiento) => r.tipoMantenimiento === 'Preventivo'));
+      this.allCorrectivos.set(allData.filter((r: SysMantenimiento) => r.tipoMantenimiento === 'Correctivo'));
       
       // Tambien incluimos Predictivo(3) y Otro(4) como parte de preventivos o solos? 
       // Para mantener estructura, solo mapeamos los estrictos o guardamos todos en el computed
@@ -123,17 +137,19 @@ export class SysindicadoresComponent {
 
   // Helpers
   private isRealizado(r: SysMantenimiento): boolean {
-    return !!r.entega || !!r.hora_terminacion;
+    return !!r.fechaRealizado || !!r.horaTerminacion;
   }
 
-  private getTipoMantenimientoLabel(val?: number): string {
+  private getTipoMantenimientoLabel(val?: string | number): string {
     if (!val) return 'Otro';
-    return TIPO_MANTENIMIENTO_LABELS[val] || 'Otro';
+    if (typeof val === 'string') return val;
+    return TIPO_MANTENIMIENTO_LABELS[val as number] || 'Otro';
   }
 
-  private getTipoFallaLabel(val?: number): string {
+  private getTipoFallaLabel(val?: string | number): string {
     if (!val) return 'No Registra';
-    return TIPO_FALLA_LABELS[val] || 'No Registra';
+    if (typeof val === 'string') return val;
+    return TIPO_FALLA_LABELS[val as number] || 'No Registra';
   }
 
   private groupCount<K extends string | number>(arr: SysMantenimiento[], key: (r: SysMantenimiento) => K | null | undefined) {
@@ -284,12 +300,12 @@ export class SysindicadoresComponent {
 
   duracionStats = computed(() => {
     const calcAvg = (reps: SysMantenimiento[]) => {
-      const realizados = reps.filter(r => this.isRealizado(r) && r.hora_inicio && r.hora_terminacion);
+      const realizados = reps.filter(r => this.isRealizado(r) && r.horaInicio && r.horaTerminacion);
       if (realizados.length === 0) return '00:00:00';
       
       const totalMinutes = realizados.reduce((acc, r) => {
-        const start = this.hhmmssToMinutes(r.hora_inicio);
-        const end = this.hhmmssToMinutes(r.hora_terminacion);
+        const start = this.hhmmssToMinutes(r.horaInicio);
+        const end = this.hhmmssToMinutes(r.horaTerminacion);
         if (start != null && end != null && end >= start) {
            return acc + (end - start);
         }
@@ -353,7 +369,7 @@ export class SysindicadoresComponent {
     const mapa = new Map<string, number>();
 
     rs.forEach(r => {
-      let tipo = this.getTipoMantenimientoLabel(r.tipo_mantenimiento);
+      let tipo = this.getTipoMantenimientoLabel(r.tipoMantenimiento as any);
       if (tipo === 'Preventivo') {
         tipo = this.isRealizado(r) ? 'Prev. Realizado' : 'Prev. No Realizado';
       }
@@ -388,14 +404,14 @@ export class SysindicadoresComponent {
     const stats = new Map<string, { prevRealizado: number, prevNoRealizado: number, correctivo: number }>();
 
     rs.forEach(r => {
-      const u = r.usuario;
+      const u = r.usuario as any;
       const nom = (u?.nombres || '').trim();
       const ap = (u?.apellidos || '').trim();
       const email = (u?.email || '').trim();
       const name = (nom || ap) ? `${nom} ${ap}`.trim() : (email || 'Sin usuario');
 
       const current = stats.get(name) || { prevRealizado: 0, prevNoRealizado: 0, correctivo: 0 };
-      const tipo = this.getTipoMantenimientoLabel(r.tipo_mantenimiento);
+      const tipo = this.getTipoMantenimientoLabel(r.tipoMantenimiento as any);
       
       if (tipo === 'Preventivo') {
         if (this.isRealizado(r)) {
@@ -455,7 +471,7 @@ export class SysindicadoresComponent {
     rs.forEach(r => {
       const sName = r.equipo?.servicio?.nombres || 'Sin servicio';
       const current = stats.get(sName) || { preventivo: 0, correctivo: 0 };
-      const tipo = this.getTipoMantenimientoLabel(r.tipo_mantenimiento);
+      const tipo = this.getTipoMantenimientoLabel(r.tipoMantenimiento as any);
       
       if (tipo === 'Preventivo') {
         current.preventivo++;
@@ -504,7 +520,7 @@ export class SysindicadoresComponent {
       'Desgaste', 'Operación Indebida', 'Causa Externa', 'Accesorios',
       'Desconocido', 'Sin Falla', 'Otros', 'No Registra'
     ];
-    const mapa = this.groupCount(rs, r => this.getTipoFallaLabel(r.tipo_falla) as TipoFalla);
+    const mapa = this.groupCount(rs, r => this.getTipoFallaLabel(r.tipoFalla as any) as TipoFalla);
     return {
       labels: orden,
       datasets: [{
@@ -523,8 +539,8 @@ export class SysindicadoresComponent {
     const rs = this.reportes();
     const m = new Map<string, number>(); 
     for (const r of rs) {
-      if (!r.fecha) continue;
-      const ym = r.fecha.slice(0, 7);
+      if (!r.fechaRealizado) continue;
+      const ym = r.fechaRealizado.slice(0, 7);
       m.set(ym, (m.get(ym) ?? 0) + 1);
     }
     const labels = Array.from(m.keys()).sort();
@@ -547,7 +563,7 @@ export class SysindicadoresComponent {
 
   topEquiposChartData = computed(() => {
     const rs = this.reportes();
-    const mapa = this.groupCount(rs, r => r.equipo?.nombres || r.equipo?.nombre || r.equipo?.codigo || `Equipo ${r.id_sysequipo_fk}`);
+    const mapa = this.groupCount(rs, r => r.equipo?.nombre_equipo || r.equipo?.placa_inventario || `Equipo ${r.id_sysequipo_fk}`);
     const pares = Array.from(mapa.entries()).sort((a, b) => b[1] - a[1]).slice(0, 10);
     const labels = pares.map(p => p[0] as string);
     const data = pares.map(p => p[1]);
@@ -569,11 +585,11 @@ export class SysindicadoresComponent {
     const rs = this.reportes();
     const avg = this.groupAvg(
       rs,
-      r => this.getTipoMantenimientoLabel(r.tipo_mantenimiento),
+      r => this.getTipoMantenimientoLabel(r.tipoMantenimiento as any),
       r => {
-        if (!r.hora_inicio || !r.hora_terminacion) return null;
-        const start = this.hhmmssToMinutes(r.hora_inicio);
-        const end = this.hhmmssToMinutes(r.hora_terminacion);
+        if (!r.horaInicio || !r.horaTerminacion) return null;
+        const start = this.hhmmssToMinutes(r.horaInicio);
+        const end = this.hhmmssToMinutes(r.horaTerminacion);
         if (start != null && end != null && end >= start) return end - start;
         return null;
       }
@@ -608,7 +624,7 @@ export class SysindicadoresComponent {
     const counts: Record<string, number> = {};
 
     reps.forEach(r => {
-      const tipoName = r.equipo?.tipoEquipo?.nombres || 'Sin Clasificar';
+      const tipoName = (r.equipo as any)?.tipoEquipo?.nombres || 'Sin Clasificar';
       counts[tipoName] = (counts[tipoName] || 0) + 1;
     });
 
@@ -636,7 +652,7 @@ export class SysindicadoresComponent {
     const counts: Record<string, number> = {};
 
     reps.forEach(r => {
-      const tipoName = r.equipo?.tipoEquipo?.nombres || 'Sin Clasificar';
+      const tipoName = (r.equipo as any)?.tipoEquipo?.nombres || 'Sin Clasificar';
       counts[tipoName] = (counts[tipoName] || 0) + 1;
     });
 
@@ -665,7 +681,7 @@ export class SysindicadoresComponent {
 
     reps.forEach(r => {
       const nombreUsuario = r.usuario
-        ? (r.usuario.nombres || r.usuario.email || 'Sin Asignar')
+        ? (r.usuario.nombres || (r.usuario as any).email || 'Sin Asignar')
         : 'Sin Asignar';
       counts[nombreUsuario] = (counts[nombreUsuario] || 0) + 1;
     });
