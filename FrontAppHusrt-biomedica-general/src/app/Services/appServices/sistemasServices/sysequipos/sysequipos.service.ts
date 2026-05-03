@@ -31,6 +31,7 @@ export interface SysEquipo {
   usuario?: any;
   hojaVida?: any;
   baja?: any;
+  bodega?: any;
   createdAt?: string;
   updatedAt?: string;
 }

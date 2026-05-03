@@ -16,6 +16,7 @@ import { ToolbarModule } from 'primeng/toolbar';
 import { TagModule } from 'primeng/tag';
 import { UppercaseDirective } from '../../../Directives/uppercase.directive';
 import Swal from 'sweetalert2';
+import { extractError } from '../../../utils/error-utils';
 
 @Component({
   selector: 'app-adm-tiposequipo-sis',
@@ -56,6 +57,19 @@ export class AdmTiposEquipoSisComponent implements OnInit {
       tiempoMinutos: ['', [Validators.required]],
       repuestosMinimos: ['', [Validators.required]],
       actividad: ['', [Validators.required]],
+      // Campos de Hoja de Vida
+      campo_ip:            [true],
+      campo_mac:           [true],
+      campo_procesador:    [true],
+      campo_ram:           [true],
+      campo_disco:         [true],
+      campo_tonner:        [true],
+      campo_so:            [true],
+      campo_office:        [true],
+      campo_nombre_usuario:[true],
+      campo_tipo_uso:      [true],
+      campo_adquisicion:   [true],
+      campo_observaciones: [true],
     });
   }
 
@@ -67,8 +81,8 @@ export class AdmTiposEquipoSisComponent implements OnInit {
     this.loading = true;
     try {
       this.tiposEquipos = await this.tipoEquipoService.getTiposEquiposSistemas();
-    } catch {
-      Swal.fire('Error', 'No se pudieron cargar los tipos de equipo', 'error');
+    } catch (err) {
+      Swal.fire('Error', extractError(err, 'cargar los tipos de equipo'), 'error');
     } finally {
       this.loading = false;
     }
@@ -79,8 +93,16 @@ export class AdmTiposEquipoSisComponent implements OnInit {
     if (target) this.dt2.filterGlobal(target.value, 'contains');
   }
 
+  private camposHVDefaults = {
+    campo_ip: true, campo_mac: true, campo_procesador: true, campo_ram: true,
+    campo_disco: true, campo_tonner: true, campo_so: true, campo_office: true,
+    campo_nombre_usuario: true, campo_tipo_uso: true,
+    campo_adquisicion: true, campo_observaciones: true,
+  };
+
   viewModalAddTipoEquipo() {
     this.formGroup.reset();
+    this.formGroup.patchValue(this.camposHVDefaults);
     this.isEditing = false;
     this.viewAddTipoEquipo = true;
   }
@@ -88,6 +110,7 @@ export class AdmTiposEquipoSisComponent implements OnInit {
   openEditModal(tipoEquipo: any) {
     this.tipoEquipoSelected = tipoEquipo;
     this.isEditing = true;
+    const bool = (v: any) => (v === undefined || v === null) ? true : Boolean(v);
     this.formGroup.patchValue({
       nombres: tipoEquipo.nombres,
       materialConsumible: tipoEquipo.materialConsumible,
@@ -95,13 +118,39 @@ export class AdmTiposEquipoSisComponent implements OnInit {
       tiempoMinutos: tipoEquipo.tiempoMinutos,
       repuestosMinimos: tipoEquipo.repuestosMinimos || 'No aplica',
       actividad: tipoEquipo.actividad || 'Mantenimiento Preventivo',
+      campo_ip:            bool(tipoEquipo.campo_ip),
+      campo_mac:           bool(tipoEquipo.campo_mac),
+      campo_procesador:    bool(tipoEquipo.campo_procesador),
+      campo_ram:           bool(tipoEquipo.campo_ram),
+      campo_disco:         bool(tipoEquipo.campo_disco),
+      campo_tonner:        bool(tipoEquipo.campo_tonner),
+      campo_so:            bool(tipoEquipo.campo_so),
+      campo_office:        bool(tipoEquipo.campo_office),
+      campo_nombre_usuario:bool(tipoEquipo.campo_nombre_usuario),
+      campo_tipo_uso:      bool(tipoEquipo.campo_tipo_uso),
+      campo_adquisicion:   bool(tipoEquipo.campo_adquisicion),
+      campo_observaciones: bool(tipoEquipo.campo_observaciones),
     });
     this.viewAddTipoEquipo = true;
   }
 
   async saveTipoEquipo() {
     if (this.formGroup.invalid) {
-      Swal.fire('Formulario inválido', 'Completa todos los campos requeridos', 'warning');
+      const campos: Record<string, string> = {
+        nombres: 'el nombre del tipo de equipo',
+        materialConsumible: 'el material consumible',
+        herramienta: 'la herramienta requerida',
+        tiempoMinutos: 'el tiempo en minutos',
+        repuestosMinimos: 'los repuestos mínimos',
+        actividad: 'la actividad de mantenimiento',
+      };
+      const primerCampoInvalido = Object.keys(campos).find(
+        key => this.formGroup.get(key)?.invalid
+      );
+      const msg = primerCampoInvalido
+        ? `El campo "${campos[primerCampoInvalido]}" es obligatorio.`
+        : 'Completa todos los campos requeridos antes de guardar.';
+      Swal.fire('Formulario incompleto', msg, 'warning');
       return;
     }
 
@@ -114,8 +163,8 @@ export class AdmTiposEquipoSisComponent implements OnInit {
         await this.loadTiposEquipos();
         this.viewAddTipoEquipo = false;
         Swal.fire('Tipo de Equipo actualizado!', '', 'success');
-      } catch {
-        Swal.fire('Error al actualizar', 'No se pudo actualizar el tipo de equipo', 'error');
+      } catch (err) {
+        Swal.fire('Error al actualizar', extractError(err, 'actualizar el tipo de equipo'), 'error');
       }
     } else {
       try {
@@ -127,9 +176,8 @@ export class AdmTiposEquipoSisComponent implements OnInit {
         await this.loadTiposEquipos();
         this.viewAddTipoEquipo = false;
         Swal.fire('Tipo de Equipo creado!', '', 'success');
-      } catch (error: any) {
-        const detail = error.error?.detalle || error.message || 'No se pudo crear el tipo de equipo';
-        Swal.fire('Error al crear', detail, 'error');
+      } catch (err) {
+        Swal.fire('Error al crear', extractError(err, 'crear el tipo de equipo'), 'error');
       }
     }
   }
@@ -153,10 +201,13 @@ export class AdmTiposEquipoSisComponent implements OnInit {
       }
       await this.loadTiposEquipos();
       Swal.fire(`Tipo de equipo ${isActivar ? 'activo' : 'inactivo'}!`, '', 'success');
-    } catch {
-      if (!isActivar) {
-        Swal.fire('No se puede desactivar', 'El tipo de equipo tiene equipos activos asociados', 'error');
-      }
+    } catch (err) {
+      const accion = isActivar ? 'activar' : 'desactivar';
+      const defaultMsg = !isActivar
+        ? 'No es posible desactivar este tipo de equipo porque tiene equipos activos asociados.'
+        : 'No se pudo activar el tipo de equipo.';
+      const msg = (err as any)?.error?.message || (err as any)?.error?.detalle || defaultMsg;
+      Swal.fire(`No se pudo ${accion}`, msg, 'error');
     }
   }
 
@@ -187,8 +238,8 @@ export class AdmTiposEquipoSisComponent implements OnInit {
       this.newProtocoloPaso = '';
       this.protocoloTipoEquipo = await this.protocoloService.getByTipoEquipo(this.tipoEquipoSelected.id);
       Swal.fire({ icon: 'success', title: 'Protocolo agregado', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 });
-    } catch {
-      Swal.fire('Error', 'No se pudo agregar el protocolo', 'error');
+    } catch (err) {
+      Swal.fire('Error', extractError(err, 'agregar el protocolo de mantenimiento'), 'error');
     }
   }
 
@@ -198,8 +249,8 @@ export class AdmTiposEquipoSisComponent implements OnInit {
       await this.protocoloService.update(protocolo.id_sysprotocolo, { estado: newStatus });
       this.protocoloTipoEquipo = await this.protocoloService.getByTipoEquipo(this.tipoEquipoSelected.id);
       Swal.fire({ icon: 'success', title: `Protocolo ${newStatus ? 'habilitado' : 'deshabilitado'}`, toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 });
-    } catch {
-      Swal.fire('Error', 'No se pudo actualizar el protocolo', 'error');
+    } catch (err) {
+      Swal.fire('Error', extractError(err, 'actualizar el estado del protocolo'), 'error');
     }
   }
 }

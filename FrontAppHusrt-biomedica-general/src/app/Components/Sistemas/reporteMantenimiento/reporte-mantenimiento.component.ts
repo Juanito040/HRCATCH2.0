@@ -13,6 +13,7 @@ import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
 import { TableModule } from 'primeng/table';
 import Swal from 'sweetalert2';
+import { extractError } from '../../../utils/error-utils';
 import { getDecodedAccessToken } from '../../../../app/utilidades';
 import { SysequiposService } from '../../../Services/appServices/sistemasServices/sysequipos/sysequipos.service';
 import { UserService } from '../../../Services/appServices/userServices/user.service';
@@ -235,7 +236,7 @@ export class CrearMantenimientoComponent implements OnInit {
       }
     } catch (error) {
       console.error('Error cargando datos base del equipo:', error);
-      Swal.fire('Error', 'No se pudo cargar la información del equipo', 'error');
+      Swal.fire('Error', extractError(error, 'cargar la información del equipo para el mantenimiento'), 'error');
     }
     try {
       const res = await this.tipoRepuestosService.getTipos({ is_active: true }).toPromise();
@@ -399,10 +400,10 @@ export class CrearMantenimientoComponent implements OnInit {
           });
           localStorage.removeItem('idMantenimiento');
           localStorage.removeItem('TipoMantenimiento');
-          this.router.navigate(['adminsistemas/mantenimientos']);
+          this.router.navigate(['/adminsistemas/mantenimientos']);
         } catch (error) {
           console.error('Error al actualizar el mantenimiento:', error);
-          Swal.fire({ icon: 'error', title: 'Error al actualizar el mantenimiento', text: 'Por favor, inténtelo de nuevo más tarde.' });
+          Swal.fire({ icon: 'error', title: 'Error al actualizar', text: extractError(error, 'actualizar el mantenimiento') });
         }
       } else {
         // CREAR reporte nuevo
@@ -418,13 +419,13 @@ export class CrearMantenimientoComponent implements OnInit {
             });
             localStorage.removeItem('idMantenimiento');
             localStorage.removeItem('TipoMantenimiento');
-            this.router.navigate(['adminsistemas/mantenimientos']);
+            this.router.navigate(['/adminsistemas/mantenimientos']);
           } else {
             throw new Error('No se recibió el ID del mantenimiento creado');
           }
         } catch (error) {
           console.error('Error al crear el mantenimiento:', error);
-          Swal.fire({ icon: 'error', title: 'Error al crear el mantenimiento', text: 'Por favor, inténtelo de nuevo más tarde.' });
+          Swal.fire({ icon: 'error', title: 'Error al crear', text: extractError(error, 'crear el mantenimiento') });
         }
       }
     } else {

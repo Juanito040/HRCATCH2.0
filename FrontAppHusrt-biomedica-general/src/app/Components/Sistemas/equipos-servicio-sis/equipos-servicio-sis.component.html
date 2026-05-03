@@ -39,58 +39,48 @@
       <table>
         <thead>
           <tr>
-            <th>ID</th>
             <th>Nombre</th>
             <th>Marca</th>
             <th>Modelo</th>
             <th>Serie</th>
-            <th>Placa Inventario</th>
-            <th>Ubicación</th>
-            <th>Estado</th>
-            <th>Acciones</th>
+            <th>Placa</th>
+            <th>Sede</th>
+            <th>Servicio</th>
+            <th>Ubicación Específica</th>
+            <th>Soporte</th>
+            <th class="col-opciones">Opciones</th>
           </tr>
         </thead>
         <tbody>
           @for (equipo of pagedEquipos; track equipo.id_sysequipo) {
-            <tr>
-              <td>{{ equipo.id_sysequipo }}</td>
+            <tr class="fila-clickable" (click)="onRowClick($event, equipo)" title="Ver histórico de mantenimientos">
               <td><strong>{{ equipo.nombre_equipo }}</strong></td>
               <td>{{ equipo.marca || 'N/A' }}</td>
               <td>{{ equipo.modelo || 'N/A' }}</td>
               <td><code class="serie-badge">{{ equipo.serie || 'N/A' }}</code></td>
               <td>{{ equipo.placa_inventario || 'N/A' }}</td>
-              <td>{{ equipo.ubicacion || 'N/A' }}</td>
+              <td>{{ equipo.servicio?.sede?.nombres || 'N/A' }}</td>
+              <td>{{ equipo.servicio?.nombres || 'N/A' }}</td>
+              <td>{{ equipo.ubicacion_especifica || 'N/A' }}</td>
               <td>
-                <span [class]="getEstadoBadgeClass(equipo.activo)">
-                  {{ formatEstado(equipo.activo) }}
+                @let estadoSoporte = getEstadoSoporte(equipo.hojaVida?.fecha_inicio_soporte, equipo.hojaVida?.anos_soporte_fabricante);
+                <span class="badge"
+                  [class.badge-green]="estadoSoporte === 'en-soporte'"
+                  [class.badge-red]="estadoSoporte === 'obsoleto'"
+                  [class.badge-gray]="estadoSoporte === 'sin-datos'">
+                  {{ labelsSoporte[estadoSoporte] }}
                 </span>
               </td>
-              <td>
-                <div class="action-dropdown">
-                  <button class="btn btn-sm btn-outline-primary" (click)="verHojaVida(equipo)">
-                    <i class="fas fa-file-alt"></i> HV
-                  </button>
-                  <button class="btn btn-sm btn-outline-primary dropdown-toggle-btn"
-                    (click)="$event.stopPropagation(); toggleMenu(equipo)">
-                    <i class="fas fa-chevron-down"></i>
-                  </button>
-                  @if (equipo._menuOpen) {
-                    <div class="dropdown-menu-custom">
-                      @for (opcion of equipo.opciones; track opcion.label) {
-                        <button class="dropdown-item-custom"
-                          (click)="$event.stopPropagation(); opcion.command?.(); equipo._menuOpen = false">
-                          <i [class]="opcion.icon ? opcion.icon : ''"></i>
-                          {{ opcion.label }}
-                        </button>
-                      }
-                    </div>
-                  }
-                </div>
+              <td class="col-opciones">
+                <p-splitButton label="HV" icon="pi pi-file" [model]="equipo.opciones"
+                  (onClick)="verHojaVida(equipo)" appendTo="body"
+                  severity="secondary" size="small">
+                </p-splitButton>
               </td>
             </tr>
           } @empty {
             <tr>
-              <td colspan="9" class="empty-state">
+              <td colspan="10" class="empty-state">
                 <div class="empty-icon"><i class="fas fa-boxes"></i></div>
                 <p>No se encontraron equipos para este servicio</p>
               </td>
@@ -102,22 +92,26 @@
   </div>
 
   @if (!isLoading && !error && filteredEquipos.length > 0) {
-    <div class="pagination">
-      <button class="btn btn-secondary" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">
-        <i class="fas fa-chevron-left"></i> Anterior
-      </button>
-      <div class="pagination-pages">
-        @for (p of getPagesArray(); track p) {
-          <button class="page-number" [class.active]="p === currentPage" (click)="goToPage(p)">{{ p }}</button>
-        }
-      </div>
-      <button class="btn btn-secondary" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">
-        Siguiente <i class="fas fa-chevron-right"></i>
-      </button>
-      <span class="page-info">
-        {{ (currentPage - 1) * pageSize + 1 }}–{{ min(currentPage * pageSize, filteredEquipos.length) }}
-        de {{ filteredEquipos.length }}
+    <div class="ppc-wrap">
+      <span class="ppc-report">
+        Mostrando {{ (currentPage - 1) * pageSize + 1 }} a {{ min(currentPage * pageSize, filteredEquipos.length) }} de {{ filteredEquipos.length }} registros
       </span>
+      <div class="ppc-nav">
+        <button class="ppc-btn" (click)="goToPage(1)" [disabled]="currentPage === 1"><i class="fas fa-angle-double-left"></i></button>
+        <button class="ppc-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1"><i class="fas fa-angle-left"></i></button>
+        @for (p of getPagesArray(); track p) {
+          <button class="ppc-btn ppc-page" [class.active]="p === currentPage" (click)="goToPage(p)">{{ p }}</button>
+        }
+        <button class="ppc-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages"><i class="fas fa-angle-right"></i></button>
+        <button class="ppc-btn" (click)="goToPage(totalPages)" [disabled]="currentPage === totalPages"><i class="fas fa-angle-double-right"></i></button>
+      </div>
+      <div class="ppc-rpp">
+        <select (change)="onPageSizeChange($event)">
+          @for (opt of pageSizeOptions; track opt) {
+            <option [value]="opt" [selected]="opt === pageSize">{{ opt }}</option>
+          }
+        </select>
+      </div>
     </div>
   }
 
@@ -194,7 +188,6 @@
         </div>
         @if (calculatedMonthsText) {
           <div class="plan-cycle-banner">
-          
             <div>
               <span class="plan-cycle-label">Ciclo calculado:</span>
               <span class="plan-cycle-text">{{ calculatedMonthsText }}</span>
@@ -206,7 +199,7 @@
         <button class="btn btn-secondary" (click)="closePlanDialog()" [disabled]="isSavingPlan">Cancelar</button>
         <button class="btn btn-primary" (click)="savePlan()" [disabled]="isSavingPlan || selectedPlanes.length === 0">
           @if (isSavingPlan) { <span class="btn-spinner-sm"></span> Guardando... }
-          @else {  Guardar Plan }
+          @else { Guardar Plan }
         </button>
       </div>
     </div>

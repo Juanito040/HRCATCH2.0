@@ -7,10 +7,26 @@ import { TipoEquipoService } from '../../../Services/appServices/general/tipoEqu
 import { SedeService } from '../../../Services/appServices/general/sede/sede.service';
 import { UserService } from '../../../Services/appServices/userServices/user.service';
 import Swal from 'sweetalert2';
+import { extractError } from '../../../utils/error-utils';
 
 interface LookupItem {
   id: number;
   nombre: string;
+}
+
+interface CamposHV {
+  ip: boolean;
+  mac: boolean;
+  procesador: boolean;
+  ram: boolean;
+  disco: boolean;
+  tonner: boolean;
+  so: boolean;
+  office: boolean;
+  nombre_usuario: boolean;
+  tipo_uso: boolean;
+  adquisicion: boolean;
+  observaciones: boolean;
 }
 
 @Component({
@@ -33,11 +49,16 @@ export class SysEquipoModalComponent implements OnInit, OnChanges, OnDestroy {
   sedes: LookupItem[] = [];
   servicios: LookupItem[] = [];
   todosLosServicios: LookupItem[] = [];
-  tiposEquipo: LookupItem[] = [];
+  tiposEquipo: any[] = [];
   usuarios: LookupItem[] = [];
 
   fechasMantenimiento: number[] = [];
   hojaVidaExpanded: boolean = true;
+  camposHV: CamposHV = {
+    ip: true, mac: true, procesador: true, ram: true, disco: true,
+    tonner: true, so: true, office: true, nombre_usuario: true,
+    tipo_uso: true, adquisicion: true, observaciones: true,
+  };
   private destroyed = false;
   private destroyRef = inject(DestroyRef);
 
@@ -55,6 +76,7 @@ export class SysEquipoModalComponent implements OnInit, OnChanges, OnDestroy {
     this.initForm();
     this.loadLookupData();
     this.setupPeriodicidadListener();
+    this.setupTipoEquipoListener();
   }
 
   ngOnDestroy() {
@@ -108,8 +130,23 @@ export class SysEquipoModalComponent implements OnInit, OnChanges, OnDestroy {
       if (this.destroyed) return;
       this.tiposEquipo = (Array.isArray(tiposData) ? tiposData : []).map((t: any) => ({
         id: t.id_tipo_equipo || t.id,
-        nombre: t.nombre || t.nombres || 'Sin nombre'
+        nombre: t.nombre || t.nombres || 'Sin nombre',
+        campo_ip:            t.campo_ip,
+        campo_mac:           t.campo_mac,
+        campo_procesador:    t.campo_procesador,
+        campo_ram:           t.campo_ram,
+        campo_disco:         t.campo_disco,
+        campo_tonner:        t.campo_tonner,
+        campo_so:            t.campo_so,
+        campo_office:        t.campo_office,
+        campo_nombre_usuario:t.campo_nombre_usuario,
+        campo_tipo_uso:      t.campo_tipo_uso,
+        campo_adquisicion:   t.campo_adquisicion,
+        campo_observaciones: t.campo_observaciones,
       }));
+      // Recalcular campos por si el modal ya estaba abierto cuando los tipos cargaron
+      const currentTipo = this.equipoForm?.get('id_tipo_equipo_fk')?.value;
+      if (currentTipo) this.updateCamposHV(currentTipo);
     } catch (err) {
       if (!this.destroyed) console.error('Error al cargar tipos de equipo:', err);
     }
@@ -222,6 +259,39 @@ export class SysEquipoModalComponent implements OnInit, OnChanges, OnDestroy {
     });
   }
 
+  setupTipoEquipoListener() {
+    this.equipoForm.get('id_tipo_equipo_fk')?.valueChanges.subscribe(value => {
+      this.updateCamposHV(value);
+    });
+  }
+
+  private updateCamposHV(idTipo: any) {
+    const bool = (v: any): boolean => (v === undefined || v === null) ? true : Boolean(v);
+    if (!idTipo) {
+      this.camposHV = {
+        ip: true, mac: true, procesador: true, ram: true, disco: true,
+        tonner: true, so: true, office: true, nombre_usuario: true,
+        tipo_uso: true, adquisicion: true, observaciones: true,
+      };
+      return;
+    }
+    const tipo = this.tiposEquipo.find((t: any) => t.id === +idTipo);
+    this.camposHV = {
+      ip:             bool(tipo?.campo_ip),
+      mac:            bool(tipo?.campo_mac),
+      procesador:     bool(tipo?.campo_procesador),
+      ram:            bool(tipo?.campo_ram),
+      disco:          bool(tipo?.campo_disco),
+      tonner:         bool(tipo?.campo_tonner),
+      so:             bool(tipo?.campo_so),
+      office:         bool(tipo?.campo_office),
+      nombre_usuario: bool(tipo?.campo_nombre_usuario),
+      tipo_uso:       bool(tipo?.campo_tipo_uso),
+      adquisicion:    bool(tipo?.campo_adquisicion),
+      observaciones:  bool(tipo?.campo_observaciones),
+    };
+  }
+
   updateFechasMantenimiento(periodicidad: string) {
     this.fechasMantenimiento.forEach((_, index) => {
       this.equipoForm.removeControl(`fecha_mantenimiento_${index + 1}`);
@@ -312,8 +382,7 @@ export class SysEquipoModalComponent implements OnInit, OnChanges, OnDestroy {
         },
         error: (err) => {
           this.isSubmitting = false;
-          const msg = err.error?.message || 'Error al conectar con el servidor';
-          Swal.fire({ icon: 'error', title: 'Error', text: msg });
+          Swal.fire({ icon: 'error', title: 'Error al actualizar', text: extractError(err, 'actualizar el equipo') });
         }
       });
     } else {
@@ -331,8 +400,9 @@ export class SysEquipoModalComponent implements OnInit, OnChanges, OnDestroy {
         },
         error: (err) => {
           this.isSubmitting = false;
-          const msg = err.error?.message || err.error?.errors?.[0]?.msg || 'Error al conectar con el servidor';
-          Swal.fire({ icon: 'error', title: 'Error', text: msg });
+          const backendMsg = err?.error?.message || err?.error?.errors?.[0]?.msg || err?.error?.detalle;
+          const msg = backendMsg || extractError(err, 'crear el equipo');
+          Swal.fire({ icon: 'error', title: 'Error al crear', text: msg });
         }
       });
     }

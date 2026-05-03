@@ -86,6 +86,7 @@ app.use(CondicionInicialRoutes, checkToken);
 require('../models/Sistemas/SysEquipo');
 require('../models/Sistemas/SysHojaVida');
 require('../models/Sistemas/SysBaja');
+require('../models/Sistemas/SysBodega');
 require('../models/Sistemas/SysTipoRepuesto');
 require('../models/Sistemas/SysRepuesto');
 require('../models/Sistemas/SysTrazabilidad');
@@ -135,6 +136,8 @@ app.use('/cargos', checkToken, cargoRoutes);
 // Moved up
 
 
+const { fixMovimientosStockFK } = require('../migrations/runMigrations');
+
 sequelize.query('SET FOREIGN_KEY_CHECKS = 0')
   .then(() => sequelize.query('DROP TABLE IF EXISTS `SysReporteEntrega`'))
   .then(() => sequelize.query(`
@@ -161,8 +164,23 @@ sequelize.query('SET FOREIGN_KEY_CHECKS = 0')
   .then(() => sequelize.query('SET FOREIGN_KEY_CHECKS = 1'))
   .then(() => {
     console.log('[DB] Tabla SysReporteEntrega lista');
-    return sequelize.sync({ alter: false });
+    return fixMovimientosStockFK();
   })
+  .then(() => sequelize.query(`
+    CREATE TABLE IF NOT EXISTS \`SysBodega\` (
+      id_sysbodega INTEGER AUTO_INCREMENT PRIMARY KEY,
+      fecha_ingreso DATE NULL,
+      motivo TEXT NULL,
+      id_sysequipo_fk INTEGER NULL,
+      id_sysusuario_fk INTEGER NULL,
+      createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      CONSTRAINT fk_sysbodega_equipo FOREIGN KEY (id_sysequipo_fk) REFERENCES SysEquipo(id_sysequipo) ON DELETE SET NULL,
+      CONSTRAINT fk_sysbodega_usuario FOREIGN KEY (id_sysusuario_fk) REFERENCES Usuario(id) ON DELETE SET NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `))
+  .then(() => { console.log('[DB] Tabla SysBodega lista'); })
+  .then(() => sequelize.sync({ alter: false }))
   .then(() => {
     app.listen(3005, '0.0.0.0', () => {
       console.log('Server is running on http://localhost:3005');

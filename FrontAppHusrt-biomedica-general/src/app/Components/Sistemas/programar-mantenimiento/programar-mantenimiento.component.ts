@@ -2,6 +2,7 @@ import { LoginComponent } from '../../login/login.component';
 import { Component, inject, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import Swal from 'sweetalert2';
+import { extractError } from '../../../utils/error-utils';
 import { FormsModule } from '@angular/forms';
 import { CalendarModule } from 'primeng/calendar';
 import { DatePicker } from 'primeng/datepicker'
@@ -13,6 +14,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { DialogModule } from 'primeng/dialog';
 
+import { Router } from '@angular/router';
 import { SysmantenimientoService } from '../../../Services/appServices/sistemasServices/sysmantenimiento/sysmantenimiento.service';
 import { SysplanmantenimientoService } from '../../../Services/appServices/sistemasServices/sysplanmantenimiento/sysplanmantenimiento.service';
 import { ServicioService } from '../../../Services/appServices/general/servicio/servicio.service';
@@ -80,6 +82,14 @@ export class ProgramarMantenimientoComponent implements OnInit {
   serviciosServices = inject(ServicioService);
   tiposEquipoServices = inject(TipoEquipoService);
 
+  private router = inject(Router);
+
+  // ── Histórico Mantenimientos ──────────────────────────────────────────────
+  openHistoricoMantenimientos(equipo: any) {
+    if (!equipo?.id_sysequipo) return;
+    this.router.navigate(['/adminsistemas/historico-mantenimiento', equipo.id_sysequipo]);
+  }
+
   // Scheduled Months Variables
   scheduledPreventiveMonths: any[] = [];
   showScheduledPreventiveModal: boolean = false;
@@ -91,7 +101,7 @@ export class ProgramarMantenimientoComponent implements OnInit {
       this.showScheduledPreventiveModal = true;
     } catch (err: any) {
       console.error(err);
-      Swal.fire('Error', 'No se pudieron cargar los meses programados de preventivos', 'error');
+      Swal.fire('Error', extractError(err, 'cargar los meses programados de mantenimiento preventivo'), 'error');
     }
   }
 

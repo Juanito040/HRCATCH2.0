@@ -100,47 +100,34 @@
         </tr>
       </ng-template>
       <ng-template pTemplate="body" let-registro>
-        <tr>
-          <td style="text-align: center; align-items: center; text-align: center">
-            <span class="ml-1 vertical-align-middle">
-              {{registro.equipo.nombre_equipo}}
-            </span>
+        <tr class="fila-clickable" (click)="openHistoricoMantenimientos(registro.equipo)"
+            title="Ver histórico de mantenimientos">
+          <td style="text-align: center;">
+            <span class="ml-1 vertical-align-middle">{{registro.equipo.nombre_equipo}}</span>
           </td>
-          <td style="text-align: center; align-items: center; text-align: center">
-            <span class="ml-1 vertical-align-middle">
-              {{ registro.equipo.marca }}
-            </span>
+          <td style="text-align: center;">
+            <span class="ml-1 vertical-align-middle">{{ registro.equipo.marca }}</span>
           </td>
-          <td style="text-align: center; align-items: center; text-align: center">
-            <span class="ml-1 vertical-align-middle">
-              {{ registro.equipo.modelo }}
-            </span>
+          <td style="text-align: center;">
+            <span class="ml-1 vertical-align-middle">{{ registro.equipo.modelo }}</span>
           </td>
-          <td style="text-align: center; align-items: center; text-align: center">
-            <span class="ml-1 vertical-align-middle">
-              {{ registro.equipo.serie }}
-            </span>
+          <td style="text-align: center;">
+            <span class="ml-1 vertical-align-middle">{{ registro.equipo.serie }}</span>
           </td>
-          <td style="text-align: center; align-items: center; text-align: center">
-            <span class="ml-1 vertical-align-middle">
-              {{ registro.equipo.placa_inventario }}
-            </span>
+          <td style="text-align: center;">
+            <span class="ml-1 vertical-align-middle">{{ registro.equipo.placa_inventario }}</span>
           </td>
-          <td style="text-align: center; align-items: center; text-align: center">
-            <span class="ml-1 vertical-align-middle">
-              {{ registro.equipo.servicio.nombres }}
-            </span>
+          <td style="text-align: center;">
+            <span class="ml-1 vertical-align-middle">{{ registro.equipo.servicio?.nombres }}</span>
           </td>
-          <td style="text-align: center; align-items: center; text-align: center">
-            <span class="ml-1 vertical-align-middle">
-              {{ registro.equipo.ubicacion }}
-            </span>
+          <td style="text-align: center;">
+            <span class="ml-1 vertical-align-middle">{{ registro.equipo.ubicacion }}</span>
           </td>
         </tr>
       </ng-template>
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="5">No hay Reportes.</td>
+          <td colspan="7">No hay registros.</td>
         </tr>
       </ng-template>
     </p-table>
@@ -203,47 +190,34 @@
                 </tr>
               </ng-template>
               <ng-template pTemplate="body" let-registro>
-                <tr>
-                  <td style="text-align: center; align-items: center; text-align: center">
-                    <span class="ml-1 vertical-align-middle">
-                      {{registro.equipo.nombre_equipo}}
-                    </span>
+                <tr class="fila-clickable" (click)="openHistoricoMantenimientos(registro.equipo)"
+                    title="Ver histórico de mantenimientos">
+                  <td style="text-align: center;">
+                    <span class="ml-1 vertical-align-middle">{{registro.equipo.nombre_equipo}}</span>
                   </td>
-                  <td style="text-align: center; align-items: center; text-align: center">
-                    <span class="ml-1 vertical-align-middle">
-                      {{ registro.equipo.marca }}
-                    </span>
+                  <td style="text-align: center;">
+                    <span class="ml-1 vertical-align-middle">{{ registro.equipo.marca }}</span>
                   </td>
-                  <td style="text-align: center; align-items: center; text-align: center">
-                    <span class="ml-1 vertical-align-middle">
-                      {{ registro.equipo.modelo }}
-                    </span>
+                  <td style="text-align: center;">
+                    <span class="ml-1 vertical-align-middle">{{ registro.equipo.modelo }}</span>
                   </td>
-                  <td style="text-align: center; align-items: center; text-align: center">
-                    <span class="ml-1 vertical-align-middle">
-                      {{ registro.equipo.serie }}
-                    </span>
+                  <td style="text-align: center;">
+                    <span class="ml-1 vertical-align-middle">{{ registro.equipo.serie }}</span>
                   </td>
-                  <td style="text-align: center; align-items: center; text-align: center">
-                    <span class="ml-1 vertical-align-middle">
-                      {{ registro.equipo.placa_inventario }}
-                    </span>
+                  <td style="text-align: center;">
+                    <span class="ml-1 vertical-align-middle">{{ registro.equipo.placa_inventario }}</span>
                   </td>
-                  <td style="text-align: center; align-items: center; text-align: center">
-                    <span class="ml-1 vertical-align-middle">
-                      {{ registro.equipo.servicio.nombres }}
-                    </span>
+                  <td style="text-align: center;">
+                    <span class="ml-1 vertical-align-middle">{{ registro.equipo.servicio?.nombres }}</span>
                   </td>
-                  <td style="text-align: center; align-items: center; text-align: center">
-                    <span class="ml-1 vertical-align-middle">
-                      {{ registro.equipo.ubicacion }}
-                    </span>
+                  <td style="text-align: center;">
+                    <span class="ml-1 vertical-align-middle">{{ registro.equipo.ubicacion }}</span>
                   </td>
                 </tr>
               </ng-template>
               <ng-template pTemplate="emptymessage">
                 <tr>
-                  <td colspan="5">No hay Reportes.</td>
+                  <td colspan="7">No hay registros.</td>
                 </tr>
               </ng-template>
             </p-table>
@@ -311,52 +285,37 @@
                 </tr>
               </ng-template>
               <ng-template pTemplate="body" let-registro>
-                <tr>
-                  <td style="text-align: center; align-items: center; text-align: center">
-                    <span class="ml-1 vertical-align-middle">
-                      {{registro.equipo.nombre_equipo}}
-                    </span>
+                <tr class="fila-clickable" (click)="openHistoricoMantenimientos(registro.equipo)"
+                    title="Ver histórico de mantenimientos">
+                  <td style="text-align: center;">
+                    <span class="ml-1 vertical-align-middle">{{registro.equipo.nombre_equipo}}</span>
                   </td>
-                  <td style="text-align: center; align-items: center; text-align: center">
-                    <span class="ml-1 vertical-align-middle">
-                      {{ registro.equipo.marca }}
-                    </span>
+                  <td style="text-align: center;">
+                    <span class="ml-1 vertical-align-middle">{{ registro.equipo.marca }}</span>
                   </td>
-                  <td style="text-align: center; align-items: center; text-align: center">
-                    <span class="ml-1 vertical-align-middle">
-                      {{ registro.equipo.modelo }}
-                    </span>
+                  <td style="text-align: center;">
+                    <span class="ml-1 vertical-align-middle">{{ registro.equipo.modelo }}</span>
                   </td>
-                  <td style="text-align: center; align-items: center; text-align: center">
-                    <span class="ml-1 vertical-align-middle">
-                      {{ registro.equipo.serie }}
-                    </span>
+                  <td style="text-align: center;">
+                    <span class="ml-1 vertical-align-middle">{{ registro.equipo.serie }}</span>
                   </td>
-                  <td style="text-align: center; align-items: center; text-align: center">
-                    <span class="ml-1 vertical-align-middle">
-                      {{ registro.equipo.placa_inventario }}
-                    </span>
+                  <td style="text-align: center;">
+                    <span class="ml-1 vertical-align-middle">{{ registro.equipo.placa_inventario }}</span>
                   </td>
-                  <td style="text-align: center; align-items: center; text-align: center">
-                    <span class="ml-1 vertical-align-middle">
-                      {{ registro.mesesStr }}
-                    </span>
+                  <td style="text-align: center;">
+                    <span class="ml-1 vertical-align-middle">{{ registro.mesesStr }}</span>
                   </td>
-                  <td style="text-align: center; align-items: center; text-align: center">
-                    <span class="ml-1 vertical-align-middle">
-                      {{ registro.equipo.servicio.nombres }}
-                    </span>
+                  <td style="text-align: center;">
+                    <span class="ml-1 vertical-align-middle">{{ registro.equipo.servicio?.nombres }}</span>
                   </td>
-                  <td style="text-align: center; align-items: center; text-align: center">
-                    <span class="ml-1 vertical-align-middle">
-                      {{ registro.equipo.ubicacion }}
-                    </span>
+                  <td style="text-align: center;">
+                    <span class="ml-1 vertical-align-middle">{{ registro.equipo.ubicacion }}</span>
                   </td>
                 </tr>
               </ng-template>
               <ng-template pTemplate="emptymessage">
                 <tr>
-                  <td colspan="5">No hay Reportes.</td>
+                  <td colspan="8">No hay registros.</td>
                 </tr>
               </ng-template>
             </p-table>
@@ -423,47 +382,34 @@
                 </tr>
               </ng-template>
               <ng-template pTemplate="body" let-registro>
-                <tr>
-                  <td style="text-align: center; align-items: center; text-align: center">
-                    <span class="ml-1 vertical-align-middle">
-                      {{registro.equipo.nombre_equipo}}
-                    </span>
+                <tr class="fila-clickable" (click)="openHistoricoMantenimientos(registro.equipo)"
+                    title="Ver histórico de mantenimientos">
+                  <td style="text-align: center;">
+                    <span class="ml-1 vertical-align-middle">{{registro.equipo.nombre_equipo}}</span>
                   </td>
-                  <td style="text-align: center; align-items: center; text-align: center">
-                    <span class="ml-1 vertical-align-middle">
-                      {{ registro.equipo.marca }}
-                    </span>
+                  <td style="text-align: center;">
+                    <span class="ml-1 vertical-align-middle">{{ registro.equipo.marca }}</span>
                   </td>
-                  <td style="text-align: center; align-items: center; text-align: center">
-                    <span class="ml-1 vertical-align-middle">
-                      {{ registro.equipo.modelo }}
-                    </span>
+                  <td style="text-align: center;">
+                    <span class="ml-1 vertical-align-middle">{{ registro.equipo.modelo }}</span>
                   </td>
-                  <td style="text-align: center; align-items: center; text-align: center">
-                    <span class="ml-1 vertical-align-middle">
-                      {{ registro.equipo.serie }}
-                    </span>
+                  <td style="text-align: center;">
+                    <span class="ml-1 vertical-align-middle">{{ registro.equipo.serie }}</span>
                   </td>
-                  <td style="text-align: center; align-items: center; text-align: center">
-                    <span class="ml-1 vertical-align-middle">
-                      {{ registro.equipo.placa_inventario }}
-                    </span>
+                  <td style="text-align: center;">
+                    <span class="ml-1 vertical-align-middle">{{ registro.equipo.placa_inventario }}</span>
                   </td>
-                  <td style="text-align: center; align-items: center; text-align: center">
-                    <span class="ml-1 vertical-align-middle">
-                      {{ registro.mesesStr }}
-                    </span>
+                  <td style="text-align: center;">
+                    <span class="ml-1 vertical-align-middle">{{ registro.mesesStr }}</span>
                   </td>
-                  <td style="text-align: center; align-items: center; text-align: center">
-                    <span class="ml-1 vertical-align-middle">
-                      {{ registro.equipo.ubicacion }}
-                    </span>
+                  <td style="text-align: center;">
+                    <span class="ml-1 vertical-align-middle">{{ registro.equipo.ubicacion }}</span>
                   </td>
                 </tr>
               </ng-template>
               <ng-template pTemplate="emptymessage">
                 <tr>
-                  <td colspan="5">No hay Reportes.</td>
+                  <td colspan="7">No hay registros.</td>
                 </tr>
               </ng-template>
             </p-table>

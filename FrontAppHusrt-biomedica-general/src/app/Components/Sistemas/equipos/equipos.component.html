@@ -2,32 +2,19 @@
 <div class="container" [attr.inert]="(isDeleteOptionsDialogOpen || isModalOpen || isDetailModalOpen || isReactivarModalOpen || isHistorialModalOpen || isPlanDialogOpen || isReporteFormOpen || isReportesListOpen) ? '' : null">
   <div class="page-header">
     <div>
-      <h1>Gestión de equipos en bodega y dados de baja</h1>
-      <p class="subtitle">Administra todos los equipos de sistemas del hospital en bodega y dados de baja.</p>
+      @if (selectedView === 'bodega') {
+        <h1>Equipos en bodega</h1>
+        <p class="subtitle">Equipos de sistemas actualmente en bodega.</p>
+      } @else {
+        <h1>Equipos dados de baja</h1>
+        <p class="subtitle">Equipos de sistemas que han sido dados de baja.</p>
+      }
     </div>
-    
-    
     <div class="header-actions">
       <button class="btn btn-primary" (click)="openCreateModal()">
         <span>+ Nuevo Equipo</span>
       </button>
     </div>
-  </div>
-
-  <!-- Filtros de vista -->
-  <div class="view-filters">
-    <button class="view-filter-btn" [class.active]="selectedView === 'bodega'"
-      (click)="changeView('bodega')" [disabled]="isLoading">
-      <i class="fas fa-warehouse"></i>
-      <span>En Bodega</span>
-      <span class="badge-count" *ngIf="totalBodega > 0">{{ totalBodega }}</span>
-    </button>
-    <button class="view-filter-btn" [class.active]="selectedView === 'baja'"
-      (click)="changeView('baja')" [disabled]="isLoading">
-      <i class="fas fa-ban"></i>
-      <span>Dados de Baja</span>
-      <span class="badge-count" *ngIf="totalBaja > 0">{{ totalBaja }}</span>
-    </button>
   </div>
 
   <!-- Barra de búsqueda y filtros -->
@@ -71,58 +58,54 @@
       <table>
         <thead>
           <tr>
-            <th>ID</th>
             <th>Nombre</th>
-            <th>Tipo de Equipo</th>
             <th>Marca</th>
             <th>Modelo</th>
             <th>Serie</th>
-            <th>Ubicación</th>
-            <th>Estado</th>
-            <th>Acciones</th>
+            <th>Placa</th>
+            <th>Sede</th>
+            <th>Servicio</th>
+            @if (selectedView === 'bodega') {
+              <th>Ubic. Anterior</th>
+              <th>Motivo Bodega</th>
+            } @else if (selectedView === 'baja') {
+              <th>Ubic. Anterior</th>
+              <th>Motivo Baja</th>
+            } @else {
+              <th>Ubicación Específica</th>
+            }
+            <th class="col-opciones">Opciones</th>
           </tr>
         </thead>
         <tbody>
           @for (equipo of pagedEquipos; track equipo.id_sysequipo) {
-            <tr>
-              <td>{{ equipo.id_sysequipo }}</td>
+            <tr class="fila-clickable" (click)="onRowClick($event, equipo)" title="Ver histórico de mantenimientos">
               <td><strong>{{ equipo.nombre_equipo }}</strong></td>
-              <td>{{ formatTipoEquipo(equipo) }}</td>
               <td>{{ equipo.marca || 'N/A' }}</td>
               <td>{{ equipo.modelo || 'N/A' }}</td>
               <td><code class="serie-badge">{{ formatSerie(equipo.serie) }}</code></td>
-              <td>{{ equipo.ubicacion || 'N/A' }}</td>
-              <td>
-                <span [class]="getEstadoBadgeClass(equipo.activo)">
-                  {{ formatEstado(equipo.activo) }}
-                </span>
-              </td>
-              <td>
-                <div class="action-dropdown">
-                  <button class="btn btn-sm btn-outline-primary" (click)="verHojaVida(equipo)">
-                    <i class="fas fa-file-alt"></i> HV
-                  </button>
-                  <button class="btn btn-sm btn-outline-primary  dropdown-toggle-btn"
-                    (click)="$event.stopPropagation(); toggleMenu(equipo)">
-                    <i class="fas fa-chevron-down"></i>
-                  </button>
-                  @if (equipo._menuOpen) {
-                    <div class="dropdown-menu-custom">
-                      @for (opcion of equipo.opciones; track opcion.label) {
-                        <button class="dropdown-item-custom"
-                          (click)="$event.stopPropagation(); opcion.command?.(); equipo._menuOpen = false">
-                          <i [class]="opcion.icon ? opcion.icon : ''"></i>
-                          {{ opcion.label }}
-                        </button>
-                      }
-                    </div>
-                  }
-                </div>
+              <td>{{ equipo.placa_inventario || 'N/A' }}</td>
+              <td>{{ equipo.servicio?.sede?.nombres || 'N/A' }}</td>
+              <td>{{ equipo.servicio?.nombres || 'N/A' }}</td>
+              @if (selectedView === 'bodega') {
+                <td>{{ equipo.ubicacion_anterior || 'N/A' }}</td>
+                <td>{{ equipo.bodega?.motivo || 'Sin motivo registrado' }}</td>
+              } @else if (selectedView === 'baja') {
+                <td>{{ equipo.ubicacion_anterior || 'N/A' }}</td>
+                <td>{{ equipo.baja?.justificacion_baja || 'Sin motivo registrado' }}</td>
+              } @else {
+                <td>{{ equipo.ubicacion_especifica || 'N/A' }}</td>
+              }
+              <td class="col-opciones">
+                <p-splitButton label="HV" icon="pi pi-file" [model]="equipo.opciones"
+                  (onClick)="verHojaVida(equipo)" appendTo="body"
+                  severity="secondary" size="small">
+                </p-splitButton>
               </td>
             </tr>
           } @empty {
             <tr>
-              <td colspan="9" class="empty-state">
+              <td [attr.colspan]="selectedView === 'all' ? 9 : 10" class="empty-state">
                 <div class="empty-icon"><i class="fas fa-boxes"></i></div>
                 <p>No se encontraron equipos</p>
               </td>
@@ -136,21 +119,26 @@
 
   <!-- Paginación -->
   @if (!isLoading && !error && filteredEquipos.length > 0) {
-    <div class="pagination">
-      <button class="btn btn-secondary" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">
-        <i class="fas fa-chevron-left"></i> Anterior
-      </button>
-      <div class="pagination-pages">
+    <div class="ppc-wrap">
+      <span class="ppc-report">
+        Mostrando {{ (currentPage - 1) * pageSize + 1 }} a {{ min(currentPage * pageSize, filteredEquipos.length) }} de {{ filteredEquipos.length }} registros
+      </span>
+      <div class="ppc-nav">
+        <button class="ppc-btn" (click)="goToPage(1)" [disabled]="currentPage === 1"><i class="fas fa-angle-double-left"></i></button>
+        <button class="ppc-btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1"><i class="fas fa-angle-left"></i></button>
         @for (p of getPagesArray(); track p) {
-          <button class="page-number" [class.active]="p === currentPage" (click)="goToPage(p)">
-            {{ p }}
-          </button>
+          <button class="ppc-btn ppc-page" [class.active]="p === currentPage" (click)="goToPage(p)">{{ p }}</button>
         }
+        <button class="ppc-btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages"><i class="fas fa-angle-right"></i></button>
+        <button class="ppc-btn" (click)="goToPage(totalPages)" [disabled]="currentPage === totalPages"><i class="fas fa-angle-double-right"></i></button>
       </div>
-      <button class="btn btn-secondary" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">
-        Siguiente <i class="fas fa-chevron-right"></i>
-      </button>
-      <span class="page-info">{{ (currentPage - 1) * pageSize + 1 }}–{{ min(currentPage * pageSize, filteredEquipos.length) }} de {{ filteredEquipos.length }}</span>
+      <div class="ppc-rpp">
+        <select (change)="onPageSizeChange($event)">
+          @for (opt of pageSizeOptions; track opt) {
+            <option [value]="opt" [selected]="opt === pageSize">{{ opt }}</option>
+          }
+        </select>
+      </div>
     </div>
   }
 </div>
@@ -198,6 +186,7 @@
   [equipo]="equipoToHistorial"
   (closed)="closeHistorialModal()"
 ></app-sys-historial-equipo>
+
 
 <!-- Modal Ver Reportes del Equipo -->
 <app-sys-reportes-equipo

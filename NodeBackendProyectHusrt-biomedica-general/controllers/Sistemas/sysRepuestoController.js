@@ -144,7 +144,7 @@ exports.update = async (req, res) => {
     const {
       nombre, descripcion_tecnica, numero_parte, numero_serie,
       id_sys_tipo_repuesto_fk, modelo_asociado, proveedor,
-      cantidad_stock, ubicacion_fisica, garantia_inicio,
+      cantidad_stock, stock_minimo, ubicacion_fisica, garantia_inicio,
       garantia_fin, estado, fecha_ingreso, costo_unitario,
       observacion
     } = req.body;
@@ -152,7 +152,7 @@ exports.update = async (req, res) => {
     const [affected] = await SysRepuesto.update({
       nombre, descripcion_tecnica, numero_parte, numero_serie,
       id_sys_tipo_repuesto_fk, modelo_asociado, proveedor,
-      cantidad_stock, ubicacion_fisica, garantia_inicio,
+      cantidad_stock, stock_minimo, ubicacion_fisica, garantia_inicio,
       garantia_fin, estado, fecha_ingreso, costo_unitario
     }, { where: { id_sysrepuesto: id } });
 

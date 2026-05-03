@@ -105,7 +105,7 @@
     <p-table #dt [value]="displayRecords" dataKey="id" [rows]="13" [rowsPerPageOptions]="[10, 25, 50, 100]"
       [loading]="isLoading" [paginator]="true" [showCurrentPageReport]="true"
       currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
-      [globalFilterFields]="['equipo.nombre_equipo','equipo.placa_inventario','tipoMantenimiento','tipoFalla','usuario.nombres','usuario.apellidos']"
+      [globalFilterFields]="['equipo.nombre_equipo','equipo.placa_inventario','tipoMantenimiento','tipoFalla','usuario.nombres','usuario.apellidos','servicio.nombres']"
       styleClass="p-datatable-sm p-datatable-striped" [responsiveLayout]="'scroll'">
 
       <ng-template pTemplate="caption">
@@ -137,7 +137,9 @@
       </ng-template>
 
       <ng-template pTemplate="body" let-m>
-        <tr class="hover:bg-blue-50 transition-colors transition-duration-150">
+        <tr class="hover:bg-blue-50 transition-colors transition-duration-150 fila-clickable"
+            (click)="openHistoricoMantenimientos(m.equipo)"
+            title="Ver histórico de mantenimientos del equipo">
 
           <td><code class="reporte-badge">{{ m.id }}</code></td>
 
@@ -164,7 +166,7 @@
 
           <td>
             <span class="text-700">
-              {{ m.fechaRealizado ? m.fechaRealizado : getMesProgramado(m.mesProgramado) }}
+              {{ m.fechaRealizado ? (m.fechaRealizado | date:'dd/MM/yyyy') : getFechaProgramada(m) }}
             </span>
           </td>
 
@@ -195,7 +197,7 @@
             </p-tag>
           </td>
 
-          <td style="text-align: center;">
+          <td style="text-align: center;" (click)="$event.stopPropagation()">
             <div class="flex gap-1 justify-content-center">
 
               <!-- 👁 Ver: solo si está realizado -->
@@ -212,7 +214,7 @@
 
               <!-- 📋 Historial: siempre visible -->
               <button pButton icon="pi pi-list" class="p-button-rounded p-button-text p-button-secondary"
-                (click)="verHistorialEquipo(m.equipo?.id_sysequipo)" pTooltip="Historial Equipo">
+                (click)="verHistorialEquipo(m.equipo)" pTooltip="Historial Equipo">
               </button>
 
             </div>
@@ -277,7 +279,7 @@
           <div class="p-text-sm grid">
             <div class="col-12 md:col-4">
               <p><strong>Mes Programado:</strong> {{ getMesProgramado(r.mesProgramado) }}</p>
-              <p><strong>Fecha Realizado:</strong> {{ r.fechaRealizado }}</p>
+              <p><strong>Fecha Realizado:</strong> {{ r.fechaRealizado ? (r.fechaRealizado | date:'dd/MM/yyyy') : '—' }}</p>
               <p><strong>Hora Inicio:</strong> {{ r.horaInicio || '—' }}</p>
               <p><strong>Fecha Fin:</strong> {{ r.fechaFin || '—' }}</p>
               <p><strong>Trabajo Realizado:</strong>{{ r.trabajoRealizado || '—' }}</p>
@@ -300,53 +302,7 @@
       </div>
     </div>
 
-    <!-- 3. Mediciones -->
-    <div class="grid mt-2" *ngIf="r.valoresMediciones && r.valoresMediciones.length > 0">
-      <div class="col-12">
-        <p-card header="Mediciones Específicas">
-          <table class="table table-striped table-bordered w-full">
-            <thead>
-              <tr>
-                <th>Medición</th>
-                <th>Valor</th>
-                <th>Unidad</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let val of r.valoresMediciones">
-                <td>{{ val.medicion?.nombre }}</td>
-                <td>{{ val.valor }}</td>
-                <td>{{ val.medicion?.unidad }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </p-card>
-      </div>
-    </div>
-
-    <!-- 4. Repuestos -->
-    <div class="grid mt-2" *ngIf="r.repuestos && r.repuestos.length > 0">
-      <div class="col-12">
-        <p-card header="Repuestos Utilizados">
-          <table class="table table-striped table-bordered w-full">
-            <thead>
-              <tr>
-                <th>Repuesto</th>
-                <th>Cantidad</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let rep of r.repuestos">
-                <td>{{ rep.nombre || rep.repuesto?.nombre }}</td>
-                <td>{{ rep.cantidad }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </p-card>
-      </div>
-    </div>
-
-    <!-- 5. Realizado Por -->
+    <!-- 3. Técnico y PDF -->
     <div class="grid mt-2">
       <div class="col-12">
         <p-card header="Realizado Por">
@@ -387,3 +343,9 @@
 
   </div>
 </p-dialog>
+
+<app-sys-historial-equipo
+  [isOpen]="isHistorialOpen"
+  [equipo]="equipoParaHistorial"
+  (closed)="closeHistorial()"
+></app-sys-historial-equipo>

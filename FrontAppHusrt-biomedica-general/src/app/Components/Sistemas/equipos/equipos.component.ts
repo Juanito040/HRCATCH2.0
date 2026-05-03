@@ -1,6 +1,7 @@
-import { Component, OnInit, ViewChild, ElementRef, inject, HostListener } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { SplitButtonModule } from 'primeng/splitbutton';
 import { Router, ActivatedRoute } from '@angular/router';
 import { SysequiposService, SysEquipo } from '../../../Services/appServices/sistemasServices/sysequipos/sysequipos.service';
 import { SysplanmantenimientoService } from '../../../Services/appServices/sistemasServices/sysplanmantenimiento/sysplanmantenimiento.service';
@@ -14,6 +15,7 @@ import { SysReporteEntregaService } from '../../../Services/appServices/sistemas
 import { getDecodedAccessToken } from '../../../utilidades';
 import { MenuItem } from 'primeng/api';
 import Swal from 'sweetalert2';
+import { extractError } from '../../../utils/error-utils';
 
 @Component({
   selector: 'app-sis-equipos',
@@ -21,6 +23,7 @@ import Swal from 'sweetalert2';
   imports: [
     CommonModule,
     FormsModule,
+    SplitButtonModule,
     SysEquipoModalComponent,
     SysEquipoDetailModalComponent,
     SysDeleteConfirmationDialogComponent,
@@ -43,7 +46,8 @@ export class SisEquiposComponent implements OnInit {
   selectedActivo: boolean | undefined = undefined;
   selectedView: 'all' | 'bodega' | 'baja' = 'all';
 
-  readonly pageSize = 15;
+  pageSize = 10;
+  readonly pageSizeOptions = [10, 25, 50];
   currentPage: number = 1;
   totalPages: number = 1;
 
@@ -172,7 +176,7 @@ export class SisEquiposComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error al cargar equipos:', err);
-        this.error = 'Error al conectar con el servidor. Por favor, verifica que el backend esté ejecutándose.';
+        this.error = extractError(err, 'cargar los equipos');
         this.equipos = []; this.filteredEquipos = [];
         this.isLoading = false;
       }
@@ -225,8 +229,8 @@ export class SisEquiposComponent implements OnInit {
           this.isLoading = false;
         },
         error: (err) => {
-          console.error('Error:', err);
-          this.error = 'Error al conectar con el servidor';
+          console.error('Error al cargar equipos en bodega:', err);
+          this.error = extractError(err, 'cargar equipos en bodega');
           this.equipos = []; this.filteredEquipos = [];
           this.isLoading = false;
         }
@@ -245,8 +249,8 @@ export class SisEquiposComponent implements OnInit {
           this.isLoading = false;
         },
         error: (err) => {
-          console.error('Error:', err);
-          this.error = 'Error al conectar con el servidor';
+          console.error('Error al cargar equipos dados de baja:', err);
+          this.error = extractError(err, 'cargar equipos dados de baja');
           this.equipos = []; this.filteredEquipos = [];
           this.isLoading = false;
         }
@@ -300,6 +304,12 @@ export class SisEquiposComponent implements OnInit {
     return Math.min(a, b);
   }
 
+  onPageSizeChange(event: Event) {
+    this.pageSize = Number((event.target as HTMLSelectElement).value);
+    this.currentPage = 1;
+    this.updatePage();
+  }
+
   resetSearchInput() {
     if (this.searchInputRef) this.searchInputRef.nativeElement.value = '';
   }
@@ -350,20 +360,6 @@ export class SisEquiposComponent implements OnInit {
     }
   }
 
-  toggleMenu(equipo: any) {
-    const wasOpen = equipo._menuOpen;
-    this.closeAllMenus();
-    equipo._menuOpen = !wasOpen;
-  }
-
-  closeAllMenus() {
-    this.filteredEquipos.forEach((e: any) => e._menuOpen = false);
-  }
-
-  @HostListener('document:click')
-  onDocumentClick() {
-    this.closeAllMenus();
-  }
 
   private buildOpciones(equipo: SysEquipo): MenuItem[] {
     const opcionHistorial  = { label: 'Ver Historial',     icon: 'fas fa-history',       command: () => this.openHistorialModal(equipo) };
@@ -425,6 +421,16 @@ export class SisEquiposComponent implements OnInit {
     this.equipoForReportesList = null;
   }
 
+  openHistoricoMantenimientos(equipo: any) {
+    if (!equipo?.id_sysequipo) return;
+    this.router.navigate(['/adminsistemas/historico-mantenimiento', equipo.id_sysequipo]);
+  }
+
+  onRowClick(event: MouseEvent, equipo: any) {
+    if ((event.target as HTMLElement).closest('td.col-opciones')) return;
+    this.openHistoricoMantenimientos(equipo);
+  }
+
   async descargarPdfBaja(equipo: any) {
     const bajaId = equipo.baja?.id_sysbaja;
     if (!bajaId) {
@@ -440,7 +446,7 @@ export class SisEquiposComponent implements OnInit {
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) {
-      Swal.fire('Error', 'No se pudo generar el PDF de baja.', 'error');
+      Swal.fire('Error', extractError(e, 'generar el PDF de baja del equipo'), 'error');
     }
   }
 
@@ -490,7 +496,7 @@ export class SisEquiposComponent implements OnInit {
           }
         },
         error: (err) => {
-          const msg = err.error?.message || 'Error al conectar con el servidor. Verifica que el backend esté activo.';
+          const msg = extractError(err, 'enviar el equipo a bodega');
           if (this.deleteDialog) this.deleteDialog.showError(msg);
           Swal.fire({ icon: 'error', title: 'Error', text: msg });
         }
@@ -518,10 +524,7 @@ export class SisEquiposComponent implements OnInit {
           }
         },
         error: (err) => {
-          let msg = 'Error al conectar con el servidor';
-          if (err.status === 403) msg = err.error?.message || 'Contraseña incorrecta';
-          else if (err.status === 400) msg = err.error?.message || 'Datos inválidos';
-          else if (err.error?.message) msg = err.error.message;
+          const msg = extractError(err, 'dar de baja el equipo');
           if (this.deleteDialog) this.deleteDialog.showError(msg);
           Swal.fire({ icon: 'error', title: 'Error', text: msg });
         }
@@ -613,7 +616,7 @@ export class SisEquiposComponent implements OnInit {
       Swal.fire({ icon: 'success', title: 'Plan actualizado', text: `Se programaron ${this.selectedPlanes.length} mantenimiento(s).`, timer: 2000, showConfirmButton: false });
       this.closePlanDialog();
     } catch (e) {
-      Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo guardar el plan de mantenimiento.' });
+      Swal.fire({ icon: 'error', title: 'Error', text: extractError(e, 'guardar el plan de mantenimiento') });
     } finally {
       this.isSavingPlan = false;
     }
@@ -657,7 +660,7 @@ export class SisEquiposComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error al reactivar equipo:', err);
-        Swal.fire({ icon: 'error', title: 'Error', text: 'Error al conectar con el servidor' });
+        Swal.fire({ icon: 'error', title: 'Error', text: extractError(err, 'reactivar el equipo') });
         this.closeReactivarModal();
       }
     });

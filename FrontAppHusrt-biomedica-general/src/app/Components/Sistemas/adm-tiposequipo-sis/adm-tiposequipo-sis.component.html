@@ -3,7 +3,6 @@
   <p-toolbar styleClass="mb-4 gap-2 border-none surface-ground">
     <ng-template pTemplate="left">
       <div class="flex align-items-center gap-2">
-        <i class="pi pi-desktop text-2xl text-primary"></i>
         <h2 class="m-0 font-bold text-900">Tipos de equipos de sistemas</h2>
       </div>
     </ng-template>
@@ -116,6 +115,80 @@
     <div class="flex flex-column gap-2">
       <label class="font-bold">Actividad</label>
       <input pInputText formControlName="actividad" appUppercase />
+    </div>
+
+    <!-- Campos de Hoja de Vida -->
+    <div class="flex flex-column gap-2 mt-2">
+      <label class="font-bold text-700">
+        <i class="pi pi-sliders-h mr-2"></i>Campos de Hoja de Vida
+      </label>
+      <small class="text-500 mb-2">Selecciona qué campos aplican a este tipo de equipo. Los campos desmarcados no aparecerán en la hoja de vida ni en el modal de creación.</small>
+
+      <div class="surface-ground border-round p-3">
+        <p class="text-600 font-semibold mb-2 text-sm">Red</p>
+        <div class="formgrid grid mb-3">
+          <div class="field-checkbox col-6">
+            <input type="checkbox" formControlName="campo_ip" id="sis_campo_ip" class="mr-2" />
+            <label for="sis_campo_ip">Dirección IP</label>
+          </div>
+          <div class="field-checkbox col-6">
+            <input type="checkbox" formControlName="campo_mac" id="sis_campo_mac" class="mr-2" />
+            <label for="sis_campo_mac">Dirección MAC</label>
+          </div>
+        </div>
+
+        <p class="text-600 font-semibold mb-2 text-sm">Hardware</p>
+        <div class="formgrid grid mb-3">
+          <div class="field-checkbox col-6">
+            <input type="checkbox" formControlName="campo_procesador" id="sis_campo_procesador" class="mr-2" />
+            <label for="sis_campo_procesador">Procesador</label>
+          </div>
+          <div class="field-checkbox col-6">
+            <input type="checkbox" formControlName="campo_ram" id="sis_campo_ram" class="mr-2" />
+            <label for="sis_campo_ram">RAM</label>
+          </div>
+          <div class="field-checkbox col-6">
+            <input type="checkbox" formControlName="campo_disco" id="sis_campo_disco" class="mr-2" />
+            <label for="sis_campo_disco">Disco Duro</label>
+          </div>
+          <div class="field-checkbox col-6">
+            <input type="checkbox" formControlName="campo_tonner" id="sis_campo_tonner" class="mr-2" />
+            <label for="sis_campo_tonner">Tóner / Cartucho</label>
+          </div>
+        </div>
+
+        <p class="text-600 font-semibold mb-2 text-sm">Software</p>
+        <div class="formgrid grid mb-3">
+          <div class="field-checkbox col-6">
+            <input type="checkbox" formControlName="campo_so" id="sis_campo_so" class="mr-2" />
+            <label for="sis_campo_so">Sistema Operativo</label>
+          </div>
+          <div class="field-checkbox col-6">
+            <input type="checkbox" formControlName="campo_office" id="sis_campo_office" class="mr-2" />
+            <label for="sis_campo_office">Office / Suite</label>
+          </div>
+        </div>
+
+        <p class="text-600 font-semibold mb-2 text-sm">Gestión</p>
+        <div class="formgrid grid">
+          <div class="field-checkbox col-6">
+            <input type="checkbox" formControlName="campo_nombre_usuario" id="sis_campo_nombre_usuario" class="mr-2" />
+            <label for="sis_campo_nombre_usuario">Nombre de Usuario</label>
+          </div>
+          <div class="field-checkbox col-6">
+            <input type="checkbox" formControlName="campo_tipo_uso" id="sis_campo_tipo_uso" class="mr-2" />
+            <label for="sis_campo_tipo_uso">Tipo de Uso</label>
+          </div>
+          <div class="field-checkbox col-6">
+            <input type="checkbox" formControlName="campo_adquisicion" id="sis_campo_adquisicion" class="mr-2" />
+            <label for="sis_campo_adquisicion">Adquisición</label>
+          </div>
+          <div class="field-checkbox col-6">
+            <input type="checkbox" formControlName="campo_observaciones" id="sis_campo_observaciones" class="mr-2" />
+            <label for="sis_campo_observaciones">Observaciones</label>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="flex justify-content-end gap-2 mt-4">

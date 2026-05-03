@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Location } from '@angular/common';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { forkJoin, of, from } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -13,6 +14,8 @@ import { ImagenesService } from '../../../Services/appServices/general/imagenes/
 import { API_URL } from '../../../constantes';
 import { getDecodedAccessToken } from '../../../utilidades';
 import Swal from 'sweetalert2';
+import { extractError } from '../../../utils/error-utils';
+import { getEstadoSoporte, calcularFechaFinSoporte, EstadoSoporte, LABELS_SOPORTE } from '../../../utils/soporte-utils';
 
 @Component({
   selector: 'app-sys-hoja-vida',
@@ -24,6 +27,7 @@ import Swal from 'sweetalert2';
 export class SysHojaVidaComponent implements OnInit {
   private route          = inject(ActivatedRoute);
   private router         = inject(Router);
+  private location       = inject(Location);
   private sanitizer      = inject(DomSanitizer);
   private svc            = inject(SysHojaVidaService);
   private equipoSvc      = inject(SysequiposService);
@@ -73,6 +77,39 @@ export class SysHojaVidaComponent implements OnInit {
     return decoded?.rol === 'ADMINISTRADOR' || decoded?.rol === 'SUPERADMIN' || decoded?.rol === 'SYSTEMADMIN';
   }
 
+  get campos() {
+    const t = this.equipo?.tipoEquipo;
+    const bool = (v: any) => (v === undefined || v === null) ? true : Boolean(v);
+    return {
+      ip:             bool(t?.campo_ip),
+      mac:            bool(t?.campo_mac),
+      procesador:     bool(t?.campo_procesador),
+      ram:            bool(t?.campo_ram),
+      disco:          bool(t?.campo_disco),
+      tonner:         bool(t?.campo_tonner),
+      so:             bool(t?.campo_so),
+      office:         bool(t?.campo_office),
+      nombre_usuario: bool(t?.campo_nombre_usuario),
+      tipo_uso:       bool(t?.campo_tipo_uso),
+      adquisicion:    bool(t?.campo_adquisicion),
+      observaciones:  bool(t?.campo_observaciones),
+    };
+  }
+
+  get estadoSoporte(): EstadoSoporte {
+    const hv = this.isEditing ? this.formData : this.hojaVida;
+    return getEstadoSoporte(hv?.fecha_inicio_soporte, hv?.anos_soporte_fabricante);
+  }
+
+  get fechaFinSoporte(): string | null {
+    const hv = this.isEditing ? this.formData : this.hojaVida;
+    return calcularFechaFinSoporte(hv?.fecha_inicio_soporte, hv?.anos_soporte_fabricante);
+  }
+
+  get labelSoporte(): string {
+    return LABELS_SOPORTE[this.estadoSoporte];
+  }
+
   async ngOnInit() {
     this.equipoId = Number(this.route.snapshot.paramMap.get('equipoId'));
     this.load();
@@ -98,7 +135,8 @@ export class SysHojaVidaComponent implements OnInit {
       sistema_operativo: '', office: '', tonner: '', nombre_usuario: '',
       vendedor: '', tipo_uso: '', fecha_compra: '', fecha_instalacion: '',
       costo_compra: '', contrato: '', observaciones: '',
-      compraddirecta: false, convenio: false, donado: false, comodato: false
+      compraddirecta: false, convenio: false, donado: false, comodato: false,
+      fecha_inicio_soporte: '', anos_soporte_fabricante: undefined
     };
   }
 
@@ -147,7 +185,7 @@ export class SysHojaVidaComponent implements OnInit {
 
   cancelEditing() {
     if (this.isNew) {
-      this.router.navigate(['/adminsistemas/equipos']);
+      this.location.back();
     } else {
       this.formData  = { ...this.hojaVida };
       this.isEditing = false;
@@ -166,15 +204,15 @@ export class SysHojaVidaComponent implements OnInit {
         this.isSaving  = false;
         Swal.fire({ icon: 'success', title: 'Guardado', text: 'Hoja de vida guardada exitosamente', timer: 1800, showConfirmButton: false });
       },
-      error: () => {
+      error: (err) => {
         this.isSaving = false;
-        Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo guardar la hoja de vida' });
+        Swal.fire({ icon: 'error', title: 'Error al guardar', text: extractError(err, 'guardar la hoja de vida del equipo') });
       }
     });
   }
 
   goBack() {
-    this.router.navigate(['/adminsistemas/equipos']);
+    this.location.back();
   }
 
   // ── Foto ─────────────────────────────────────────────────────────────────
@@ -197,8 +235,8 @@ export class SysHojaVidaComponent implements OnInit {
       this.formData = { ...res.data };
       await this.cargarFoto(res.data.foto);
       Swal.fire({ icon: 'success', title: 'Foto actualizada', timer: 1500, showConfirmButton: false });
-    } catch {
-      Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo subir la foto.' });
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Error al subir foto', text: extractError(err, 'subir la foto del equipo') });
     } finally {
       this.uploadingFoto = false;
       // Limpia el input para permitir subir el mismo archivo de nuevo
@@ -239,8 +277,16 @@ export class SysHojaVidaComponent implements OnInit {
   }
 
   async guardarDocumento() {
-    if (!this.nuevoDocumento.nombres || !this.nuevoDocumento.tipoDocumntoIdFk || !this.nuevoDocumento.archivo) {
-      Swal.fire({ icon: 'warning', title: 'Campos incompletos', text: 'Complete todos los campos antes de guardar.' });
+    if (!this.nuevoDocumento.nombres) {
+      Swal.fire({ icon: 'warning', title: 'Campo requerido', text: 'El nombre del documento es obligatorio.' });
+      return;
+    }
+    if (!this.nuevoDocumento.tipoDocumntoIdFk) {
+      Swal.fire({ icon: 'warning', title: 'Campo requerido', text: 'Debes seleccionar el tipo de documento.' });
+      return;
+    }
+    if (!this.nuevoDocumento.archivo) {
+      Swal.fire({ icon: 'warning', title: 'Campo requerido', text: 'Debes adjuntar el archivo del documento.' });
       return;
     }
     this.savingDocumento = true;
@@ -255,8 +301,8 @@ export class SysHojaVidaComponent implements OnInit {
       this.modalAddDocumento = false;
       await this.cargarDocumentos();
       Swal.fire({ icon: 'success', title: 'Documento agregado', timer: 1500, showConfirmButton: false });
-    } catch {
-      Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo guardar el documento.' });
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Error al guardar documento', text: extractError(err, 'guardar el documento del equipo') });
     } finally {
       this.savingDocumento = false;
     }
@@ -284,8 +330,8 @@ export class SysHojaVidaComponent implements OnInit {
       await this.documentosSvc.deleteDocumento(doc.id);
       await this.cargarDocumentos();
       Swal.fire({ icon: 'success', title: 'Eliminado', timer: 1500, showConfirmButton: false });
-    } catch {
-      Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo eliminar el documento.' });
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Error al eliminar', text: extractError(err, 'eliminar el documento del equipo') });
     }
   }
 
@@ -299,8 +345,8 @@ export class SysHojaVidaComponent implements OnInit {
       a.download = `HojaVida_${this.equipo?.placa_inventario ?? this.equipoId}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
-    } catch {
-      Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo generar el PDF' });
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Error al generar PDF', text: extractError(err, 'generar el PDF de la hoja de vida') });
     } finally {
       this.isDownloading = false;
     }

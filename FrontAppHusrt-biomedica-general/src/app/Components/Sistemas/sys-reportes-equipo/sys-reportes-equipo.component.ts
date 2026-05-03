@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter, OnChanges, OnDestroy, SimpleCha
 import { CommonModule } from '@angular/common';
 import { SysReporteEntregaService, SysReporteEntrega } from '../../../Services/appServices/sistemasServices/sysreporteentrega/sysreporteentrega.service';
 import Swal from 'sweetalert2';
+import { extractError } from '../../../utils/error-utils';
 
 @Component({
   selector: 'app-sys-reportes-equipo',
@@ -67,8 +68,8 @@ export class SysReportesEquipoComponent implements OnChanges, OnDestroy {
       a.download = `ReporteEntrega_${reporte.id_sysreporte}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
-    } catch {
-      Swal.fire('Error', 'No se pudo generar el PDF.', 'error');
+    } catch (err) {
+      Swal.fire('Error', extractError(err, 'generar el PDF del reporte de equipo'), 'error');
     } finally {
       this.downloadingId = null;
     }

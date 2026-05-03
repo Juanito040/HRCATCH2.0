@@ -51,19 +51,26 @@ const getAllTiposFalla = () => [
 // ── GET ALL ─────────────────────────────────────────────────────────────────
 exports.getAllReportes = async (req, res) => {
     try {
+        const { fecha_inicio, fecha_fin, id_equipo, tipo_mantenimiento } = req.query;
+        const where = {};
+
+        if (fecha_inicio && fecha_fin) {
+            where.fechaRealizado = { [Op.between]: [fecha_inicio, fecha_fin] };
+        } else if (fecha_inicio) {
+            where.fechaRealizado = { [Op.gte]: fecha_inicio };
+        } else if (fecha_fin) {
+            where.fechaRealizado = { [Op.lte]: fecha_fin };
+        }
+
+        if (id_equipo) where.id_sysequipo_fk = id_equipo;
+        if (tipo_mantenimiento) where.tipoMantenimiento = tipo_mantenimiento;
+
         const reportes = await SysReporte.findAll({
+            where,
             include: [
-                { model: SysEquipo, as: 'equipo' },
-                {
-                    model: Servicio,
-                    as: 'servicio',
-                    include: [{ model: Sede, as: 'sede' }]
-                },
-                {
-                    model: Usuario,
-                    as: 'usuario',
-                    include: [{ model: Cargo, as: 'cargo' }]
-                }
+                EQUIPO_INCLUDE,
+                { model: Usuario, as: 'usuario', attributes: ['id', 'nombres', 'apellidos'] },
+                { model: Servicio, as: 'servicio', attributes: ['id', 'nombres', 'ubicacion'] }
             ],
             order: [['fechaRealizado', 'DESC'], ['createdAt', 'DESC']]
         });
@@ -81,15 +88,15 @@ exports.getDashboard = async (req, res) => {
             fecha_fin = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).toISOString().split('T')[0];
         }
 
-        const where = { fecha: { [Op.between]: [fecha_inicio, fecha_fin] } };
+        const where = { fechaRealizado: { [Op.between]: [fecha_inicio, fecha_fin] } };
 
         const [total, correctivos, preventivos, predictivos, otros, recientes] = await Promise.all([
             SysReporte.count({ where }),
-            SysReporte.count({ where: { ...where, tipo_mantenimiento: 1 } }),
-            SysReporte.count({ where: { ...where, tipo_mantenimiento: 2 } }),
-            SysReporte.count({ where: { ...where, tipo_mantenimiento: 3 } }),
-            SysReporte.count({ where: { ...where, tipo_mantenimiento: 4 } }),
-            SysReporte.findAll({ where, include: INCLUDES_FULL, order: [['fecha', 'DESC']], limit: 20 })
+            SysReporte.count({ where: { ...where, tipoMantenimiento: 'Correctivo' } }),
+            SysReporte.count({ where: { ...where, tipoMantenimiento: 'Preventivo' } }),
+            SysReporte.count({ where: { ...where, tipoMantenimiento: 'Predictivo' } }),
+            SysReporte.count({ where: { ...where, tipoMantenimiento: 'Otro' } }),
+            SysReporte.findAll({ where, include: INCLUDES_FULL, order: [['fechaRealizado', 'DESC']], limit: 20 })
         ]);
 
         res.json({
@@ -114,14 +121,14 @@ exports.getDashboard = async (req, res) => {
 };
 exports.getByTecnico = async (req, res) => {
     try {
-        const where = { id_sysusuario_fk: req.params.idUsuario };
+        const where = { usuarioIdFk: req.params.idUsuario };
         if (req.query.fecha_inicio && req.query.fecha_fin) {
-            where.fecha = { [Op.between]: [req.query.fecha_inicio, req.query.fecha_fin] };
+            where.fechaRealizado = { [Op.between]: [req.query.fecha_inicio, req.query.fecha_fin] };
         }
         const data = await SysReporte.findAll({
             where,
             include: INCLUDES_FULL,
-            order: [['fecha', 'DESC']]
+            order: [['fechaRealizado', 'DESC']]
         });
         res.json({ success: true, count: data.length, data });
     } catch (error) {
@@ -133,7 +140,7 @@ exports.getByEquipo = async (req, res) => {
         const data = await SysReporte.findAll({
             where: { id_sysequipo_fk: req.params.idEquipo },
             include: INCLUDES_FULL,
-            order: [['fecha', 'DESC']]
+            order: [['fechaRealizado', 'DESC'], ['createdAt', 'DESC']]
         });
         res.json({ success: true, count: data.length, data });
     } catch (error) {
@@ -145,8 +152,11 @@ exports.getByEquipo = async (req, res) => {
 exports.getReporteById = async (req, res) => {
     try {
         const reporte = await SysReporte.findByPk(req.params.id, {
-            include: [EQUIPO_INCLUDE,
-                { model: Usuario, as: 'usuario', attributes: ['id', 'nombres', 'apellidos'] }]
+            include: [
+                EQUIPO_INCLUDE,
+                { model: Usuario, as: 'usuario', attributes: ['id', 'nombres', 'apellidos'] },
+                { model: Servicio, as: 'servicio', attributes: ['id', 'nombres', 'ubicacion'] }
+            ]
         });
         if (!reporte) return res.status(404).json({ success: false, message: 'Reporte no encontrado' });
         res.json({ success: true, data: reporte });
@@ -175,13 +185,16 @@ exports.createReporte = async (req, res) => {
                 reporte.recibido_por ? `Recibido por: ${reporte.recibido_por}` : ''
             ].filter(Boolean).join(' · ');
 
-            SysTrazabilidad.create({
-                accion: 'REPORTE_ENTREGA',
-                detalles,
-                fecha: new Date(),
-                id_sysequipo_fk: reporte.id_sysequipo_fk,
-                id_sysusuario_fk: reporte.id_sysusuario_fk || null
-            }).catch(e => console.warn('trazabilidad reporte:', e.message));
+            try {
+                await SysTrazabilidad.create({
+                    accion: 'REPORTE_ENTREGA',
+                    detalles,
+                    id_sysequipo_fk: reporte.id_sysequipo_fk,
+                    id_sysusuario_fk: reporte.id_sysusuario_fk || null
+                });
+            } catch (e) {
+                console.warn('trazabilidad reporte:', e.message);
+            }
         }
 
         res.status(201).json({ success: true, message: 'Reporte creado exitosamente', data: result });
@@ -241,7 +254,7 @@ exports.exportarPdfReporte = async (req, res) => {
 
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition',
-            `attachment; filename="Reporte_${r.id_sysreporte}.pdf"`);
+            `attachment; filename="Reporte_${r.id}.pdf"`);
         doc.pipe(res);
 
         const M = 30;
@@ -291,40 +304,41 @@ exports.exportarPdfReporte = async (req, res) => {
         doc.font('Helvetica').fontSize(6.5).fillColor('#000')
             .text('01', cx + 38, y + 16, { lineBreak: false });
         doc.font('Helvetica-Bold').fontSize(7).fillColor('#1a3a6c')
-            .text(`N° ${String(r.id_sysreporte).padStart(4, '0')}`, cx + 2, y + 32, { width: 116, align: 'center', lineBreak: false });
+            .text(`N° ${String(r.id).padStart(4, '0')}`, cx + 2, y + 32, { width: 116, align: 'center', lineBreak: false });
         doc.fillColor('#111');
         y += 60;
 
         // ── DATOS DEL REPORTE ──
         y = sectionBar(y, 'DATOS DEL REPORTE');
         const c3 = Math.floor(PW / 3);
-        cell(M, y, c3, 22, 'NÚMERO DE REPORTE', String(r.id_sysreporte).padStart(4, '0'));
+        cell(M, y, c3, 22, 'NÚMERO DE REPORTE', String(r.id).padStart(4, '0'));
         cell(M + c3, y, c3, 22, 'PLACA DE INVENTARIO', val(eq.placa_inventario));
-        cell(M + c3 * 2, y, PW - c3 * 2, 22, 'FECHA', fmtF(r.fecha));
+        cell(M + c3 * 2, y, PW - c3 * 2, 22, 'FECHA REALIZADO', fmtF(r.fechaRealizado));
         y += 22;
 
-        cell(M, y, c3, 22, 'SERVICIO ANTERIOR', val(r.servicio_anterior || eq.servicio?.nombres));
-        cell(M + c3, y, c3, 22, 'UBICACIÓN ANTERIOR', val(r.ubicacion_anterior || eq.ubicacion));
+        cell(M, y, c3, 22, 'SERVICIO', val(eq.servicio?.nombres));
+        cell(M + c3, y, c3, 22, 'UBICACIÓN', val(eq.ubicacion));
         cell(M + c3 * 2, y, PW - c3 * 2, 22, 'EQUIPO', val(eq.nombre_equipo));
         y += 22;
 
         const c4 = Math.floor(PW / 3);
-        cell(M, y, c4, 20, 'HORA DE LLAMADO', val(r.hora_llamado));
-        cell(M + c4, y, c4, 20, 'HORA DE INICIO', val(r.hora_inicio));
-        cell(M + c4 * 2, y, PW - c4 * 2, 20, 'HORA DE TERMINACIÓN', val(r.hora_terminacion));
+        cell(M, y, c4, 20, 'TIPO MANTENIMIENTO', val(r.tipoMantenimiento));
+        cell(M + c4, y, c4, 20, 'HORA INICIO', val(r.horaInicio));
+        cell(M + c4 * 2, y, PW - c4 * 2, 20, 'HORA TERMINACIÓN', val(r.horaTerminacion));
         y += 20;
 
-        // ── DATOS DE ENTREGA ──
-        y = sectionBar(y, 'DATOS DE ENTREGA');
+        // ── DETALLE DEL MANTENIMIENTO ──
+        y = sectionBar(y, 'DETALLE DEL MANTENIMIENTO');
         const h2 = Math.floor(PW / 2);
-        cell(M, y, h2, 22, 'SERVICIO DESTINO', val(r.servicio_nuevo));
-        cell(M + h2, y, PW - h2, 22, 'UBICACIÓN DESTINO', val(r.ubicacion_nueva));
+        cell(M, y, h2, 22, 'TIPO DE FALLA', val(r.tipoFalla));
+        cell(M + h2, y, PW - h2, 22, 'ESTADO OPERATIVO', val(r.estadoOperativo));
         y += 22;
-        cell(M, y, h2, 22, 'UBICACIÓN ESPECÍFICA', val(r.ubicacion_especifica));
-        cell(M + h2, y, PW - h2, 22, 'TIPO DE EQUIPO', val(eq.tipoEquipo?.nombres));
+        cell(M, y, h2, 22, 'TIPO DE EQUIPO', val(eq.tipoEquipo?.nombres));
+        cell(M + h2, y, PW - h2, 22, 'HORA TOTAL', val(r.horaTotal));
         y += 22;
-        cell(M, y, h2, 22, 'REALIZADO POR', val(r.realizado_por));
-        cell(M + h2, y, PW - h2, 22, 'RECIBIDO POR', val(r.recibido_por));
+        const tecnico = r.usuario ? `${val(r.usuario.nombres)} ${val(r.usuario.apellidos)}`.trim() : '';
+        cell(M, y, h2, 22, 'TÉCNICO RESPONSABLE', tecnico);
+        cell(M + h2, y, PW - h2, 22, 'RECIBIÓ', val(r.nombreRecibio));
         y += 22;
 
         // ── DATOS TÉCNICOS DEL EQUIPO ──
@@ -352,9 +366,10 @@ exports.exportarPdfReporte = async (req, res) => {
             .text('RECIBIDO POR', M + fw + 2, y + 4, { width: PW - fw - 4, align: 'center', lineBreak: false });
         doc.moveTo(M + 10, y + 50).lineTo(M + fw - 10, y + 50).stroke('#888');
         doc.moveTo(M + fw + 10, y + 50).lineTo(M + PW - 10, y + 50).stroke('#888');
+        const tecnicoFirma = r.usuario ? `${val(r.usuario.nombres)} ${val(r.usuario.apellidos)}`.trim() : '';
         doc.font('Helvetica').fontSize(6).fillColor('#666')
-            .text(val(r.realizado_por), M + 2, y + 52, { width: fw - 4, align: 'center', lineBreak: false })
-            .text(val(r.recibido_por), M + fw + 2, y + 52, { width: PW - fw - 4, align: 'center', lineBreak: false });
+            .text(tecnicoFirma, M + 2, y + 52, { width: fw - 4, align: 'center', lineBreak: false })
+            .text(val(r.nombreRecibio), M + fw + 2, y + 52, { width: PW - fw - 4, align: 'center', lineBreak: false });
         y += 60;
 
         y += 8;

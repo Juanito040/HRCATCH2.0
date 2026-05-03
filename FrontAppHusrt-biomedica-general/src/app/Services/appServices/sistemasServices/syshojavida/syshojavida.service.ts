@@ -26,6 +26,8 @@ export interface SysHojaVida {
   convenio?: boolean;
   donado?: boolean;
   comodato?: boolean;
+  fecha_inicio_soporte?: string;
+  anos_soporte_fabricante?: number;
   id_sysequipo_fk?: number;
   equipo?: any;
 }

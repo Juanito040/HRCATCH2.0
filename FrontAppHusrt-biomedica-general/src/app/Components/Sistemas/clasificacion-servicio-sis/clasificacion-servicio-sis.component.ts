@@ -77,4 +77,6 @@ export class ClasificacionServicioSisComponent implements OnInit {
     sessionStorage.setItem('idServicioSis', String(idServicio));
     this.router.navigate(['/adminsistemas/equiposservicio']);
   }
+
+  volver() { this.router.navigate(['/adminsistemas']); }
 }

@@ -1,3 +1,6 @@
+.fila-clickable { cursor: pointer; }
+.fila-clickable:hover { background-color: #f0f9ff !important; }
+
 /* ── Page Header ─────────────────────────────── */
 .page-header {
   display: flex;

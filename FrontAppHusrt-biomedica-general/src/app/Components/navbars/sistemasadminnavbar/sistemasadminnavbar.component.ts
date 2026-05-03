@@ -28,27 +28,43 @@ export class SistemasadminnavbarComponent implements OnInit {
   }
 
   ngOnInit() {
-    const inventarioItemsUser: MenuItem[] = [
-      { label: 'Tipos de Equipo',  icon: 'pi pi-th-large',    routerLink: '/adminsistemas/tiposequipo' },
-      { label: 'Equipos en Bodega', icon: 'pi pi-inbox',       routerLink: '/adminsistemas/equipos', queryParams: { vista: 'bodega' } },
-      { label: 'Dados de Baja',     icon: 'pi pi-ban',         routerLink: '/adminsistemas/equipos', queryParams: { vista: 'baja' } },
+    const inventarioItemsAdmin: MenuItem[] = [
+      { label: 'Tipos de Equipo',   icon: 'pi pi-th-large',   routerLink: '/adminsistemas/tiposequipo' },
+      { label: 'Dados de Baja',     icon: 'pi pi-ban',        routerLink: '/adminsistemas/equipos', queryParams: { vista: 'baja' } },
+      { label: 'Bodega',            icon: 'pi pi-inbox',      routerLink: '/adminsistemas/equipos', queryParams: { vista: 'bodega' } },
+      { label: 'Por Sede',          icon: 'pi pi-map-marker', routerLink: '/adminsistemas/equipossede' },
+      { label: 'Por Roles',         icon: 'pi pi-sitemap',    routerLink: '/adminsistemas/equiposservicio' },
+    ];
+
+    const mantenimientoItemsAdmin: MenuItem[] = [
+      { label: 'Programar Mantenimiento', icon: 'pi pi-calendar', routerLink: '/adminsistemas/planMantenimiento' },
+      { label: 'Todos los Mantenimientos', icon: 'pi pi-list',    routerLink: '/adminsistemas/mantenimientos' },
     ];
 
     const itemsAdmin: MenuItem[] = [
-      { label: 'Inicio',           icon: 'pi pi-home',     routerLink: '/adminsistemas' },
+      { label: 'Inicio',            icon: 'pi pi-home',      routerLink: '/adminsistemas' },
+      { label: 'Inventario',        icon: 'pi pi-box',       items: inventarioItemsAdmin },
+      { label: 'Mantenimiento',     icon: 'pi pi-wrench',    items: mantenimientoItemsAdmin },
+      { label: 'Trazabilidad',      icon: 'pi pi-history',   routerLink: '/adminsistemas/trazabilidad' },
+      { label: 'Repuestos',         icon: 'pi pi-cog',       routerLink: '/adminsistemas/repuestos' },
+      { label: 'Parametrización',   icon: 'pi pi-sliders-h', routerLink: '/adminsistemas/parametrizacion' },
       { label: 'Mesa de Servicios', icon: 'pi pi-briefcase', routerLink: '/adminmesaservicios/casos' },
     ];
 
+    const inventarioItemsUser: MenuItem[] = [
+      { label: 'Tipos de Equipo',    icon: 'pi pi-th-large',   routerLink: '/adminsistemas/tiposequipo' },
+      { label: 'Por Servicio',       icon: 'pi pi-sitemap',    routerLink: '/adminsistemas/equiposservicio' },
+      { label: 'Por Sede',           icon: 'pi pi-map-marker', routerLink: '/adminsistemas/equipossede' },
+      { label: 'Equipos en Bodega',  icon: 'pi pi-inbox',      routerLink: '/adminsistemas/equipos', queryParams: { vista: 'bodega' } },
+      { label: 'Dados de Baja',      icon: 'pi pi-ban',        routerLink: '/adminsistemas/equipos', queryParams: { vista: 'baja' } },
+    ];
+
     const itemsUser: MenuItem[] = [
-      { label: 'Inicio',         icon: 'pi pi-home',   routerLink: '/adminsistemas' },
-      { label: 'Inventario',     icon: 'pi pi-box',    items: inventarioItemsUser },
-      { label: 'Mantenimientos', icon: 'pi pi-wrench', routerLink: '/adminsistemas/mantenimientos' },
+      { label: 'Inicio',         icon: 'pi pi-home',    routerLink: '/adminsistemas' },
+      { label: 'Inventario',     icon: 'pi pi-box',     items: inventarioItemsUser },
+      { label: 'Mantenimientos', icon: 'pi pi-wrench',  routerLink: '/adminsistemas/mantenimientos' },
       { label: 'Trazabilidad',   icon: 'pi pi-history', routerLink: '/adminsistemas/trazabilidad' },
-      {
-        label: 'Repuestos',
-        icon: 'pi pi-box',
-        routerLink: '/adminsistemas/repuestos'
-      },
+      { label: 'Repuestos',      icon: 'pi pi-cog',     routerLink: '/adminsistemas/repuestos' },
     ];
 
     this.items = this.isSystemUser ? itemsUser : itemsAdmin;

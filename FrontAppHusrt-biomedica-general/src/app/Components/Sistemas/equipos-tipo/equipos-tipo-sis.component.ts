@@ -1,6 +1,7 @@
-import { Component, OnInit, HostListener, ViewChild, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { SplitButtonModule } from 'primeng/splitbutton';
 import { Router } from '@angular/router';
 import { SysequiposService, SysEquipo } from '../../../Services/appServices/sistemasServices/sysequipos/sysequipos.service';
 import { TipoEquipoService } from '../../../Services/appServices/general/tipoEquipo/tipo-equipo.service';
@@ -14,11 +15,13 @@ import { SysReporteEntregaService } from '../../../Services/appServices/sistemas
 import { getDecodedAccessToken } from '../../../utilidades';
 import { MenuItem } from 'primeng/api';
 import Swal from 'sweetalert2';
+import { extractError } from '../../../utils/error-utils';
+import { getEstadoSoporte, LABELS_SOPORTE } from '../../../utils/soporte-utils';
 
 @Component({
   selector: 'app-equipos-tipo-sis',
   standalone: true,
-  imports: [CommonModule, FormsModule, SysEquipoModalComponent, SysEquipoDetailModalComponent, SysHistorialEquipoComponent, SysDeleteConfirmationDialogComponent, SysReportesEquipoComponent],
+  imports: [CommonModule, FormsModule, SplitButtonModule, SysEquipoModalComponent, SysEquipoDetailModalComponent, SysHistorialEquipoComponent, SysDeleteConfirmationDialogComponent, SysReportesEquipoComponent],
   templateUrl: './equipos-tipo-sis.component.html',
   styleUrl: './equipos-tipo-sis.component.css'
 })
@@ -35,7 +38,8 @@ export class EquiposTipoSisComponent implements OnInit {
   isLoading: boolean = false;
   error: string | null = null;
 
-  readonly pageSize = 15;
+  pageSize = 8;
+  readonly pageSizeOptions = [8, 25, 50];
   currentPage: number = 1;
   totalPages: number = 1;
 
@@ -93,6 +97,9 @@ export class EquiposTipoSisComponent implements OnInit {
   private planService = inject(SysplanmantenimientoService);
   private reporteService = inject(SysReporteEntregaService);
 
+  getEstadoSoporte = getEstadoSoporte;
+  labelsSoporte = LABELS_SOPORTE;
+
   get isAdmin(): boolean {
     const decoded = getDecodedAccessToken();
     return decoded?.rol === 'ADMINISTRADOR' || decoded?.rol === 'SUPERADMIN';
@@ -136,7 +143,7 @@ export class EquiposTipoSisComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error al cargar equipos:', err);
-        this.error = 'Error al conectar con el servidor.';
+        this.error = extractError(err, 'cargar equipos del tipo');
         this.equipos = [];
         this.filteredEquipos = [];
         this.isLoading = false;
@@ -224,7 +231,7 @@ export class EquiposTipoSisComponent implements OnInit {
           }
         },
         error: (err) => {
-          const msg = err.error?.message || 'Error al conectar con el servidor.';
+          const msg = extractError(err, 'enviar el equipo a bodega');
           if (this.deleteDialog) this.deleteDialog.showError(msg);
           Swal.fire({ icon: 'error', title: 'Error', text: msg });
         }
@@ -250,10 +257,7 @@ export class EquiposTipoSisComponent implements OnInit {
           }
         },
         error: (err) => {
-          let msg = 'Error al conectar con el servidor';
-          if (err.status === 403) msg = err.error?.message || 'Contraseña incorrecta';
-          else if (err.status === 400) msg = err.error?.message || 'Datos inválidos';
-          else if (err.error?.message) msg = err.error.message;
+          const msg = extractError(err, 'dar de baja el equipo');
           if (this.deleteDialog) this.deleteDialog.showError(msg);
           Swal.fire({ icon: 'error', title: 'Error', text: msg });
         }
@@ -320,6 +324,12 @@ export class EquiposTipoSisComponent implements OnInit {
 
   min(a: number, b: number): number { return Math.min(a, b); }
 
+  onPageSizeChange(event: Event) {
+    this.pageSize = Number((event.target as HTMLSelectElement).value);
+    this.currentPage = 1;
+    this.updatePage();
+  }
+
   getEstadoBadgeClass(activo: number | undefined): string {
     return `badge badge-${Number(activo) === 1 ? 'success' : 'danger'}`;
   }
@@ -328,18 +338,6 @@ export class EquiposTipoSisComponent implements OnInit {
     return Number(activo) === 1 ? 'Activo' : 'Inactivo';
   }
 
-  toggleMenu(equipo: any) {
-    const wasOpen = equipo._menuOpen;
-    this.closeAllMenus();
-    equipo._menuOpen = !wasOpen;
-  }
-
-  closeAllMenus() {
-    this.filteredEquipos.forEach((e: any) => e._menuOpen = false);
-  }
-
-  @HostListener('document:click')
-  onDocumentClick() { this.closeAllMenus(); }
 
   verHojaVida(equipo: SysEquipo) {
     if (equipo.id_sysequipo) {
@@ -439,10 +437,20 @@ export class EquiposTipoSisComponent implements OnInit {
       await this.planService.reemplazarPlanesEquipo(this.currentEquipoPlan.id_sysequipo, this.selectedPlanes);
       Swal.fire({ icon: 'success', title: 'Plan actualizado', text: `Se programaron ${this.selectedPlanes.length} mantenimiento(s).`, timer: 2000, showConfirmButton: false });
       this.closePlanDialog();
-    } catch {
-      Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo guardar el plan de mantenimiento.' });
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Error', text: extractError(err, 'guardar el plan de mantenimiento') });
     } finally {
       this.isSavingPlan = false;
     }
+  }
+
+  openHistoricoMantenimientos(equipo: any) {
+    if (!equipo?.id_sysequipo) return;
+    this.router.navigate(['/adminsistemas/historico-mantenimiento', equipo.id_sysequipo]);
+  }
+
+  onRowClick(event: MouseEvent, equipo: any) {
+    if ((event.target as HTMLElement).closest('td.col-opciones')) return;
+    this.openHistoricoMantenimientos(equipo);
   }
 }

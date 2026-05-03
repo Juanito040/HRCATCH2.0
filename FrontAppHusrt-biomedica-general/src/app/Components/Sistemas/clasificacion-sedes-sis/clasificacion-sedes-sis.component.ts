@@ -91,4 +91,6 @@ export class ClasificacionSedesSisComponent implements OnInit {
     sessionStorage.setItem('idSedeSis', String(idSede));
     this.router.navigate(['/adminsistemas/equipossede']);
   }
+
+  volver() { this.router.navigate(['/adminsistemas']); }
 }

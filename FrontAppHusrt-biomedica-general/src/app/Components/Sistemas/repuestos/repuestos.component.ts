@@ -7,8 +7,9 @@ import { SysAuditoriaRepuestoService, SysAuditoriaRepuesto } from '../../../Serv
 import { SysMovimientosStockService, SysMovimientoStock } from '../../../Services/appServices/sistemasServices/sysmovimientosstock/sysmovimientosstock.service';
 import { getDecodedAccessToken } from '../../../utilidades';
 import Swal from 'sweetalert2';
+import { extractError } from '../../../utils/error-utils';
 
-const ROLES_PERMITIDOS = ['SUPERADMIN', 'ADMINISTRADOR', 'AG'];
+const ROLES_PERMITIDOS = ['SUPERADMIN', 'ADMINISTRADOR', 'AG', 'SYSTEMADMIN'];
 
 @Component({
   selector: 'app-sis-repuestos',
@@ -163,8 +164,8 @@ export class SisRepuestosComponent implements OnInit {
         this.applyFilters();
         this.isLoading = false;
       },
-      error: () => {
-        this.error = 'Error al conectar con el servidor. Verifica que el backend esté activo.';
+      error: (err: any) => {
+        this.error = extractError(err, 'cargar los repuestos');
         this.repuestos = [];
         this.applyFilters();
         this.isLoading = false;
@@ -510,9 +511,9 @@ export class SisRepuestosComponent implements OnInit {
           Swal.fire('Error', res.message || 'No se pudo guardar el repuesto', 'error');
         }
       },
-      error: () => {
+      error: (err: any) => {
         this.isSaving = false;
-        Swal.fire('Error', 'Error al conectar con el servidor', 'error');
+        Swal.fire('Error', extractError(err, 'guardar el repuesto'), 'error');
       }
     });
   }
@@ -560,7 +561,7 @@ export class SisRepuestosComponent implements OnInit {
               this.loadAlertas();
             }
           },
-          error: () => Swal.fire('Error', 'No se pudo cambiar el estado', 'error')
+          error: (err: any) => Swal.fire('Error', extractError(err, 'cambiar el estado del repuesto'), 'error')
         });
       }
     });
@@ -612,8 +613,7 @@ export class SisRepuestosComponent implements OnInit {
       },
       error: (err) => {
         this.isSavingMovimiento = false;
-        const msg = err?.error?.message || 'Error al conectar con el servidor';
-        Swal.fire('Error', msg, 'error');
+        Swal.fire('Error', extractError(err, 'registrar el movimiento de repuesto'), 'error');
       }
     });
   }
@@ -660,7 +660,7 @@ export class SisRepuestosComponent implements OnInit {
         a.click();
         URL.revokeObjectURL(url);
       },
-      error: () => Swal.fire('Error', 'No se pudo exportar el reporte', 'error')
+      error: (err: any) => Swal.fire('Error', extractError(err, 'exportar el reporte de repuestos'), 'error')
     });
   }
 
@@ -713,7 +713,7 @@ export class SisRepuestosComponent implements OnInit {
           this.loadTipos();
         } else { Swal.fire('Error', res.message || 'No se pudo guardar el tipo', 'error'); }
       },
-      error: () => Swal.fire('Error', 'Error al conectar con el servidor', 'error')
+      error: (err: any) => Swal.fire('Error', extractError(err, 'guardar el tipo de repuesto'), 'error')
     });
   }
 
@@ -750,7 +750,7 @@ export class SisRepuestosComponent implements OnInit {
               this.loadTipos();
             }
           },
-          error: () => Swal.fire('Error', 'No se pudo cambiar el estado del tipo', 'error')
+          error: (err: any) => Swal.fire('Error', extractError(err, 'cambiar el estado del tipo de repuesto'), 'error')
         });
       }
     });

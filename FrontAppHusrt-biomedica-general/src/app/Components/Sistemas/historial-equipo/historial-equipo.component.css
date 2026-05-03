@@ -79,6 +79,10 @@
 .evento-reporte .accion-badge { background:#ede9fe;color:#4c1d95; }
 .evento-reporte .timeline-card { border-left:3px solid #7c3aed; }
 
+.evento-hoja-vida .node-icon { background:#0d9488; }
+.evento-hoja-vida .accion-badge { background:#ccfbf1;color:#0f766e; }
+.evento-hoja-vida .timeline-card { border-left:3px solid #0d9488; }
+
 .evento-default .node-icon { background:var(--gray-500); }
 .evento-default .accion-badge { background:var(--gray-100);color:var(--gray-700); }
 .evento-default .timeline-card { border-left:3px solid var(--gray-300); }

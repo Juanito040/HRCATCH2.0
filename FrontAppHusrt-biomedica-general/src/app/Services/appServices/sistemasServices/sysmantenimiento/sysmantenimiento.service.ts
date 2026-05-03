@@ -164,4 +164,10 @@ export class SysmantenimientoService {
       `${this.apiUrl}/catalogos/tipos-falla`
     );
   }
+
+  descargarPdf(id: number): Promise<Blob> {
+    return firstValueFrom(
+      this.http.get(`${this.apiUrl}/${id}/pdf`, { responseType: 'blob' })
+    );
+  }
 }

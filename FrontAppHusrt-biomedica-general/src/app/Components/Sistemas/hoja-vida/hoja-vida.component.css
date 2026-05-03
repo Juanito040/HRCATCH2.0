@@ -81,15 +81,42 @@
 ══════════════════════════════════════════════════ */
 .new-notice {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  color: #1d4ed8;
-  border-radius: 0.5rem;
-  padding: 0.9rem 1.25rem;
-  margin-bottom: 1.25rem;
-  font-size: 0.9rem;
+  align-items: flex-start;
+  gap: 1rem;
+  background: #fff7ed;
+  border: 1.5px solid #fdba74;
+  border-radius: 0.75rem;
+  padding: 1.1rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+.new-notice-icon {
+  font-size: 1.6rem;
+  color: #ea580c;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+.new-notice-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.new-notice-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #9a3412;
+  display: block;
+}
+.new-notice-sub {
+  font-size: 0.875rem;
+  color: #c2410c;
+  line-height: 1.55;
+}
+
+/* Campo obligatorio */
+.req-star {
+  color: #dc2626;
+  font-weight: 700;
+  margin-left: 0.15rem;
 }
 
 /* ══════════════════════════════════════════════════
@@ -321,6 +348,15 @@
 .badge-green  { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
 .badge-purple { background: #faf5ff; color: #7e22ce; border: 1px solid #e9d5ff; }
 .badge-orange { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+.badge-red  { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+.badge-gray { background: #f9fafb; color: #6b7280; border: 1px solid #e5e7eb; }
+
+.soporte-preview {
+  display: flex; align-items: center; gap: 0.75rem;
+  margin-top: 0.75rem; padding: 0.625rem 0.875rem;
+  background: #f9fafb; border-radius: 0.5rem;
+  font-size: 0.9rem; color: #374151;
+}
 
 .text-muted { color: var(--gray-400); font-size: 0.875rem; }
 

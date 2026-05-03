@@ -286,128 +286,169 @@
 
               @if (hojaVidaExpanded) {
                 <!-- Especificaciones Técnicas -->
-                <div class="subsection">
-                  <h4 class="subsection-title">Especificaciones Técnicas</h4>
-                  <div class="form-row">
-                    <div class="form-group">
-                      <label for="procesador">Procesador</label>
-                      <input type="text" id="procesador" formControlName="procesador" placeholder="Ej: Intel Core i7-10700" />
+                @if (camposHV.procesador || camposHV.ram || camposHV.disco || camposHV.tonner) {
+                  <div class="subsection">
+                    <h4 class="subsection-title">Especificaciones Técnicas</h4>
+                    <div class="form-row">
+                      @if (camposHV.procesador) {
+                        <div class="form-group">
+                          <label for="procesador">Procesador</label>
+                          <input type="text" id="procesador" formControlName="procesador" placeholder="Ej: Intel Core i7-10700" />
+                        </div>
+                      }
+                      @if (camposHV.ram) {
+                        <div class="form-group">
+                          <label for="ram">Memoria RAM</label>
+                          <input type="text" id="ram" formControlName="ram" placeholder="Ej: 16 GB DDR4" />
+                        </div>
+                      }
                     </div>
-                    <div class="form-group">
-                      <label for="ram">Memoria RAM</label>
-                      <input type="text" id="ram" formControlName="ram" placeholder="Ej: 16 GB DDR4" />
+                    <div class="form-row">
+                      @if (camposHV.disco) {
+                        <div class="form-group">
+                          <label for="disco_duro">Disco Duro</label>
+                          <input type="text" id="disco_duro" formControlName="disco_duro" placeholder="Ej: SSD 512 GB" />
+                        </div>
+                      }
+                      @if (camposHV.tonner) {
+                        <div class="form-group">
+                          <label for="tonner">Tóner</label>
+                          <input type="text" id="tonner" formControlName="tonner" placeholder="Ej: HP CF230A" />
+                        </div>
+                      }
                     </div>
                   </div>
-                  <div class="form-row">
-                    <div class="form-group">
-                      <label for="disco_duro">Disco Duro</label>
-                      <input type="text" id="disco_duro" formControlName="disco_duro" placeholder="Ej: SSD 512 GB" />
-                    </div>
-                    <div class="form-group">
-                      <label for="sistema_operativo">Sistema Operativo</label>
-                      <input type="text" id="sistema_operativo" formControlName="sistema_operativo" placeholder="Ej: Windows 11 Pro" />
+                }
+
+                <!-- Software -->
+                @if (camposHV.so || camposHV.office) {
+                  <div class="subsection">
+                    <h4 class="subsection-title">Software</h4>
+                    <div class="form-row">
+                      @if (camposHV.so) {
+                        <div class="form-group">
+                          <label for="sistema_operativo">Sistema Operativo</label>
+                          <input type="text" id="sistema_operativo" formControlName="sistema_operativo" placeholder="Ej: Windows 11 Pro" />
+                        </div>
+                      }
+                      @if (camposHV.office) {
+                        <div class="form-group">
+                          <label for="office">Office</label>
+                          <input type="text" id="office" formControlName="office" placeholder="Ej: Microsoft Office 2021" />
+                        </div>
+                      }
                     </div>
                   </div>
-                  <div class="form-row">
-                    <div class="form-group">
-                      <label for="office">Office</label>
-                      <input type="text" id="office" formControlName="office" placeholder="Ej: Microsoft Office 2021" />
-                    </div>
-                    <div class="form-group">
-                      <label for="tonner">Tóner</label>
-                      <input type="text" id="tonner" formControlName="tonner" placeholder="Ej: HP CF230A" />
-                    </div>
-                  </div>
-                </div>
+                }
 
                 <!-- Información de Red -->
-                <div class="subsection">
-                  <h4 class="subsection-title">Información de Red</h4>
-                  <div class="form-row">
-                    <div class="form-group">
-                      <label for="ip">Dirección IP</label>
-                      <input type="text" id="ip" formControlName="ip" placeholder="Ej: 192.168.1.100" />
-                    </div>
-                    <div class="form-group">
-                      <label for="mac">Dirección MAC</label>
-                      <input type="text" id="mac" formControlName="mac" placeholder="Ej: 00:1A:2B:3C:4D:5E" />
+                @if (camposHV.ip || camposHV.mac) {
+                  <div class="subsection">
+                    <h4 class="subsection-title">Información de Red</h4>
+                    <div class="form-row">
+                      @if (camposHV.ip) {
+                        <div class="form-group">
+                          <label for="ip">Dirección IP</label>
+                          <input type="text" id="ip" formControlName="ip" placeholder="Ej: 192.168.1.100" />
+                        </div>
+                      }
+                      @if (camposHV.mac) {
+                        <div class="form-group">
+                          <label for="mac">Dirección MAC</label>
+                          <input type="text" id="mac" formControlName="mac" placeholder="Ej: 00:1A:2B:3C:4D:5E" />
+                        </div>
+                      }
                     </div>
                   </div>
-                </div>
+                }
 
-                <!-- Información de Compra -->
-                <div class="subsection">
-                  <h4 class="subsection-title">Información de Compra</h4>
-                  <div class="form-row">
-                    <div class="form-group">
-                      <label for="vendedor">Vendedor</label>
-                      <input type="text" id="vendedor" formControlName="vendedor" placeholder="Ej: Tech Solutions S.A." />
+                <!-- Información de Adquisición -->
+                @if (camposHV.adquisicion) {
+                  <div class="subsection">
+                    <h4 class="subsection-title">Información de Compra</h4>
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label for="vendedor">Vendedor</label>
+                        <input type="text" id="vendedor" formControlName="vendedor" placeholder="Ej: Tech Solutions S.A." />
+                      </div>
+                      <div class="form-group">
+                        <label for="fecha_compra">Fecha de Compra</label>
+                        <input type="date" id="fecha_compra" formControlName="fecha_compra" />
+                      </div>
                     </div>
-                    <div class="form-group">
-                      <label for="fecha_compra">Fecha de Compra</label>
-                      <input type="date" id="fecha_compra" formControlName="fecha_compra" />
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label for="fecha_instalacion">Fecha de Instalación</label>
+                        <input type="date" id="fecha_instalacion" formControlName="fecha_instalacion" />
+                      </div>
+                      <div class="form-group">
+                        <label for="costo_compra">Costo de Compra</label>
+                        <input type="number" id="costo_compra" formControlName="costo_compra" placeholder="Ej: 2500000" min="0" />
+                      </div>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label for="contrato">Número de Contrato</label>
+                        <input type="text" id="contrato" formControlName="contrato" placeholder="Ej: CTR-2025-001" />
+                      </div>
+                    </div>
+                    <!-- Tipo de Adquisición -->
+                    <h4 class="subsection-title">Tipo de Adquisición</h4>
+                    <div class="form-row">
+                      <div class="form-group checkbox-group">
+                        <label><input type="checkbox" formControlName="compraddirecta" /><span>Compra Directa</span></label>
+                      </div>
+                      <div class="form-group checkbox-group">
+                        <label><input type="checkbox" formControlName="convenio" /><span>Convenio</span></label>
+                      </div>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group checkbox-group">
+                        <label><input type="checkbox" formControlName="donado" /><span>Donado</span></label>
+                      </div>
+                      <div class="form-group checkbox-group">
+                        <label><input type="checkbox" formControlName="comodato" /><span>Comodato</span></label>
+                      </div>
                     </div>
                   </div>
-                  <div class="form-row">
-                    <div class="form-group">
-                      <label for="fecha_instalacion">Fecha de Instalación</label>
-                      <input type="date" id="fecha_instalacion" formControlName="fecha_instalacion" />
-                    </div>
-                    <div class="form-group">
-                      <label for="costo_compra">Costo de Compra</label>
-                      <input type="number" id="costo_compra" formControlName="costo_compra" placeholder="Ej: 2500000" min="0" />
-                    </div>
-                  </div>
-                  <div class="form-row">
-                    <div class="form-group">
-                      <label for="contrato">Número de Contrato</label>
-                      <input type="text" id="contrato" formControlName="contrato" placeholder="Ej: CTR-2025-001" />
-                    </div>
-                    <div class="form-group">
-                      <label for="tipo_uso">Tipo de Uso</label>
-                      <input type="text" id="tipo_uso" formControlName="tipo_uso" placeholder="Ej: Administrativo, Médico" />
-                    </div>
-                  </div>
-                </div>
+                }
 
-                <!-- Tipo de Adquisición -->
-                <div class="subsection">
-                  <h4 class="subsection-title">Tipo de Adquisición</h4>
-                  <div class="form-row">
-                    <div class="form-group checkbox-group">
-                      <label><input type="checkbox" formControlName="compraddirecta" /><span>Compra Directa</span></label>
-                    </div>
-                    <div class="form-group checkbox-group">
-                      <label><input type="checkbox" formControlName="convenio" /><span>Convenio</span></label>
-                    </div>
-                  </div>
-                  <div class="form-row">
-                    <div class="form-group checkbox-group">
-                      <label><input type="checkbox" formControlName="donado" /><span>Donado</span></label>
-                    </div>
-                    <div class="form-group checkbox-group">
-                      <label><input type="checkbox" formControlName="comodato" /><span>Comodato</span></label>
+                <!-- Tipo de Uso -->
+                @if (camposHV.tipo_uso) {
+                  <div class="subsection">
+                    <h4 class="subsection-title">Tipo de Uso</h4>
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label for="tipo_uso">Tipo de Uso</label>
+                        <input type="text" id="tipo_uso" formControlName="tipo_uso" placeholder="Ej: Administrativo, Médico" />
+                      </div>
                     </div>
                   </div>
-                </div>
+                }
 
-                <!-- Información Adicional -->
-                <div class="subsection">
-                  <h4 class="subsection-title">Información Adicional</h4>
-                  <div class="form-row">
-                    <div class="form-group">
-                      <label for="nombre_usuario">Nombre de Usuario (Sistema)</label>
-                      <input type="text" id="nombre_usuario" formControlName="nombre_usuario" placeholder="Ej: admin, jperez" />
-                    </div>
+                <!-- Nombre de Usuario / Info adicional -->
+                @if (camposHV.nombre_usuario || camposHV.observaciones) {
+                  <div class="subsection">
+                    <h4 class="subsection-title">Información Adicional</h4>
+                    @if (camposHV.nombre_usuario) {
+                      <div class="form-row">
+                        <div class="form-group">
+                          <label for="nombre_usuario">Nombre de Usuario (Sistema)</label>
+                          <input type="text" id="nombre_usuario" formControlName="nombre_usuario" placeholder="Ej: admin, jperez" />
+                        </div>
+                      </div>
+                    }
+                    @if (camposHV.observaciones) {
+                      <div class="form-row">
+                        <div class="form-group full-width">
+                          <label for="observaciones">Observaciones</label>
+                          <textarea id="observaciones" formControlName="observaciones"
+                            placeholder="Observaciones adicionales sobre el equipo..." rows="4"></textarea>
+                        </div>
+                      </div>
+                    }
                   </div>
-                  <div class="form-row">
-                    <div class="form-group full-width">
-                      <label for="observaciones">Observaciones</label>
-                      <textarea id="observaciones" formControlName="observaciones"
-                        placeholder="Observaciones adicionales sobre el equipo..." rows="4"></textarea>
-                    </div>
-                  </div>
-                </div>
+                }
               }
             </div>
           }

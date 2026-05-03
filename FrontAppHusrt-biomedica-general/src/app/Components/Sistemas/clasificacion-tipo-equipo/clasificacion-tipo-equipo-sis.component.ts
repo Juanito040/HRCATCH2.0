@@ -63,6 +63,7 @@ export class ClasificacionTipoEquipoSisComponent implements OnInit {
     this.router.navigate(['/adminsistemas/equipostipo']);
   }
 
+
   openCreateModal() {
     this.isModalOpen = true;
   }

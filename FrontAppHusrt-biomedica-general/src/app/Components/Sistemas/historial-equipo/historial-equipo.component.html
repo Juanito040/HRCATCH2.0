@@ -68,43 +68,38 @@
                     <span>{{ getNombreUsuario(evento) }}</span>
                   </div>
 
-                  <!-- Detalles simples (no edición) -->
-                  @if (evento.accion !== 'EDICION' && evento.detalles) {
+                  <!-- Tabla de cambios (edición de equipo o hoja de vida) -->
+                  @if (evento.cambios && evento.cambios.length > 0) {
+                    <div class="cambios-container">
+                      <p class="cambios-titulo"><i class="fas fa-exchange-alt"></i> Campos modificados</p>
+                      <table class="cambios-tabla">
+                        <thead>
+                          <tr>
+                            <th>Campo</th>
+                            <th>Antes</th>
+                            <th>Después</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          @for (cambio of evento.cambios; track cambio.campo) {
+                            <tr>
+                              <td><strong>{{ formatNombreCampo(cambio.campo) }}</strong></td>
+                              <td class="valor-anterior">{{ cambio.anterior ?? '—' }}</td>
+                              <td class="valor-nuevo">{{ cambio.nuevo ?? '—' }}</td>
+                            </tr>
+                          }
+                        </tbody>
+                      </table>
+                    </div>
+                  } @else if ((evento.accion === 'EDICION' || evento.accion === 'HOJA_VIDA') && !evento.detalles) {
+                    <div class="card-detalles sin-cambios">
+                      <i class="fas fa-info-circle"></i>
+                      <p>Edición registrada sin cambios detectados en los campos principales.</p>
+                    </div>
+                  } @else if (evento.detalles) {
                     <div class="card-detalles">
                       <p>{{ evento.detalles }}</p>
                     </div>
-                  }
-
-                  <!-- Detalles de edición: tabla de cambios -->
-                  @if (evento.accion === 'EDICION') {
-                    @if (evento.cambios && evento.cambios.length > 0) {
-                      <div class="cambios-container">
-                        <p class="cambios-titulo"><i class="fas fa-exchange-alt"></i> Campos modificados</p>
-                        <table class="cambios-tabla">
-                          <thead>
-                            <tr>
-                              <th>Campo</th>
-                              <th>Antes</th>
-                              <th>Después</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            @for (cambio of evento.cambios; track cambio.campo) {
-                              <tr>
-                                <td><strong>{{ formatNombreCampo(cambio.campo) }}</strong></td>
-                                <td class="valor-anterior">{{ cambio.anterior ?? '—' }}</td>
-                                <td class="valor-nuevo">{{ cambio.nuevo ?? '—' }}</td>
-                              </tr>
-                            }
-                          </tbody>
-                        </table>
-                      </div>
-                    } @else {
-                      <div class="card-detalles sin-cambios">
-                        <i class="fas fa-info-circle"></i>
-                        <p>Edición registrada sin cambios detectados en los campos principales.</p>
-                      </div>
-                    }
                   }
 
                 </div>

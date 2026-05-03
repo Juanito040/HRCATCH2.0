@@ -1,8 +1,29 @@
 const { Op } = require('sequelize');
 const SysHojaVida = require('../../models/Sistemas/SysHojaVida');
 const SysEquipo = require('../../models/Sistemas/SysEquipo');
+const SysTrazabilidad = require('../../models/Sistemas/SysTrazabilidad');
 const Servicio = require('../../models/generales/Servicio');
 const TipoEquipo = require('../../models/generales/TipoEquipo');
+
+const CAMPOS_AUDITADOS_HV = [
+    'ip', 'mac', 'procesador', 'ram', 'disco_duro', 'sistema_operativo',
+    'office', 'tonner', 'nombre_usuario', 'vendedor', 'tipo_uso',
+    'fecha_compra', 'fecha_instalacion', 'costo_compra', 'contrato',
+    'observaciones', 'compraddirecta', 'convenio', 'donado', 'comodato'
+];
+
+async function registrarTrazabilidad({ accion, detalles, equipoId, usuarioId }) {
+    try {
+        await SysTrazabilidad.create({
+            accion,
+            detalles: typeof detalles === 'object' ? JSON.stringify(detalles) : detalles,
+            id_sysequipo_fk: equipoId,
+            id_sysusuario_fk: usuarioId || null
+        });
+    } catch (e) {
+        console.error('Error al registrar trazabilidad (hoja vida):', e.message);
+    }
+}
 
 const EQUIPO_INCLUDE = {
     model: SysEquipo,
@@ -153,9 +174,33 @@ exports.upsertByEquipo = async (req, res) => {
         let hojaVida = await SysHojaVida.findOne({ where: { id_sysequipo_fk: equipoId } });
 
         if (hojaVida) {
+            const cambios = CAMPOS_AUDITADOS_HV
+                .filter(campo => req.body[campo] !== undefined &&
+                    String(req.body[campo] ?? '') !== String(hojaVida.dataValues[campo] ?? ''))
+                .map(campo => ({
+                    campo,
+                    anterior: hojaVida.dataValues[campo],
+                    nuevo: req.body[campo]
+                }));
+
             await hojaVida.update({ ...req.body, id_sysequipo_fk: equipoId });
+
+            if (cambios.length > 0) {
+                await registrarTrazabilidad({
+                    accion: 'HOJA_VIDA',
+                    detalles: cambios,
+                    equipoId: Number(equipoId),
+                    usuarioId: req.user?.id
+                });
+            }
         } else {
             hojaVida = await SysHojaVida.create({ ...req.body, id_sysequipo_fk: equipoId });
+            await registrarTrazabilidad({
+                accion: 'HOJA_VIDA',
+                detalles: 'Hoja de vida del equipo creada',
+                equipoId: Number(equipoId),
+                usuarioId: req.user?.id
+            });
         }
 
         const result = await SysHojaVida.findByPk(hojaVida.id_syshoja_vida, { include: [EQUIPO_INCLUDE] });
@@ -189,6 +234,14 @@ exports.uploadFotoByEquipo = async (req, res) => {
         }
 
         const result = await SysHojaVida.findByPk(hojaVida.id_syshoja_vida, { include: [EQUIPO_INCLUDE] });
+
+        await registrarTrazabilidad({
+            accion: 'HOJA_VIDA',
+            detalles: 'Foto del equipo actualizada',
+            equipoId: Number(equipoId),
+            usuarioId: req.user?.id
+        });
+
         res.json({ success: true, message: 'Foto actualizada exitosamente', data: result });
     } catch (error) {
         console.error('Error uploadFotoByEquipo:', error);

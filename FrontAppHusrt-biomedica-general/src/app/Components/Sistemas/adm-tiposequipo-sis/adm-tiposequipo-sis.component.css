@@ -1,0 +1,9 @@
+/* Columnas de texto libre: Materiales Consumibles y Herramientas */
+:host ::ng-deep .p-datatable td:nth-child(3),
+:host ::ng-deep .p-datatable td:nth-child(4) {
+  white-space: pre-line;
+  word-break: break-word;
+  min-width: 140px;
+  max-width: 260px;
+  vertical-align: top;
+}

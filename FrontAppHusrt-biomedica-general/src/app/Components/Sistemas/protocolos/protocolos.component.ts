@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { TipoEquipoService } from '../../../Services/appServices/general/tipoEquipo/tipo-equipo.service';
 import { SysprotocoloService, SysProtocoloPreventivo } from '../../../Services/appServices/sistemasServices/sysprotocolo/sysprotocolo.service';
 import Swal from 'sweetalert2';
+import { extractError } from '../../../utils/error-utils';
 
 @Component({
   selector: 'app-sys-protocolos',
@@ -117,7 +118,7 @@ export class SysProtocolosComponent implements OnInit {
       await this.protocoloService.update(protocolo.id_sysprotocolo!, { estado: !protocolo.estado });
       await this.onTipoEquipoChange();
     } catch (e) {
-      Swal.fire('Error', 'No se pudo cambiar el estado.', 'error');
+      Swal.fire('Error', extractError(e, 'cambiar el estado del protocolo'), 'error');
     }
   }
 
@@ -138,7 +139,7 @@ export class SysProtocolosComponent implements OnInit {
       await this.onTipoEquipoChange();
       Swal.fire({ icon: 'success', title: 'Eliminado', timer: 1500, showConfirmButton: false });
     } catch (e) {
-      Swal.fire('Error', 'No se pudo eliminar el protocolo.', 'error');
+      Swal.fire('Error', extractError(e, 'eliminar el paso del protocolo'), 'error');
     }
   }
 

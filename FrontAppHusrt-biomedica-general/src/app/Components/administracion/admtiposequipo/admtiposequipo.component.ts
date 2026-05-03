@@ -61,7 +61,20 @@ export class AdmtiposequipoComponent implements OnInit {
       repuestosMinimos: ['', [Validators.required]],
       actividad: ['', [Validators.required]],
       tipoR: ['', [Validators.required]],
-      requiereMetrologia: [false]
+      requiereMetrologia: [false],
+      // Campos de Hoja de Vida
+      campo_ip:            [true],
+      campo_mac:           [true],
+      campo_procesador:    [true],
+      campo_ram:           [true],
+      campo_disco:         [true],
+      campo_tonner:        [true],
+      campo_so:            [true],
+      campo_office:        [true],
+      campo_nombre_usuario:[true],
+      campo_tipo_uso:      [true],
+      campo_adquisicion:   [true],
+      campo_observaciones: [true],
     });
   }
 
@@ -108,8 +121,16 @@ export class AdmtiposequipoComponent implements OnInit {
     this.viewProtocolsModal = true;
   }
 
+  private camposHVDefaults = {
+    campo_ip: true, campo_mac: true, campo_procesador: true, campo_ram: true,
+    campo_disco: true, campo_tonner: true, campo_so: true, campo_office: true,
+    campo_nombre_usuario: true, campo_tipo_uso: true,
+    campo_adquisicion: true, campo_observaciones: true,
+  };
+
   viewModalAddTipoEquipo() {
     this.formGroup.reset();
+    this.formGroup.patchValue(this.camposHVDefaults);
     if (this.isAdminBiomedica) {
       this.formGroup.patchValue({ tipoR: 1 }); // Force Biomedica
     }
@@ -120,6 +141,7 @@ export class AdmtiposequipoComponent implements OnInit {
   openEditModal(tipoEquipo: any) {
     this.tipoEquipoSelected = tipoEquipo;
     this.isEditing = true;
+    const bool = (v: any) => (v === undefined || v === null) ? true : Boolean(v);
     this.formGroup.patchValue({
       nombres: tipoEquipo.nombres,
       materialConsumible: tipoEquipo.materialConsumible,
@@ -128,7 +150,19 @@ export class AdmtiposequipoComponent implements OnInit {
       repuestosMinimos: tipoEquipo.repuestosMinimos || 'No aplica',
       actividad: tipoEquipo.actividad || 'Mantenimiento Preventivo',
       tipoR: tipoEquipo.tipoR,
-      requiereMetrologia: tipoEquipo.requiereMetrologia || false
+      requiereMetrologia: tipoEquipo.requiereMetrologia || false,
+      campo_ip:            bool(tipoEquipo.campo_ip),
+      campo_mac:           bool(tipoEquipo.campo_mac),
+      campo_procesador:    bool(tipoEquipo.campo_procesador),
+      campo_ram:           bool(tipoEquipo.campo_ram),
+      campo_disco:         bool(tipoEquipo.campo_disco),
+      campo_tonner:        bool(tipoEquipo.campo_tonner),
+      campo_so:            bool(tipoEquipo.campo_so),
+      campo_office:        bool(tipoEquipo.campo_office),
+      campo_nombre_usuario:bool(tipoEquipo.campo_nombre_usuario),
+      campo_tipo_uso:      bool(tipoEquipo.campo_tipo_uso),
+      campo_adquisicion:   bool(tipoEquipo.campo_adquisicion),
+      campo_observaciones: bool(tipoEquipo.campo_observaciones),
     });
     this.viewAddTipoEquipo = true;
   }

@@ -182,6 +182,82 @@
       <!-- Ideally use p-select here, but select is simpler for fixed values without array in TS -->
     </div>
 
+    <!-- Campos de Hoja de Vida — solo para tipos de área Sistemas (tipoR = 2) -->
+    @if (formGroup.get('tipoR')?.value == 2) {
+    <div class="flex flex-column gap-2 mt-2">
+      <label class="font-bold text-700">
+        <i class="pi pi-sliders-h mr-2"></i>Campos de Hoja de Vida
+      </label>
+      <small class="text-500 mb-2">Selecciona qué campos aplican a este tipo de equipo. Los campos desmarcados no aparecerán en la hoja de vida ni en el modal de creación.</small>
+
+      <div class="surface-ground border-round p-3">
+        <p class="text-600 font-semibold mb-2 text-sm">Red</p>
+        <div class="formgrid grid mb-3">
+          <div class="field-checkbox col-6">
+            <input type="checkbox" formControlName="campo_ip" id="bio_campo_ip" class="mr-2" />
+            <label for="bio_campo_ip">Dirección IP</label>
+          </div>
+          <div class="field-checkbox col-6">
+            <input type="checkbox" formControlName="campo_mac" id="bio_campo_mac" class="mr-2" />
+            <label for="bio_campo_mac">Dirección MAC</label>
+          </div>
+        </div>
+
+        <p class="text-600 font-semibold mb-2 text-sm">Hardware</p>
+        <div class="formgrid grid mb-3">
+          <div class="field-checkbox col-6">
+            <input type="checkbox" formControlName="campo_procesador" id="bio_campo_procesador" class="mr-2" />
+            <label for="bio_campo_procesador">Procesador</label>
+          </div>
+          <div class="field-checkbox col-6">
+            <input type="checkbox" formControlName="campo_ram" id="bio_campo_ram" class="mr-2" />
+            <label for="bio_campo_ram">RAM</label>
+          </div>
+          <div class="field-checkbox col-6">
+            <input type="checkbox" formControlName="campo_disco" id="bio_campo_disco" class="mr-2" />
+            <label for="bio_campo_disco">Disco Duro</label>
+          </div>
+          <div class="field-checkbox col-6">
+            <input type="checkbox" formControlName="campo_tonner" id="bio_campo_tonner" class="mr-2" />
+            <label for="bio_campo_tonner">Tóner / Cartucho</label>
+          </div>
+        </div>
+
+        <p class="text-600 font-semibold mb-2 text-sm">Software</p>
+        <div class="formgrid grid mb-3">
+          <div class="field-checkbox col-6">
+            <input type="checkbox" formControlName="campo_so" id="bio_campo_so" class="mr-2" />
+            <label for="bio_campo_so">Sistema Operativo</label>
+          </div>
+          <div class="field-checkbox col-6">
+            <input type="checkbox" formControlName="campo_office" id="bio_campo_office" class="mr-2" />
+            <label for="bio_campo_office">Office / Suite</label>
+          </div>
+        </div>
+
+        <p class="text-600 font-semibold mb-2 text-sm">Gestión</p>
+        <div class="formgrid grid">
+          <div class="field-checkbox col-6">
+            <input type="checkbox" formControlName="campo_nombre_usuario" id="bio_campo_nombre_usuario" class="mr-2" />
+            <label for="bio_campo_nombre_usuario">Nombre de Usuario</label>
+          </div>
+          <div class="field-checkbox col-6">
+            <input type="checkbox" formControlName="campo_tipo_uso" id="bio_campo_tipo_uso" class="mr-2" />
+            <label for="bio_campo_tipo_uso">Tipo de Uso</label>
+          </div>
+          <div class="field-checkbox col-6">
+            <input type="checkbox" formControlName="campo_adquisicion" id="bio_campo_adquisicion" class="mr-2" />
+            <label for="bio_campo_adquisicion">Adquisición</label>
+          </div>
+          <div class="field-checkbox col-6">
+            <input type="checkbox" formControlName="campo_observaciones" id="bio_campo_observaciones" class="mr-2" />
+            <label for="bio_campo_observaciones">Observaciones</label>
+          </div>
+        </div>
+      </div>
+    </div>
+    }
+
     <div class="flex justify-content-end gap-2 mt-4">
       <p-button label="Cancelar" icon="pi pi-times" [text]="true" (onClick)="viewAddTipoEquipo = false"
         severity="secondary"></p-button>

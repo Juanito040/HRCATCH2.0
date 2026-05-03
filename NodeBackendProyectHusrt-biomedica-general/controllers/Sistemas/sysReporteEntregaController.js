@@ -73,13 +73,16 @@ exports.createReporte = async (req, res) => {
                 reporte.recibido_por      ? `Recibido por: ${reporte.recibido_por}` : ''
             ].filter(Boolean).join(' · ');
 
-            SysTrazabilidad.create({
-                accion: 'REPORTE_ENTREGA',
-                detalles,
-                fecha: new Date(),
-                id_sysequipo_fk: reporte.id_sysequipo_fk,
-                id_sysusuario_fk: reporte.id_sysusuario_fk || null
-            }).catch(e => console.warn('trazabilidad reporte:', e.message));
+            try {
+                await SysTrazabilidad.create({
+                    accion: 'REPORTE_ENTREGA',
+                    detalles,
+                    id_sysequipo_fk: reporte.id_sysequipo_fk,
+                    id_sysusuario_fk: reporte.id_sysusuario_fk || null
+                });
+            } catch (e) {
+                console.warn('trazabilidad reporte:', e.message);
+            }
         }
 
         res.status(201).json({ success: true, message: 'Reporte creado exitosamente', data: result });
@@ -504,8 +507,8 @@ exports.exportarPdfBaja = async (req, res) => {
         if (eq.id_sysequipo) {
             ultimoMtto = await SysMantenimiento.findOne({
                 where: { id_sysequipo_fk: eq.id_sysequipo },
-                order: [['fecha', 'DESC'], ['createdAt', 'DESC']],
-                attributes: ['id_sysmtto', 'numero_reporte', 'fecha']
+                order: [['fechaRealizado', 'DESC'], ['createdAt', 'DESC']],
+                attributes: ['id', 'fechaRealizado']
             });
         }
 
@@ -635,7 +638,7 @@ exports.exportarPdfBaja = async (req, res) => {
 
         // Fila 3 central: título del documento (en 2 líneas si hace falta)
         doc.font('Arial-Bold').fontSize(7.5).fillColor('#000')
-           .text('CONCEPTO TÉCNICO PARA SUGERENCIA DE BAJA DE TECNOLOGÍAS BIOMÉDICAS',
+           .text('CONCEPTO TÉCNICO PARA SUGERENCIA DE BAJA DE TECNOLOGÍAS DE SISTEMAS',
                  cx, y + row1H + row2H + (row3H - 15) / 2,
                  { width: cw, align: 'center' });
 
@@ -711,10 +714,8 @@ exports.exportarPdfBaja = async (req, res) => {
         // Fila de datos del último mantenimiento
         drawRect(M,        y, hFecha,   DATA_H);
         drawRect(M+hFecha, y, hReporte, DATA_H);
-        const mttoFecha   = ultimoMtto ? fmtF(ultimoMtto.fecha) : '';
-        const mttoReporte = ultimoMtto
-            ? (ultimoMtto.numero_reporte || String(ultimoMtto.id_sysmtto).padStart(5, '0'))
-            : '';
+        const mttoFecha   = ultimoMtto ? fmtF(ultimoMtto.fechaRealizado) : '';
+        const mttoReporte = ultimoMtto ? String(ultimoMtto.id).padStart(5, '0') : '';
         doc.font('Arial').fontSize(8).fillColor('#000')
            .text(mttoFecha,   M + 4,        y + (DATA_H-8)/2, { width: hFecha   - 8, align: 'center', lineBreak: false });
         doc.font('Arial').fontSize(8).fillColor('#000')

@@ -14,11 +14,14 @@
       }
     </div>
     <div class="header-actions">
-      @if (!isEditing && hojaVida && !isLoading) {
-        <button class="btn btn-outline" (click)="descargarPdf()" [disabled]="isDownloading">
-          {{ isDownloading ? 'Generando...' : 'Descargar PDF' }}
-        </button>
-        <button class="btn btn-primary" (click)="startEditing()">Editar</button>
+      @if (!isEditing && !isLoading) {
+        <button class="btn btn-outline" (click)="goBack()">Volver</button>
+        @if (hojaVida) {
+          <button class="btn btn-outline" (click)="descargarPdf()" [disabled]="isDownloading">
+            {{ isDownloading ? 'Generando...' : 'Descargar PDF' }}
+          </button>
+          <button class="btn btn-primary" (click)="startEditing()">Editar</button>
+        }
       }
       @if (isEditing && !isLoading) {
         <button class="btn btn-outline" (click)="cancelEditing()" [disabled]="isSaving">Cancelar</button>
@@ -49,7 +52,14 @@
   <!-- ── Aviso nuevo equipo ─────────────────────────────────────────────── -->
   @if (!isLoading && isNew && !error) {
     <div class="new-notice">
-      Este equipo aún no tiene hoja de vida. Completa el formulario para crear una.
+      <div class="new-notice-icon"><i class="fas fa-clipboard-list"></i></div>
+      <div class="new-notice-content">
+        <strong class="new-notice-title">Este equipo aún no tiene Hoja de Vida registrada</strong>
+        <span class="new-notice-sub">
+          Completa el formulario a continuación y pulsa <strong>Guardar</strong> para crearla.
+          Los campos marcados con <span class="req-star">*</span> son obligatorios.
+        </span>
+      </div>
     </div>
   }
 
@@ -96,119 +106,178 @@
     <div class="hv-main-card">
 
       <!-- Red -->
-      <div class="form-section">
-        <div class="form-section-title">Red</div>
-        <div class="form-grid">
-          <div class="form-group">
-            <label>Dirección IP</label>
-            <input type="text" class="form-control" [(ngModel)]="formData.ip" placeholder="192.168.1.x" />
-          </div>
-          <div class="form-group">
-            <label>Dirección MAC</label>
-            <input type="text" class="form-control" [(ngModel)]="formData.mac" placeholder="XX:XX:XX:XX:XX:XX" />
+      @if (campos.ip || campos.mac) {
+        <div class="form-section">
+          <div class="form-section-title">Red</div>
+          <div class="form-grid">
+            @if (campos.ip) {
+              <div class="form-group">
+                <label>Dirección IP <span class="req-star">*</span></label>
+                <input type="text" class="form-control" [(ngModel)]="formData.ip" placeholder="192.168.1.x" />
+              </div>
+            }
+            @if (campos.mac) {
+              <div class="form-group">
+                <label>Dirección MAC</label>
+                <input type="text" class="form-control" [(ngModel)]="formData.mac" placeholder="XX:XX:XX:XX:XX:XX" />
+              </div>
+            }
           </div>
         </div>
-      </div>
+      }
 
       <!-- Hardware -->
-      <div class="form-section">
-        <div class="form-section-title">Hardware</div>
-        <div class="form-grid">
-          <div class="form-group">
-            <label>Procesador</label>
-            <input type="text" class="form-control" [(ngModel)]="formData.procesador" placeholder="Intel Core i5..." />
-          </div>
-          <div class="form-group">
-            <label>RAM</label>
-            <input type="text" class="form-control" [(ngModel)]="formData.ram" placeholder="8 GB DDR4" />
-          </div>
-          <div class="form-group">
-            <label>Disco Duro</label>
-            <input type="text" class="form-control" [(ngModel)]="formData.disco_duro" placeholder="SSD 256 GB" />
-          </div>
-          <div class="form-group">
-            <label>Tóner / Cartucho</label>
-            <input type="text" class="form-control" [(ngModel)]="formData.tonner" />
+      @if (campos.procesador || campos.ram || campos.disco || campos.tonner) {
+        <div class="form-section">
+          <div class="form-section-title">Hardware</div>
+          <div class="form-grid">
+            @if (campos.procesador) {
+              <div class="form-group">
+                <label>Procesador</label>
+                <input type="text" class="form-control" [(ngModel)]="formData.procesador" placeholder="Intel Core i5..." />
+              </div>
+            }
+            @if (campos.ram) {
+              <div class="form-group">
+                <label>RAM</label>
+                <input type="text" class="form-control" [(ngModel)]="formData.ram" placeholder="8 GB DDR4" />
+              </div>
+            }
+            @if (campos.disco) {
+              <div class="form-group">
+                <label>Disco Duro</label>
+                <input type="text" class="form-control" [(ngModel)]="formData.disco_duro" placeholder="SSD 256 GB" />
+              </div>
+            }
+            @if (campos.tonner) {
+              <div class="form-group">
+                <label>Tóner / Cartucho</label>
+                <input type="text" class="form-control" [(ngModel)]="formData.tonner" />
+              </div>
+            }
           </div>
         </div>
-      </div>
+      }
 
       <!-- Software -->
-      <div class="form-section">
-        <div class="form-section-title">Software</div>
-        <div class="form-grid">
-          <div class="form-group">
-            <label>Sistema Operativo</label>
-            <input type="text" class="form-control" [(ngModel)]="formData.sistema_operativo" placeholder="Windows 11 Pro" />
-          </div>
-          <div class="form-group">
-            <label>Office / Suite ofimática</label>
-            <input type="text" class="form-control" [(ngModel)]="formData.office" placeholder="Microsoft 365" />
+      @if (campos.so || campos.office) {
+        <div class="form-section">
+          <div class="form-section-title">Software</div>
+          <div class="form-grid">
+            @if (campos.so) {
+              <div class="form-group">
+                <label>Sistema Operativo <span class="req-star">*</span></label>
+                <input type="text" class="form-control" [(ngModel)]="formData.sistema_operativo" placeholder="Windows 11 Pro" />
+              </div>
+            }
+            @if (campos.office) {
+              <div class="form-group">
+                <label>Office / Suite ofimática</label>
+                <input type="text" class="form-control" [(ngModel)]="formData.office" placeholder="Microsoft 365" />
+              </div>
+            }
           </div>
         </div>
-      </div>
+      }
 
       <!-- Usuario y Uso -->
-      <div class="form-section">
-        <div class="form-section-title">Usuario y Uso</div>
-        <div class="form-grid">
-          <div class="form-group">
-            <label>Nombre del Usuario</label>
-            <input type="text" class="form-control" [(ngModel)]="formData.nombre_usuario" />
-          </div>
-          <div class="form-group">
-            <label>Tipo de Uso</label>
-            <select class="form-control" [(ngModel)]="formData.tipo_uso">
-              <option value="">Seleccione...</option>
-              <option *ngFor="let tipo of tiposUso" [value]="tipo">{{ tipo }}</option>
-            </select>
+      @if (campos.nombre_usuario || campos.tipo_uso) {
+        <div class="form-section">
+          <div class="form-section-title">Usuario y Uso</div>
+          <div class="form-grid">
+            @if (campos.nombre_usuario) {
+              <div class="form-group">
+                <label>Nombre del Usuario <span class="req-star">*</span></label>
+                <input type="text" class="form-control" [(ngModel)]="formData.nombre_usuario" />
+              </div>
+            }
+            @if (campos.tipo_uso) {
+              <div class="form-group">
+                <label>Tipo de Uso <span class="req-star">*</span></label>
+                <select class="form-control" [(ngModel)]="formData.tipo_uso">
+                  <option value="">Seleccione...</option>
+                  <option *ngFor="let tipo of tiposUso" [value]="tipo">{{ tipo }}</option>
+                </select>
+              </div>
+            }
           </div>
         </div>
-      </div>
+      }
 
       <!-- Adquisición -->
+      @if (campos.adquisicion) {
+        <div class="form-section">
+          <div class="form-section-title">Adquisición</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Vendedor / Proveedor</label>
+              <input type="text" class="form-control" [(ngModel)]="formData.vendedor" />
+            </div>
+            <div class="form-group">
+              <label>Fecha de Compra <span class="req-star">*</span></label>
+              <input type="date" class="form-control" [(ngModel)]="formData.fecha_compra" />
+            </div>
+            <div class="form-group">
+              <label>Fecha de Instalación</label>
+              <input type="date" class="form-control" [(ngModel)]="formData.fecha_instalacion" />
+            </div>
+            <div class="form-group">
+              <label>Costo de Compra</label>
+              <input type="text" class="form-control" [(ngModel)]="formData.costo_compra" placeholder="$ 0.00" />
+            </div>
+            <div class="form-group full-width">
+              <label>Contrato</label>
+              <input type="text" class="form-control" [(ngModel)]="formData.contrato" />
+            </div>
+          </div>
+
+          <div class="form-section-subtitle">Modalidad de Adquisición</div>
+          <div class="checkbox-row">
+            <label class="checkbox-label"><input type="checkbox" [(ngModel)]="formData.compraddirecta" /> Compra Directa</label>
+            <label class="checkbox-label"><input type="checkbox" [(ngModel)]="formData.convenio" /> Convenio</label>
+            <label class="checkbox-label"><input type="checkbox" [(ngModel)]="formData.donado" /> Donado</label>
+            <label class="checkbox-label"><input type="checkbox" [(ngModel)]="formData.comodato" /> Comodato</label>
+          </div>
+        </div>
+      }
+
+      <!-- Soporte del Fabricante -->
       <div class="form-section">
-        <div class="form-section-title">Adquisición</div>
+        <div class="form-section-title">Soporte del Fabricante</div>
         <div class="form-grid">
           <div class="form-group">
-            <label>Vendedor / Proveedor</label>
-            <input type="text" class="form-control" [(ngModel)]="formData.vendedor" />
+            <label>Fecha de Inicio de Soporte</label>
+            <input type="date" class="form-control" [(ngModel)]="formData.fecha_inicio_soporte" />
           </div>
           <div class="form-group">
-            <label>Fecha de Compra</label>
-            <input type="date" class="form-control" [(ngModel)]="formData.fecha_compra" />
-          </div>
-          <div class="form-group">
-            <label>Fecha de Instalación</label>
-            <input type="date" class="form-control" [(ngModel)]="formData.fecha_instalacion" />
-          </div>
-          <div class="form-group">
-            <label>Costo de Compra</label>
-            <input type="text" class="form-control" [(ngModel)]="formData.costo_compra" placeholder="$ 0.00" />
-          </div>
-          <div class="form-group full-width">
-            <label>Contrato</label>
-            <input type="text" class="form-control" [(ngModel)]="formData.contrato" />
+            <label>Años de Soporte del Fabricante</label>
+            <input type="number" class="form-control" [(ngModel)]="formData.anos_soporte_fabricante"
+              min="0" placeholder="Ej. 5" />
           </div>
         </div>
-
-        <div class="form-section-subtitle">Modalidad de Adquisición</div>
-        <div class="checkbox-row">
-          <label class="checkbox-label"><input type="checkbox" [(ngModel)]="formData.compraddirecta" /> Compra Directa</label>
-          <label class="checkbox-label"><input type="checkbox" [(ngModel)]="formData.convenio" /> Convenio</label>
-          <label class="checkbox-label"><input type="checkbox" [(ngModel)]="formData.donado" /> Donado</label>
-          <label class="checkbox-label"><input type="checkbox" [(ngModel)]="formData.comodato" /> Comodato</label>
-        </div>
+        @if (fechaFinSoporte) {
+          <div class="soporte-preview">
+            <span>Fin de soporte calculado: <strong>{{ fechaFinSoporte }}</strong></span>
+            <span class="badge"
+              [class.badge-green]="estadoSoporte === 'en-soporte'"
+              [class.badge-red]="estadoSoporte === 'obsoleto'"
+              [class.badge-gray]="estadoSoporte === 'sin-datos'">
+              {{ labelSoporte }}
+            </span>
+          </div>
+        }
       </div>
 
       <!-- Observaciones -->
-      <div class="form-section">
-        <div class="form-section-title">Observaciones</div>
-        <div class="form-group">
-          <textarea class="form-control" rows="3" [(ngModel)]="formData.observaciones"
-            placeholder="Observaciones generales del equipo..."></textarea>
+      @if (campos.observaciones) {
+        <div class="form-section">
+          <div class="form-section-title">Observaciones</div>
+          <div class="form-group">
+            <textarea class="form-control" rows="3" [(ngModel)]="formData.observaciones"
+              placeholder="Observaciones generales del equipo..."></textarea>
+          </div>
         </div>
-      </div>
+      }
 
     </div>
   }
@@ -268,74 +337,133 @@
     </div>
 
     <!-- Secciones acordeón -->
-    <details class="accordion-section" open>
-      <summary class="accordion-title">Red</summary>
-      <div class="accordion-body">
-        <div class="field-grid">
-          <div class="field-row"><strong>Dirección IP:</strong> <span>{{ hojaVida.ip || '—' }}</span></div>
-          <div class="field-row"><strong>Dirección MAC:</strong> <span class="mono">{{ hojaVida.mac || '—' }}</span></div>
+    @if (campos.ip || campos.mac) {
+      <details class="accordion-section" open>
+        <summary class="accordion-title">Red</summary>
+        <div class="accordion-body">
+          <div class="field-grid">
+            @if (campos.ip) {
+              <div class="field-row"><strong>Dirección IP:</strong> <span>{{ hojaVida.ip || '—' }}</span></div>
+            }
+            @if (campos.mac) {
+              <div class="field-row"><strong>Dirección MAC:</strong> <span class="mono">{{ hojaVida.mac || '—' }}</span></div>
+            }
+          </div>
         </div>
-      </div>
-    </details>
+      </details>
+    }
+
+    @if (campos.procesador || campos.ram || campos.disco || campos.tonner) {
+      <details class="accordion-section" open>
+        <summary class="accordion-title">Hardware</summary>
+        <div class="accordion-body">
+          <div class="field-grid">
+            @if (campos.procesador) {
+              <div class="field-row"><strong>Procesador:</strong> <span>{{ hojaVida.procesador || '—' }}</span></div>
+            }
+            @if (campos.ram) {
+              <div class="field-row"><strong>RAM:</strong> <span>{{ hojaVida.ram || '—' }}</span></div>
+            }
+            @if (campos.disco) {
+              <div class="field-row"><strong>Disco Duro:</strong> <span>{{ hojaVida.disco_duro || '—' }}</span></div>
+            }
+            @if (campos.tonner) {
+              <div class="field-row"><strong>Tóner / Cartucho:</strong> <span>{{ hojaVida.tonner || '—' }}</span></div>
+            }
+          </div>
+        </div>
+      </details>
+    }
+
+    @if (campos.so || campos.office) {
+      <details class="accordion-section" open>
+        <summary class="accordion-title">Software</summary>
+        <div class="accordion-body">
+          <div class="field-grid">
+            @if (campos.so) {
+              <div class="field-row"><strong>Sistema Operativo:</strong> <span>{{ hojaVida.sistema_operativo || '—' }}</span></div>
+            }
+            @if (campos.office) {
+              <div class="field-row"><strong>Office / Suite:</strong> <span>{{ hojaVida.office || '—' }}</span></div>
+            }
+          </div>
+        </div>
+      </details>
+    }
+
+    @if (campos.nombre_usuario || campos.tipo_uso) {
+      <details class="accordion-section" open>
+        <summary class="accordion-title">Usuario y Uso</summary>
+        <div class="accordion-body">
+          <div class="field-grid">
+            @if (campos.nombre_usuario) {
+              <div class="field-row"><strong>Nombre del Usuario:</strong> <span>{{ hojaVida.nombre_usuario || '—' }}</span></div>
+            }
+            @if (campos.tipo_uso) {
+              <div class="field-row"><strong>Tipo de Uso:</strong> <span>{{ hojaVida.tipo_uso || '—' }}</span></div>
+            }
+          </div>
+        </div>
+      </details>
+    }
+
+    @if (campos.adquisicion) {
+      <details class="accordion-section" open>
+        <summary class="accordion-title">Adquisición</summary>
+        <div class="accordion-body">
+          <div class="field-grid">
+            <div class="field-row"><strong>Vendedor / Proveedor:</strong> <span>{{ hojaVida.vendedor || '—' }}</span></div>
+            <div class="field-row"><strong>Fecha de Compra:</strong> <span>{{ hojaVida.fecha_compra || '—' }}</span></div>
+            <div class="field-row"><strong>Fecha de Instalación:</strong> <span>{{ hojaVida.fecha_instalacion || '—' }}</span></div>
+            <div class="field-row"><strong>Costo de Compra:</strong> <span>{{ hojaVida.costo_compra || '—' }}</span></div>
+            @if (hojaVida.contrato) {
+              <div class="field-row full"><strong>Contrato:</strong> <span>{{ hojaVida.contrato }}</span></div>
+            }
+          </div>
+          <div class="badges-row mt-sm">
+            <strong class="badges-label">Modalidad:</strong>
+            @if (hojaVida.compraddirecta) { <span class="badge badge-blue">Compra Directa</span> }
+            @if (hojaVida.convenio)       { <span class="badge badge-green">Convenio</span> }
+            @if (hojaVida.donado)         { <span class="badge badge-purple">Donado</span> }
+            @if (hojaVida.comodato)       { <span class="badge badge-orange">Comodato</span> }
+            @if (!hojaVida.compraddirecta && !hojaVida.convenio && !hojaVida.donado && !hojaVida.comodato) {
+              <span class="text-muted">Sin modalidad especificada</span>
+            }
+          </div>
+        </div>
+      </details>
+    }
 
     <details class="accordion-section" open>
-      <summary class="accordion-title">Hardware</summary>
+      <summary class="accordion-title">Soporte del Fabricante</summary>
       <div class="accordion-body">
         <div class="field-grid">
-          <div class="field-row"><strong>Procesador:</strong> <span>{{ hojaVida.procesador || '—' }}</span></div>
-          <div class="field-row"><strong>RAM:</strong> <span>{{ hojaVida.ram || '—' }}</span></div>
-          <div class="field-row"><strong>Disco Duro:</strong> <span>{{ hojaVida.disco_duro || '—' }}</span></div>
-          <div class="field-row"><strong>Tóner / Cartucho:</strong> <span>{{ hojaVida.tonner || '—' }}</span></div>
-        </div>
-      </div>
-    </details>
-
-    <details class="accordion-section" open>
-      <summary class="accordion-title">Software</summary>
-      <div class="accordion-body">
-        <div class="field-grid">
-          <div class="field-row"><strong>Sistema Operativo:</strong> <span>{{ hojaVida.sistema_operativo || '—' }}</span></div>
-          <div class="field-row"><strong>Office / Suite:</strong> <span>{{ hojaVida.office || '—' }}</span></div>
-        </div>
-      </div>
-    </details>
-
-    <details class="accordion-section" open>
-      <summary class="accordion-title">Usuario y Uso</summary>
-      <div class="accordion-body">
-        <div class="field-grid">
-          <div class="field-row"><strong>Nombre del Usuario:</strong> <span>{{ hojaVida.nombre_usuario || '—' }}</span></div>
-          <div class="field-row"><strong>Tipo de Uso:</strong> <span>{{ hojaVida.tipo_uso || '—' }}</span></div>
-        </div>
-      </div>
-    </details>
-
-    <details class="accordion-section" open>
-      <summary class="accordion-title">Adquisición</summary>
-      <div class="accordion-body">
-        <div class="field-grid">
-          <div class="field-row"><strong>Vendedor / Proveedor:</strong> <span>{{ hojaVida.vendedor || '—' }}</span></div>
-          <div class="field-row"><strong>Fecha de Compra:</strong> <span>{{ hojaVida.fecha_compra || '—' }}</span></div>
-          <div class="field-row"><strong>Fecha de Instalación:</strong> <span>{{ hojaVida.fecha_instalacion || '—' }}</span></div>
-          <div class="field-row"><strong>Costo de Compra:</strong> <span>{{ hojaVida.costo_compra || '—' }}</span></div>
-          @if (hojaVida.contrato) {
-            <div class="field-row full"><strong>Contrato:</strong> <span>{{ hojaVida.contrato }}</span></div>
-          }
+          <div class="field-row">
+            <strong>Inicio de Soporte:</strong>
+            <span>{{ hojaVida.fecha_inicio_soporte || '—' }}</span>
+          </div>
+          <div class="field-row">
+            <strong>Años de Soporte:</strong>
+            <span>{{ hojaVida.anos_soporte_fabricante != null ? hojaVida.anos_soporte_fabricante + ' años' : '—' }}</span>
+          </div>
+          <div class="field-row">
+            <strong>Fin de Soporte:</strong>
+            <span>{{ fechaFinSoporte || '—' }}</span>
+          </div>
         </div>
         <div class="badges-row mt-sm">
-          <strong class="badges-label">Modalidad:</strong>
-          @if (hojaVida.compraddirecta) { <span class="badge badge-blue">Compra Directa</span> }
-          @if (hojaVida.convenio)       { <span class="badge badge-green">Convenio</span> }
-          @if (hojaVida.donado)         { <span class="badge badge-purple">Donado</span> }
-          @if (hojaVida.comodato)       { <span class="badge badge-orange">Comodato</span> }
-          @if (!hojaVida.compraddirecta && !hojaVida.convenio && !hojaVida.donado && !hojaVida.comodato) {
-            <span class="text-muted">Sin modalidad especificada</span>
-          }
+          <strong class="badges-label">Estado:</strong>
+          <span class="badge"
+            [class.badge-green]="estadoSoporte === 'en-soporte'"
+            [class.badge-red]="estadoSoporte === 'obsoleto'"
+            [class.badge-gray]="estadoSoporte === 'sin-datos'">
+            {{ labelSoporte }}
+          </span>
         </div>
       </div>
     </details>
 
-    @if (hojaVida.observaciones) {
+    @if (campos.observaciones && hojaVida.observaciones) {
       <details class="accordion-section" open>
         <summary class="accordion-title">Observaciones</summary>
         <div class="accordion-body">

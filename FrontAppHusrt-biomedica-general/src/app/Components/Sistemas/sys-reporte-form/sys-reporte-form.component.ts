@@ -7,6 +7,7 @@ import { ServicioService } from '../../../Services/appServices/general/servicio/
 import { SysequiposService } from '../../../Services/appServices/sistemasServices/sysequipos/sysequipos.service';
 import { getDecodedAccessToken } from '../../../utilidades';
 import Swal from 'sweetalert2';
+import { extractError } from '../../../utils/error-utils';
 
 @Component({
   selector: 'app-sys-reporte-form',
@@ -39,11 +40,14 @@ export class SysReporteFormComponent implements OnInit {
 
   ngOnInit() {
     window.scrollTo({ top: 0, behavior: 'instant' });
+    this.origenRuta = sessionStorage.getItem('origenReporte') || '/adminsistemas/equipos';
     const raw = sessionStorage.getItem('equipoParaReporte');
     if (raw) {
       this.equipo = JSON.parse(raw);
+    } else {
+      this.router.navigate([this.origenRuta]);
+      return;
     }
-    this.origenRuta = sessionStorage.getItem('origenReporte') || '/adminsistemas/equipos';
     this.initForm();
     this.loadLookupData();
   }
@@ -153,13 +157,13 @@ export class SysReporteFormComponent implements OnInit {
             showConfirmButton: true
           });
         } else {
-          Swal.fire('Error', res.message || 'No se pudo guardar el reporte.', 'error');
+          Swal.fire('Error al guardar', res.message || 'No se pudo guardar el reporte de entrega. Verifica que todos los campos estén completos.', 'error');
         }
         this.isSubmitting = false;
       },
       error: (err: any) => {
         console.error('createReporte:', err);
-        Swal.fire('Error', 'Error al conectar con el servidor.', 'error');
+        Swal.fire('Error', extractError(err, 'guardar el reporte de entrega'), 'error');
         this.isSubmitting = false;
       }
     });
@@ -176,8 +180,8 @@ export class SysReporteFormComponent implements OnInit {
       a.download = `ReporteEntrega_${this.savedReporteId}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
-    } catch {
-      Swal.fire('Error', 'No se pudo generar el PDF.', 'error');
+    } catch (err) {
+      Swal.fire('Error', extractError(err, 'generar el PDF del reporte de entrega'), 'error');
     } finally {
       this.isDownloadingPdf = false;
     }
