@@ -139,9 +139,8 @@ app.use('/cargos', checkToken, cargoRoutes);
 const { fixMovimientosStockFK } = require('../migrations/runMigrations');
 
 sequelize.query('SET FOREIGN_KEY_CHECKS = 0')
-  .then(() => sequelize.query('DROP TABLE IF EXISTS `SysReporteEntrega`'))
   .then(() => sequelize.query(`
-    CREATE TABLE \`SysReporteEntrega\` (
+    CREATE TABLE IF NOT EXISTS \`SysReporteEntrega\` (
       id_sysreporte INTEGER AUTO_INCREMENT PRIMARY KEY,
       fecha DATE NULL,
       hora_llamado VARCHAR(10) NULL,
@@ -162,10 +161,7 @@ sequelize.query('SET FOREIGN_KEY_CHECKS = 0')
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `))
   .then(() => sequelize.query('SET FOREIGN_KEY_CHECKS = 1'))
-  .then(() => {
-    console.log('[DB] Tabla SysReporteEntrega lista');
-    return fixMovimientosStockFK();
-  })
+  .then(() => fixMovimientosStockFK())
   .then(() => sequelize.query(`
     CREATE TABLE IF NOT EXISTS \`SysBodega\` (
       id_sysbodega INTEGER AUTO_INCREMENT PRIMARY KEY,
@@ -179,7 +175,7 @@ sequelize.query('SET FOREIGN_KEY_CHECKS = 0')
       CONSTRAINT fk_sysbodega_usuario FOREIGN KEY (id_sysusuario_fk) REFERENCES Usuario(id) ON DELETE SET NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `))
-  .then(() => { console.log('[DB] Tabla SysBodega lista'); })
+  .then(() => {})
   .then(() => sequelize.sync({ alter: false }))
   .then(() => {
     app.listen(3005, '0.0.0.0', () => {

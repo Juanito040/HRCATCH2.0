@@ -38,4 +38,5 @@ export class HomeadminsistemasComponent implements OnInit {
   irARepuestos() { this.router.navigate(['/adminsistemas/repuestos']); }
   irAServiciosSis() { this.router.navigate(['/adminsistemas/servicios']); }
   irASedesSis() { this.router.navigate(['/adminsistemas/sedes']); }
+  irAIndicadores() { this.router.navigate(['/adminsistemas/indicadores']); }
 }

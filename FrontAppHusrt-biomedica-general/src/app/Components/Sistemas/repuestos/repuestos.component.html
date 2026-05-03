@@ -60,9 +60,19 @@
       <input type="text" placeholder="Buscar por nombre, tipo, N° parte..." (input)="onSearch($event)" />
     </div>
     <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
-      <button class="btn-secondary" (click)="exportarRepuestosCSV()" title="Exportar tabla actual a CSV">
-        <i class="pi pi-download"></i> Exportar CSV
-      </button>
+      <div class="dropdown" style="position: relative; display: inline-block; overflow: visible;">
+        <button class="btn-secondary" (click)="toggleExportOptions('repuestos')" title="Exportar tabla actual">
+          <i class="pi pi-download"></i> Exportar <i class="pi pi-chevron-down" style="font-size: 0.8rem; margin-left: 0.2rem;"></i>
+        </button>
+        <div class="dropdown-content" *ngIf="showExportOptionsRepuestos" style="position: absolute; background-color: white; min-width: 150px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 100; border-radius: 8px; right: 0; top: 110%; overflow: visible; border: 1px solid #e5e7eb;">
+          <a style="color: #374151; padding: 10px 16px; text-decoration: none; display: flex; align-items: center; gap: 8px; cursor: pointer; border-bottom: 1px solid #f3f4f6; font-size: 0.9rem;" (click)="exportarRepuestosCSV(); showExportOptionsRepuestos = false">
+            <i class="pi pi-file-excel" style="color: #10b981;"></i> A CSV
+          </a>
+          <a style="color: #374151; padding: 10px 16px; text-decoration: none; display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.9rem;" (click)="exportarRepuestosPDF(); showExportOptionsRepuestos = false">
+            <i class="pi pi-file-pdf" style="color: #ef4444;"></i> A PDF
+          </a>
+        </div>
+      </div>
       <button *ngIf="isAdmin" class="btn-primary" (click)="openCreateModal()">
         <i class="pi pi-plus"></i> Nuevo Repuesto
       </button>
@@ -203,9 +213,19 @@
     <input type="date" [(ngModel)]="filtroFechaHasta" class="filtro-date" title="Hasta" />
     <button class="btn-primary" (click)="aplicarFiltrosMovimientos()"><i class="pi pi-filter"></i> Filtrar</button>
     <button class="btn-secondary" (click)="limpiarFiltrosMovimientos()"><i class="pi pi-times"></i> Limpiar</button>
-    <button class="btn-secondary" (click)="exportarMovimientosCSV()" title="Exportar historial a CSV">
-      <i class="pi pi-download"></i> Exportar CSV
-    </button>
+    <div class="dropdown" style="position: relative; display: inline-block; overflow: visible;">
+      <button class="btn-secondary" (click)="toggleExportOptions('movimientos')" title="Exportar historial">
+        <i class="pi pi-download"></i> Exportar <i class="pi pi-chevron-down" style="font-size: 0.8rem; margin-left: 0.2rem;"></i>
+      </button>
+      <div class="dropdown-content" *ngIf="showExportOptionsMovimientos" style="position: absolute; background-color: white; min-width: 150px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 100; border-radius: 8px; right: 0; top: 110%; overflow: visible; border: 1px solid #e5e7eb;">
+        <a style="color: #374151; padding: 10px 16px; text-decoration: none; display: flex; align-items: center; gap: 8px; cursor: pointer; border-bottom: 1px solid #f3f4f6; font-size: 0.9rem;" (click)="exportarMovimientosCSV(); showExportOptionsMovimientos = false">
+          <i class="pi pi-file-excel" style="color: #10b981;"></i> A CSV
+        </a>
+        <a style="color: #374151; padding: 10px 16px; text-decoration: none; display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.9rem;" (click)="exportarMovimientosPDF(); showExportOptionsMovimientos = false">
+          <i class="pi pi-file-pdf" style="color: #ef4444;"></i> A PDF
+        </a>
+      </div>
+    </div>
   </div>
 
   <div class="table-card">
@@ -541,8 +561,16 @@
           <input type="text" [(ngModel)]="formRepuesto.numero_parte" placeholder="..." />
         </div>
         <div class="form-group">
+          <label>N° Serie</label>
+          <input type="text" [(ngModel)]="formRepuesto.numero_serie" placeholder="..." />
+        </div>
+        <div class="form-group">
           <label>Proveedor</label>
           <input type="text" [(ngModel)]="formRepuesto.proveedor" placeholder="..." />
+        </div>
+        <div class="form-group">
+          <label>Garantía Inicio</label>
+          <input type="date" [(ngModel)]="formRepuesto.garantia_inicio" />
         </div>
         <div class="form-group">
           <label>Garantía Fin</label>
@@ -706,6 +734,13 @@
           <div>
             <p style="margin: 0; font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">N° de Serie</p>
             <p style="margin: 0.25rem 0 0 0; font-size: 1rem; color: #334155; font-weight: 500;">{{ repuestoDetalle.numero_serie || 'N/A' }}</p>
+          </div>
+          <div>
+            <p style="margin: 0; font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Inicio de Garantía</p>
+            <p style="margin: 0.25rem 0 0 0; font-size: 1rem; color: #334155; font-weight: 500;">
+              <i class="pi pi-calendar" *ngIf="repuestoDetalle.garantia_inicio" style="color:#94a3b8"></i>
+               {{ repuestoDetalle.garantia_inicio ? (repuestoDetalle.garantia_inicio | date:'dd/MM/yyyy') : 'No registrada' }}
+            </p>
           </div>
           <div>
             <p style="margin: 0; font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Fin de Garantía</p>

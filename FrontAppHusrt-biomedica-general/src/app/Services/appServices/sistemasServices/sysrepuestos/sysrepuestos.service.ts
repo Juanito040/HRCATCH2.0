@@ -34,6 +34,18 @@ export interface SysRepuestoResponse {
   message?: string;
 }
 
+export interface DescontarStockItem {
+  sysRepuestoIdFk: number;
+  cantidad: number;
+}
+
+export interface DescontarStockResponse {
+  success: boolean;
+  message: string;
+  actualizados?: { id: number; nombre: string; stockAnterior: number; stockNuevo: number }[];
+  errores?: string[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class SysRepuestosService {
   private http = inject(HttpClient);
@@ -63,9 +75,24 @@ export class SysRepuestosService {
   toggleActivo(id: number, observacion?: string): Observable<SysRepuestoResponse> {
     return this.http.patch<SysRepuestoResponse>(`${this.apiUrl}/${id}/toggle`, { observacion });
   }
+
   getByTipo(idTipo: number, filters?: { is_active?: boolean }): Observable<SysRepuestoResponse> {
     let params = new HttpParams();
     if (filters?.is_active !== undefined) params = params.set('is_active', filters.is_active.toString());
     return this.http.get<SysRepuestoResponse>(`${this.apiUrl}/tipo/${idTipo}`, { params });
+  }
+
+  descontarStock(repuestos: DescontarStockItem[], mantenimientoId?: number): Observable<DescontarStockResponse> {
+    return this.http.post<DescontarStockResponse>(`${this.apiUrl}/descontar-stock`, {
+      repuestos,
+      mantenimientoId
+    });
+  }
+  ajustarStockEdicion(payload: {
+    repuestosEliminados: { sysRepuestoIdFk: number; cantidad: number }[];
+    repuestosNuevos: { sysRepuestoIdFk: number; cantidad: number }[];
+    mantenimientoId: number;
+  }): Observable<any> {
+    return this.http.post(`${this.apiUrl}/ajustar-stock-edicion`, payload);
   }
 }

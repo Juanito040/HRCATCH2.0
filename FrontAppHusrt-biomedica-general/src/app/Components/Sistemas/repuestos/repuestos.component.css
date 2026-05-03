@@ -111,6 +111,8 @@
   gap: 1rem;
   margin-bottom: 1.1rem;
   flex-wrap: wrap;
+  position: relative;
+  z-index: 50;
 }
 
 /* ── Search Box ───────────────────────────────────────────── */
@@ -793,6 +795,8 @@ td {
   border-radius: 0.85rem;
   padding: 0.7rem 1rem;
   backdrop-filter: blur(8px);
+  position: relative;
+  z-index: 50;
 }
 
 .filtro-select,

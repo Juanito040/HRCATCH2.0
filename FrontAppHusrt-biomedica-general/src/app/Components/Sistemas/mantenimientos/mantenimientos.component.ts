@@ -11,6 +11,9 @@ import { InputTextModule } from 'primeng/inputtext';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { TooltipModule } from 'primeng/tooltip';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UserService } from '../../../Services/appServices/userServices/user.service';
+import { getDecodedAccessToken } from '../../../../app/utilidades';
 import Swal from 'sweetalert2';
 import { extractError } from '../../../utils/error-utils';
 
@@ -20,6 +23,7 @@ import {
 } from '../../../Services/appServices/sistemasServices/sysmantenimiento/sysmantenimiento.service';
 import { ArchivosService } from '../../../Services/appServices/general/archivos/archivos.service';
 import { SysHistorialEquipoComponent } from '../historial-equipo/historial-equipo.component';
+import { SelectModule } from 'primeng/select';
 
 @Component({
   selector: 'app-sis-mantenimientos',
@@ -37,6 +41,8 @@ import { SysHistorialEquipoComponent } from '../historial-equipo/historial-equip
     InputIconModule,
     TooltipModule,
     SysHistorialEquipoComponent,
+    ReactiveFormsModule,
+    SelectModule,
   ],
   templateUrl: './mantenimientos.component.html',
   styleUrls: ['./mantenimientos.component.css']
@@ -48,6 +54,8 @@ export class SisMantenimientosComponent implements OnInit {
   router = inject(Router);
   private mantenimientoService = inject(SysmantenimientoService);
   private archivosService = inject(ArchivosService);
+  private fb = inject(FormBuilder);
+  private userService = inject(UserService);
 
   // ── Datos ─────────────────────────────────────────────────────────────────
   mantenimientos: SysMantenimiento[] = [];
@@ -58,6 +66,13 @@ export class SisMantenimientosComponent implements OnInit {
   isModalLoading = false;           // spinner solo para el modal
   error: string | null = null;
   activeTab: 'todos' | 'Preventivo' | 'Correctivo' | 'Predictivo' = 'todos';
+
+  isAdmin = false;
+  showAdminModal = false;
+  adminForm!: FormGroup;
+  users: any[] = [];
+  reporteAdminSelected: any;
+
 
   // ── Filtros ───────────────────────────────────────────────────────────────
   filterFechaInicio = '';
@@ -78,7 +93,22 @@ export class SisMantenimientosComponent implements OnInit {
 
   // ─────────────────────────────────────────────────────────────────────────
 
+  meses = [
+    { label: 'Enero', value: 1 }, { label: 'Febrero', value: 2 },
+    { label: 'Marzo', value: 3 }, { label: 'Abril', value: 4 },
+    { label: 'Mayo', value: 5 }, { label: 'Junio', value: 6 },
+    { label: 'Julio', value: 7 }, { label: 'Agosto', value: 8 },
+    { label: 'Septiembre', value: 9 }, { label: 'Octubre', value: 10 },
+    { label: 'Noviembre', value: 11 }, { label: 'Diciembre', value: 12 }
+  ];
   async ngOnInit() {
+    this.adminForm = this.fb.group({
+      usuarioIdFk: ['', Validators.required],
+      mesProgramado: ['', Validators.required],
+      añoProgramado: ['', Validators.required]
+    });
+    this.checkRole();
+    if (this.isAdmin) this.loadUsers();
     this.loadMantenimientos();
   }
 
@@ -243,6 +273,14 @@ export class SisMantenimientosComponent implements OnInit {
     }
   }
 
+  async viewPdfMantenimiento(id: number | undefined) {
+    if (!id) return;
+    const m = this.mantenimientos.find(x => x.id === id);
+    if (m?.adjunto_url) {
+      await this.viewPdf(m.adjunto_url);
+    }
+  }
+
   onFileSelected(event: any) {
     this.selectedFile = event.target.files[0];
   }
@@ -312,4 +350,44 @@ export class SisMantenimientosComponent implements OnInit {
     };
     return map[status] ?? 'secondary';
   }
+  checkRole() {
+    const token = getDecodedAccessToken();
+    if (token && (token.rol === 'SUPERADMIN' || token.rol === 'SISTEMASADMIN')) {
+      this.isAdmin = true;
+    }
+  }
+
+  async loadUsers() {
+    try {
+      const users = await this.userService.getAllUsers();
+      this.users = users.filter((u: any) => u.rolId === 10);
+    } catch (error) {
+      console.error('Error cargando usuarios:', error);
+    }
+  }
+
+  openAdminEdit(m: SysMantenimiento) {
+    this.reporteAdminSelected = m;
+    this.adminForm.patchValue({
+      usuarioIdFk: m.usuarioIdFk,
+      mesProgramado: m.mesProgramado,
+      añoProgramado: m.añoProgramado
+    });
+    this.showAdminModal = true;
+  }
+
+ async saveAdminEdit() {
+  if (this.adminForm.invalid) return;
+  try {
+    await this.mantenimientoService.update(
+      this.reporteAdminSelected.id,
+      this.adminForm.value
+    );
+    Swal.fire('Actualizado', 'Reporte actualizado correctamente', 'success');
+    this.showAdminModal = false;
+    this.loadMantenimientos();
+  } catch {
+    Swal.fire('Error', 'No se pudo actualizar el reporte', 'error');
+  }
+}
 }

@@ -123,23 +123,30 @@ exports.exportarCSV = async (req, res) => {
 
 // ─── POST /sysmovimientosstock ────────────────────────────────────────────────
 exports.registrarMovimiento = async (req, res) => {
+  const { id_repuesto_fk, tipo, cantidad, motivo, referencia } = req.body;
+
+  if (!id_repuesto_fk || !tipo || !cantidad || !motivo) {
+    return res.status(400).json({ success: false, message: 'Faltan campos obligatorios: repuesto, tipo, cantidad y motivo' });
+  }
+  if (!['ingreso', 'egreso'].includes(tipo)) {
+    return res.status(400).json({ success: false, message: 'El tipo debe ser "ingreso" o "egreso"' });
+  }
+  const cantNum = parseInt(cantidad, 10);
+  if (isNaN(cantNum) || cantNum <= 0) {
+    return res.status(400).json({ success: false, message: 'La cantidad debe ser un número mayor a 0' });
+  }
+
+  const t = await sequelize.transaction();
   try {
-    const { id_repuesto_fk, tipo, cantidad, motivo, referencia } = req.body;
-
-    if (!id_repuesto_fk || !tipo || !cantidad || !motivo) {
-      return res.status(400).json({ success: false, message: 'Faltan campos obligatorios: repuesto, tipo, cantidad y motivo' });
+    const repuesto = await SysRepuesto.findByPk(id_repuesto_fk, { transaction: t });
+    if (!repuesto) {
+      await t.rollback();
+      return res.status(404).json({ success: false, message: 'Repuesto no encontrado' });
     }
-    if (!['ingreso', 'egreso'].includes(tipo)) {
-      return res.status(400).json({ success: false, message: 'El tipo debe ser "ingreso" o "egreso"' });
+    if (!repuesto.is_active) {
+      await t.rollback();
+      return res.status(400).json({ success: false, message: 'No se puede mover stock de un repuesto dado de baja' });
     }
-    const cantNum = parseInt(cantidad, 10);
-    if (isNaN(cantNum) || cantNum <= 0) {
-      return res.status(400).json({ success: false, message: 'La cantidad debe ser un número mayor a 0' });
-    }
-
-    const repuesto = await SysRepuesto.findByPk(id_repuesto_fk);
-    if (!repuesto) return res.status(404).json({ success: false, message: 'Repuesto no encontrado' });
-    if (!repuesto.is_active) return res.status(400).json({ success: false, message: 'No se puede mover stock de un repuesto dado de baja' });
 
     const stockAntes = repuesto.cantidad_stock;
     let stockDespues;
@@ -148,6 +155,7 @@ exports.registrarMovimiento = async (req, res) => {
       stockDespues = stockAntes + cantNum;
     } else {
       if (cantNum > stockAntes) {
+        await t.rollback();
         return res.status(400).json({
           success: false,
           message: `Stock insuficiente. Disponible: ${stockAntes}, solicitado: ${cantNum}`
@@ -158,7 +166,6 @@ exports.registrarMovimiento = async (req, res) => {
 
     const nombreUsuario = await getNombreUsuario(req);
 
-    // Crear el movimiento
     const movimiento = await SysMovimientosStockRepuestos.create({
       id_repuesto_fk,
       tipo,
@@ -169,14 +176,16 @@ exports.registrarMovimiento = async (req, res) => {
       referencia: referencia?.trim() || null,
       usuario: nombreUsuario,
       fecha_movimiento: new Date()
-    });
+    }, { transaction: t });
 
-    // Actualizar el stock del repuesto
-    await repuesto.update({ cantidad_stock: stockDespues });
+    await repuesto.update({ cantidad_stock: stockDespues }, { transaction: t });
 
     const movimientoCompleto = await SysMovimientosStockRepuestos.findByPk(movimiento.id, {
-      include: INCLUDES_REPUESTO
+      include: INCLUDES_REPUESTO,
+      transaction: t
     });
+
+    await t.commit();
 
     res.status(201).json({
       success: true,
@@ -184,6 +193,7 @@ exports.registrarMovimiento = async (req, res) => {
       data: movimientoCompleto
     });
   } catch (error) {
+    await t.rollback();
     console.error('Error registrarMovimiento stock:', error);
     res.status(500).json({ success: false, message: 'Error al registrar el movimiento de stock', error: error.message });
   }

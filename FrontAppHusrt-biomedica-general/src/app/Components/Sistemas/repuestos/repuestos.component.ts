@@ -6,10 +6,12 @@ import { SysTipoRepuestosService, SysTipoRepuesto } from '../../../Services/appS
 import { SysAuditoriaRepuestoService, SysAuditoriaRepuesto } from '../../../Services/appServices/sistemasServices/sysauditoriarepuesto/sysauditoriarepuesto.service';
 import { SysMovimientosStockService, SysMovimientoStock } from '../../../Services/appServices/sistemasServices/sysmovimientosstock/sysmovimientosstock.service';
 import { getDecodedAccessToken } from '../../../utilidades';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import Swal from 'sweetalert2';
 import { extractError } from '../../../utils/error-utils';
 
-const ROLES_PERMITIDOS = ['SUPERADMIN', 'ADMINISTRADOR', 'AG', 'SYSTEMADMIN'];
+const ROLES_PERMITIDOS = ['SUPERADMIN', 'ADMINISTRADOR','SYSTEMADMIN', 'AG', 'SISTEMASADMIN', 'SISTEMASUSER'];
 
 @Component({
   selector: 'app-sis-repuestos',
@@ -48,6 +50,10 @@ export class SisRepuestosComponent implements OnInit {
   filtroFechaHasta = '';
   tabActual: 'repuestos' | 'inactivos' | 'tipos' | 'registros' | 'stockMovimientos' = 'repuestos';
   showAlertasPanel = true;
+
+  // ─── Export Dropdowns ─────────────────────────────────────
+  showExportOptionsRepuestos = false;
+  showExportOptionsMovimientos = false;
 
   // ─── Modal Repuesto ───────────────────────────────────────
   isRepuestoModalOpen = false;
@@ -645,6 +651,53 @@ export class SisRepuestosComponent implements OnInit {
     this.descargarCSV(csv, `repuestos_activos_${new Date().toISOString().slice(0, 10)}.csv`);
   }
 
+  exportarRepuestosPDF(): void {
+    const lista = this.repuestos.filter(r => r.is_active === true || (r.is_active as any) === 1);
+    if (!lista.length) { Swal.fire('Aviso', 'No hay repuestos activos para exportar', 'info'); return; }
+
+    const doc = new jsPDF({ orientation: 'landscape' });
+    const pageWidth = doc.internal.pageSize.width;
+    const fechaHoy = new Date().toLocaleDateString('es-CO');
+
+    // ── Título y subtítulo
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(37, 99, 235);
+    doc.text('Reporte de Repuestos Activos', pageWidth / 2, 14, { align: 'center' });
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 116, 139);
+    doc.text(`Generado el ${fechaHoy} — HRCATCH2.0 Sistema Biomédico`, pageWidth / 2, 20, { align: 'center' });
+    doc.setTextColor(0, 0, 0);
+
+    const head = [['ID', 'Nombre', 'Tipo', 'N° Parte', 'N° Serie', 'Proveedor', 'Stock', 'Mín.', 'Garantía Inicio', 'Garantía Fin']];
+    const body = lista.map(r => [
+      r.id_sysrepuesto,
+      r.nombre || '',
+      r.tipoRepuesto?.nombre || this.getTipoNombre(r.id_sys_tipo_repuesto_fk),
+      r.numero_parte || '',
+      r.numero_serie || '',
+      r.proveedor || '',
+      r.cantidad_stock ?? 0,
+      r.stock_minimo ?? 4,
+      r.garantia_inicio || '',
+      r.garantia_fin || ''
+    ]);
+
+    autoTable(doc, {
+      head,
+      body,
+      startY: 25,
+      theme: 'grid',
+      styles: { fontSize: 8, cellPadding: 3 },
+      headStyles: { fillColor: [37, 99, 235], textColor: [255, 255, 255], fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [239, 246, 255] },
+      margin: { left: 10, right: 10 }
+    });
+
+    doc.save(`repuestos_activos_${new Date().toISOString().slice(0, 10)}.pdf`);
+  }
+
   exportarMovimientosCSV(): void {
     const filtros: any = {};
     if (this.filtroTipoMovimiento) filtros.tipo = this.filtroTipoMovimiento;
@@ -662,6 +715,58 @@ export class SisRepuestosComponent implements OnInit {
       },
       error: (err: any) => Swal.fire('Error', extractError(err, 'exportar el reporte de repuestos'), 'error')
     });
+  }
+
+  exportarMovimientosPDF(): void {
+    const lista = this.filteredMovimientos;
+    if (!lista.length) { Swal.fire('Aviso', 'No hay movimientos para exportar', 'info'); return; }
+
+    const doc = new jsPDF({ orientation: 'landscape' });
+    const pageWidth = doc.internal.pageSize.width;
+    const fechaHoy = new Date().toLocaleDateString('es-CO');
+
+    // ── Título y subtítulo
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(37, 99, 235);
+    doc.text('Reporte de Movimientos de Stock', pageWidth / 2, 14, { align: 'center' });
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 116, 139);
+    doc.text(`Generado el ${fechaHoy} — HRCATCH2.0 Sistema Biomédico`, pageWidth / 2, 20, { align: 'center' });
+    doc.setTextColor(0, 0, 0);
+
+    const head = [['ID Mov.', 'Repuesto', 'Tipo', 'Cantidad', 'Stock Antes', 'Stock Después', 'Motivo', 'Usuario', 'Fecha']];
+    const body = lista.map(m => [
+      m.id,
+      m.repuesto?.nombre || 'Desconocido',
+      m.tipo === 'ingreso' ? 'Ingreso' : 'Egreso',
+      m.tipo === 'ingreso' ? `+${m.cantidad}` : `-${m.cantidad}`,
+      m.stock_antes,
+      m.stock_despues,
+      m.motivo || '',
+      m.usuario || '',
+      m.fecha_movimiento ? new Date(m.fecha_movimiento).toLocaleString('es-CO') : ''
+    ]);
+
+    autoTable(doc, {
+      head,
+      body,
+      startY: 25,
+      theme: 'grid',
+      styles: { fontSize: 8, cellPadding: 3 },
+      headStyles: { fillColor: [37, 99, 235], textColor: [255, 255, 255], fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [239, 246, 255] },
+      columnStyles: {
+        2: { halign: 'center' },
+        3: { halign: 'center', fontStyle: 'bold' },
+        4: { halign: 'center' },
+        5: { halign: 'center', fontStyle: 'bold' }
+      },
+      margin: { left: 10, right: 10 }
+    });
+
+    doc.save(`movimientos_stock_${new Date().toISOString().slice(0, 10)}.pdf`);
   }
 
   private descargarCSV(csv: string, filename: string): void {
@@ -769,6 +874,16 @@ export class SisRepuestosComponent implements OnInit {
   }
 
   // ─── Helpers ──────────────────────────────────────────────
+
+  toggleExportOptions(type: 'repuestos' | 'movimientos'): void {
+    if (type === 'repuestos') {
+      this.showExportOptionsRepuestos = !this.showExportOptionsRepuestos;
+      this.showExportOptionsMovimientos = false;
+    } else {
+      this.showExportOptionsMovimientos = !this.showExportOptionsMovimientos;
+      this.showExportOptionsRepuestos = false;
+    }
+  }
 
   min(a: number, b: number): number { return Math.min(a, b); }
 

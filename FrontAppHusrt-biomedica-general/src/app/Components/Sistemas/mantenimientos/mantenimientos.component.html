@@ -94,7 +94,7 @@
     </div>
   </div>
 
-  <!-- Spinner de carga del modal (mientras espera getById) -->
+  <!-- Spinner de carga del modal -->
   <div *ngIf="isModalLoading" class="flex justify-content-center align-items-center gap-2 mb-2">
     <i class="pi pi-spin pi-spinner text-primary"></i>
     <span class="text-500">Cargando reporte...</span>
@@ -132,7 +132,7 @@
           <th>Falla</th>
           <th>Técnico</th>
           <th style="width: 120px; text-align: center;">Estado</th>
-          <th style="width: 130px; text-align: center;">Acciones</th>
+          <th style="width: 150px; text-align: center;">Acciones</th>
         </tr>
       </ng-template>
 
@@ -159,8 +159,7 @@
 
           <td>
             <div class="flex flex-column">
-              <span class="text-700">{{ m.servicio?.nombres || 'N/A' }}</span>
-              <span class="text-500 text-xs">{{ m.servicio?.ubicacion || '' }}</span>
+              <span class="text-700">{{ m.equipo?.servicio?.nombres || 'N/A' }}</span>
             </div>
           </td>
 
@@ -205,6 +204,11 @@
                 *ngIf="m.fechaRealizado" (click)="viewModalReport(m.id)" pTooltip="Ver Detalles">
               </button>
 
+              <!-- ✏️ Programar: solo admin y solo si NO está realizado -->
+              <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-warning"
+                *ngIf="isAdmin && !m.fechaRealizado" (click)="openAdminEdit(m)" pTooltip="Programar">
+              </button>
+
               <!-- ➕ Crear reporte: solo si NO está realizado -->
               <button pButton icon="pi pi-plus-circle" class="p-button-rounded p-button-text p-button-success"
                 *ngIf="!m.fechaRealizado && m.equipo?.id_sysequipo"
@@ -237,11 +241,7 @@
 
 </div>
 
-<!-- ===== MODAL VER DETALLES =====
-  IMPORTANTE: el dialog solo se renderiza cuando reportSelected ya tiene data.
-  Gracias a *ngIf="reportSelected as r" dentro del contenido del dialog,
-  Angular garantiza que 'r' nunca es undefined → no hay campos vacíos.
--->
+<!-- ===== MODAL VER DETALLES ===== -->
 <p-dialog header="Reporte N° {{ reportSelected?.id }}" [(visible)]="modalReport" [modal]="true" [responsive]="true"
   [style]="{ width: '90vw', maxWidth: '95%' }" [baseZIndex]="10000"
   [breakpoints]="{ '960px': '90vw', '640px': '95vw' }">
@@ -263,7 +263,7 @@
               <p><strong>Placa:</strong> {{ r.equipo?.placa_inventario || '—' }}</p>
             </div>
             <div class="col-12 md:col-4">
-              <p><strong>Servicio:</strong> {{ r.servicio?.nombres || '—' }}</p>
+              <p><strong>Servicio:</strong> {{ r.equipo?.servicio?.nombres || '—' }}</p>
               <p><strong>Ubicación:</strong> {{ r.equipo?.ubicacion || '—' }}</p>
               <p><strong>Ubicación Específica:</strong> {{ r.equipo?.ubicacion_especifica || '—' }}</p>
             </div>
@@ -303,6 +303,77 @@
     </div>
 
     <!-- 3. Técnico y PDF -->
+    <div class="grid mt-2" *ngIf="r.tecnico">
+      <div class="col-12">
+        <p-card header="Técnico y Documentos">
+          <div class="p-text-sm grid">
+            <div class="col-12 md:col-6">
+              <p><strong>Técnico:</strong> {{ r.tecnico }}</p>
+            </div>
+            <div class="col-12 md:col-6 flex gap-2 justify-content-end">
+              <button pButton icon="pi pi-file-pdf" label="PDF" class="p-button-outlined"
+                (click)="viewPdfMantenimiento(r.id)"
+                *ngIf="r.adjunto_url && (r.adjunto_url.includes('.pdf') || r.adjunto_url.includes('.PDF'))"
+                pTooltip="Ver PDF">
+              </button>
+              <button pButton icon="pi pi-file-word" label="DOC" class="p-button-outlined"
+                (click)="viewPdfMantenimiento(r.id)"
+                *ngIf="r.adjunto_url && (r.adjunto_url.includes('.doc') || r.adjunto_url.includes('.docx') || r.adjunto_url.includes('.DOC') || r.adjunto_url.includes('.DOCX'))"
+                pTooltip="Ver Word">
+              </button>
+            </div>
+          </div>
+        </p-card>
+      </div>
+    </div>
+
+    <!-- 4. Mediciones -->
+    <div class="grid mt-2" *ngIf="r.valoresMediciones && r.valoresMediciones.length > 0">
+      <div class="col-12">
+        <p-card header="Mediciones Específicas">
+          <table class="table table-striped table-bordered w-full">
+            <thead>
+              <tr>
+                <th>Medición</th>
+                <th>Valor</th>
+                <th>Unidad</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let val of r.valoresMediciones">
+                <td>{{ val.medicion?.nombre }}</td>
+                <td>{{ val.valor }}</td>
+                <td>{{ val.medicion?.unidad }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </p-card>
+      </div>
+    </div>
+
+    <!-- 4. Repuestos -->
+    <div class="grid mt-2" *ngIf="r.repuestos && r.repuestos.length > 0">
+      <div class="col-12">
+        <p-card header="Repuestos Utilizados">
+          <table class="table table-striped table-bordered w-full">
+            <thead>
+              <tr>
+                <th>Repuesto</th>
+                <th>Cantidad</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let rep of r.repuestos">
+                <td>{{ rep.nombreInsumo }}</td>
+                <td>{{ rep.cantidad }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </p-card>
+      </div>
+    </div>
+
+    <!-- 5. Realizado Por -->
     <div class="grid mt-2">
       <div class="col-12">
         <p-card header="Realizado Por">
@@ -349,3 +420,34 @@
   [equipo]="equipoParaHistorial"
   (closed)="closeHistorial()"
 ></app-sys-historial-equipo>
+<!-- ===== MODAL EDICIÓN ADMINISTRATIVA ===== -->
+<p-dialog header="Edición Administrativa" [(visible)]="showAdminModal" [modal]="true" [style]="{width: '400px'}"
+  styleClass="p-fluid">
+  <ng-template pTemplate="content">
+    <form [formGroup]="adminForm">
+      <div class="field mb-3">
+        <label class="block font-bold mb-2">Técnico Responsable</label>
+        <p-select [options]="users" formControlName="usuarioIdFk" optionLabel="nombres" optionValue="id"
+          placeholder="Seleccione un técnico" [filter]="true" filterBy="nombres" appendTo="body" styleClass="w-full">
+        </p-select>
+      </div>
+      <div class="field mb-3">
+        <label class="block font-bold mb-2">Mes Programado</label>
+        <p-select [options]="meses" formControlName="mesProgramado" optionLabel="label" optionValue="value"
+          placeholder="Seleccione mes" appendTo="body" styleClass="w-full">
+        </p-select>
+      </div>
+      <div class="field mb-3">
+        <label class="block font-bold mb-2">Año Programado</label>
+        <input pInputText type="number" formControlName="añoProgramado" class="w-full p-inputtext p-component" />
+      </div>
+    </form>
+  </ng-template>
+  <ng-template pTemplate="footer">
+    <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text" (click)="showAdminModal = false">
+    </button>
+    <button pButton label="Guardar" icon="pi pi-check" class="p-button-text p-button-success" (click)="saveAdminEdit()"
+      [disabled]="adminForm.invalid">
+    </button>
+  </ng-template>
+</p-dialog>

@@ -17,7 +17,6 @@ async function fixMovimientosStockFK() {
   `, { type: QueryTypes.SELECT });
 
   if (!rows || rows.length === 0) {
-    console.log('[Migration] FK sysmovimientosstock → SysRepuesto: ya correcta, sin cambios.');
     return;
   }
 
