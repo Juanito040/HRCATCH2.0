@@ -5,6 +5,53 @@ const { BackupSistema, SistemaInformacion } = require('../../models/Biomedica');
 const { checkToken } = require('../../utilities/middleware');
 
 const ESTADOS_VALIDOS = ['Pendiente', 'Completado', 'Fallido', 'No realizado'];
+const ROLES_ADMIN = ['SUPERADMIN', 'SYSTEMADMIN'];
+const ROLES_MODULO_SISTEMAS = ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER'];
+
+function requireAdminRole(req, res, next) {
+    if (!ROLES_ADMIN.includes(req.user?.rol)) {
+        return res.status(403).json({ error: 'No tiene permisos para realizar esta acción' });
+    }
+    next();
+}
+
+// Bloquea el acceso al módulo cuando el usuario no tiene un rol habilitado
+// (SUPERADMIN/SYSTEMADMIN/SYSTEMUSER) o, salvo SUPERADMIN, no tiene al menos
+// un sistema de información asignado como responsable.
+async function requireSistemasModuloAccess(req, res, next) {
+    try {
+        const rol = req.user?.rol ?? null;
+
+        if (!ROLES_MODULO_SISTEMAS.includes(rol)) {
+            return res.status(403).json({ error: 'Rol no autorizado para el módulo de sistemas' });
+        }
+
+        if (rol === 'SUPERADMIN') return next();
+
+        const tieneSistemas = await SistemaInformacion.count({
+            where: { responsableId: req.user.id }
+        });
+
+        if (tieneSistemas === 0) {
+            return res.status(403).json({ error: 'No tiene sistemas de información asignados' });
+        }
+
+        return next();
+    } catch (error) {
+        return res.status(500).json({
+            error: 'Error verificando acceso al módulo',
+            detalle: error.message
+        });
+    }
+}
+
+async function getSistemaIdsDelUsuario(usuarioId) {
+    const sistemas = await SistemaInformacion.findAll({
+        where: { responsableId: usuarioId },
+        attributes: ['id']
+    });
+    return sistemas.map(s => s.id);
+}
 
 // Genera todas las ocurrencias Pendiente del resto del año en curso a partir del
 // backup recién creado. El registro inicial (con los datos del usuario) ya existe;
@@ -82,18 +129,29 @@ async function autoTransicionarVencidos() {
 
 // GET /backups/alertas — retorna backups Pendiente (fecha <= hoy) y No realizados.
 // Ejecuta la auto-transición antes de consultar para convertir Pendientes vencidos.
-router.get('/backups/alertas', checkToken, async (req, res) => {
+// Admins ven todos los backups; usuarios sin rol admin ven solo los de sus sistemas.
+router.get('/backups/alertas', checkToken, requireSistemasModuloAccess, async (req, res) => {
     try {
         await autoTransicionarVencidos();
 
         const hoy = new Date().toISOString().split('T')[0];
+        const esAdmin = ROLES_ADMIN.includes(req.user?.rol);
+
+        const where = {
+            [Op.or]: [
+                { estado: 'Pendiente', fecha: { [Op.lte]: hoy } },
+                { estado: 'No realizado' }
+            ]
+        };
+
+        if (!esAdmin) {
+            const sistemaIds = await getSistemaIdsDelUsuario(req.user.id);
+            if (sistemaIds.length === 0) return res.json([]);
+            where.sistemaInformacionId = { [Op.in]: sistemaIds };
+        }
+
         const backupsAlerta = await BackupSistema.findAll({
-            where: {
-                [Op.or]: [
-                    { estado: 'Pendiente',    fecha: { [Op.lte]: hoy } },
-                    { estado: 'No realizado' }
-                ]
-            },
+            where,
             include: [{
                 model: SistemaInformacion,
                 as: 'sistema',
@@ -122,8 +180,9 @@ router.get('/backups/alertas', checkToken, async (req, res) => {
     }
 });
 
-// GET /backups/todos/mes — lista todos los backups de todos los sistemas en un mes/año
-router.get('/backups/todos/mes', checkToken, async (req, res) => {
+// GET /backups/todos/mes — lista los backups de un mes/año.
+// Admins ven todos los sistemas; usuarios sin rol admin ven solo los de sus sistemas.
+router.get('/backups/todos/mes', checkToken, requireSistemasModuloAccess, async (req, res) => {
     try {
         await autoTransicionarVencidos();
 
@@ -132,8 +191,17 @@ router.get('/backups/todos/mes', checkToken, async (req, res) => {
         const primerDia = `${anio}-${String(mes).padStart(2, '0')}-01`;
         const ultimoDia = `${anio}-${String(mes).padStart(2, '0')}-${String(diasEnMes).padStart(2, '0')}`;
 
+        const esAdmin = ROLES_ADMIN.includes(req.user?.rol);
+        const where = { fecha: { [Op.between]: [primerDia, ultimoDia] } };
+
+        if (!esAdmin) {
+            const sistemaIds = await getSistemaIdsDelUsuario(req.user.id);
+            if (sistemaIds.length === 0) return res.json([]);
+            where.sistemaInformacionId = { [Op.in]: sistemaIds };
+        }
+
         const backups = await BackupSistema.findAll({
-            where: { fecha: { [Op.between]: [primerDia, ultimoDia] } },
+            where,
             include: [{ model: SistemaInformacion, as: 'sistema', attributes: ['id', 'nombre'] }],
             order: [['fecha', 'ASC']]
         });
@@ -155,12 +223,22 @@ router.get('/backups/todos/mes', checkToken, async (req, res) => {
     }
 });
 
-// GET /backups/:sistemaId — lista todos los backups del sistema
-router.get('/backups/:sistemaId', async (req, res) => {
+// GET /backups/:sistemaId — lista todos los backups del sistema.
+// Requiere token; usuarios sin rol admin solo pueden acceder a sus propios sistemas.
+router.get('/backups/:sistemaId', checkToken, requireSistemasModuloAccess, async (req, res) => {
     try {
         await autoTransicionarVencidos();
 
         const sistemaId = parseInt(req.params.sistemaId, 10);
+        const esAdmin = ROLES_ADMIN.includes(req.user?.rol);
+
+        if (!esAdmin) {
+            const sistema = await SistemaInformacion.findByPk(sistemaId, { attributes: ['id', 'responsableId'] });
+            if (!sistema || sistema.responsableId !== req.user.id) {
+                return res.status(403).json({ error: 'No tiene acceso a los backups de este sistema' });
+            }
+        }
+
         const backups = await BackupSistema.findAll({
             where: { sistemaInformacionId: sistemaId },
             order: [['fecha', 'DESC']],
@@ -171,11 +249,21 @@ router.get('/backups/:sistemaId', async (req, res) => {
     }
 });
 
-// GET /backups/:sistemaId/mes — lista backups filtrados por ?mes=&anio=
-router.get('/backups/:sistemaId/mes', async (req, res) => {
+// GET /backups/:sistemaId/mes — lista backups filtrados por ?mes=&anio=.
+// Misma protección por rol que GET /backups/:sistemaId.
+router.get('/backups/:sistemaId/mes', checkToken, requireSistemasModuloAccess, async (req, res) => {
     try {
         const { mes, anio } = req.query;
         const sistemaId = parseInt(req.params.sistemaId, 10);
+        const esAdmin = ROLES_ADMIN.includes(req.user?.rol);
+
+        if (!esAdmin) {
+            const sistema = await SistemaInformacion.findByPk(sistemaId, { attributes: ['id', 'responsableId'] });
+            if (!sistema || sistema.responsableId !== req.user.id) {
+                return res.status(403).json({ error: 'No tiene acceso a los backups de este sistema' });
+            }
+        }
+
         const diasEnMes = new Date(anio, mes, 0).getDate();
         const backups = await BackupSistema.findAll({
             where: {
@@ -197,7 +285,7 @@ router.get('/backups/:sistemaId/mes', async (req, res) => {
 
 // POST /backups — crea un backup programado y genera todas las ocurrencias
 // Pendiente del resto del año en curso según la frecuencia indicada.
-router.post('/backups', async (req, res) => {
+router.post('/backups', checkToken, requireSistemasModuloAccess, requireAdminRole, async (req, res) => {
     try {
         const valoresFrecuencia = ['Anual', 'Mensual', 'Semanal', 'Diario'];
         if (!req.body.frecuencia_backup || !valoresFrecuencia.includes(req.body.frecuencia_backup)) {
@@ -217,12 +305,24 @@ router.post('/backups', async (req, res) => {
     }
 });
 
-// PUT /backups/:id — actualiza estado del backup.
-// La auto-creación de la siguiente ocurrencia fue eliminada: el POST ya pre-genera
-// todas las ocurrencias Pendiente del año en curso, por lo que el PUT solo persiste
-// el cambio de estado sin crear duplicados.
-router.put('/backups/:id', async (req, res) => {
+// PUT /backups/:id — actualiza un backup.
+// Admins pueden modificar cualquier campo. Usuarios sin rol admin solo pueden
+// actualizar estado=Completado y observacion (acción "Marcar como Completado").
+router.put('/backups/:id', checkToken, requireSistemasModuloAccess, async (req, res) => {
     try {
+        const esAdmin = ROLES_ADMIN.includes(req.user?.rol);
+
+        if (!esAdmin) {
+            const CAMPOS_PERMITIDOS_NO_ADMIN = ['estado', 'observacion'];
+            const camposExtra = Object.keys(req.body).filter(c => !CAMPOS_PERMITIDOS_NO_ADMIN.includes(c));
+            if (camposExtra.length > 0) {
+                return res.status(403).json({ error: 'No tiene permisos para modificar estos campos del backup' });
+            }
+            if (req.body.estado !== undefined && req.body.estado !== 'Completado') {
+                return res.status(403).json({ error: 'Solo puede marcar backups como Completado' });
+            }
+        }
+
         const valoresFrecuencia = ['Anual', 'Mensual', 'Semanal', 'Diario'];
         if (req.body.frecuencia_backup !== undefined && !valoresFrecuencia.includes(req.body.frecuencia_backup)) {
             return res.status(400).json({ error: 'frecuencia_backup debe ser: Anual, Mensual, Semanal o Diario' });
@@ -242,7 +342,7 @@ router.put('/backups/:id', async (req, res) => {
 });
 
 // DELETE /backups/sistema/:sistemaId — elimina todos los backups de un sistema
-router.delete('/backups/sistema/:sistemaId', async (req, res) => {
+router.delete('/backups/sistema/:sistemaId', checkToken, requireSistemasModuloAccess, requireAdminRole, async (req, res) => {
     try {
         const sistemaId = parseInt(req.params.sistemaId, 10);
         const { count } = await BackupSistema.destroy({
@@ -255,7 +355,7 @@ router.delete('/backups/sistema/:sistemaId', async (req, res) => {
 });
 
 // DELETE /backups/:id — elimina un backup
-router.delete('/backups/:id', async (req, res) => {
+router.delete('/backups/:id', checkToken, requireSistemasModuloAccess, requireAdminRole, async (req, res) => {
     try {
         const backup = await BackupSistema.findByPk(req.params.id);
         if (!backup) {

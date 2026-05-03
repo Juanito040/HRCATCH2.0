@@ -42,8 +42,16 @@
         <p-progressSpinner></p-progressSpinner>
     </div>
 
+    <!-- Estado vacío -->
+    <div *ngIf="calendarioVacio" class="calendar-empty-state">
+        <i class="pi pi-calendar" style="font-size: 2.5rem; color: var(--text-color-secondary)"></i>
+        <p style="color: var(--text-color-secondary); margin-top: 0.75rem;">
+            No hay backups programados para este mes.
+        </p>
+    </div>
+
     <!-- Calendario -->
-    <div *ngIf="!loading">
+    <div *ngIf="!loading && !calendarioVacio">
         <!-- Cabecera días de semana -->
         <div class="calendario-grid mb-2">
             <div *ngFor="let dia of diasSemana" class="dia-semana-header-cell">

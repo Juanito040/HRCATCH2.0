@@ -105,7 +105,7 @@
         </div>
 
         <!-- Sistemas de Información -->
-        <div class="dashboard-card" *ngIf="isSuperAdmin || isBiomedicaAdmin" (click)="showViewSistemasInformacion()">
+        <div class="dashboard-card" *ngIf="puedeVerGestionSistemas" (click)="showViewSistemasInformacion()">
             <div class="card-icon-container gradient-teal">
                 <i class="pi pi-desktop"></i>
             </div>

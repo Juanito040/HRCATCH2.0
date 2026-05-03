@@ -59,6 +59,18 @@ export class TipoEquipoService {
     )
   }
 
+  getTiposEquiposSistemas() {
+    return firstValueFrom(
+      this.httpClient.get<any[]>(`${this.baseUrl}/tiposequipoSis`)
+    )
+  }
+
+  getCantidadEquiposSistemas(idTipoEquipo: any) {
+    return firstValueFrom(
+      this.httpClient.get<any>(`${this.baseUrl}/cantidadequipostiposis/${idTipoEquipo}`)
+    )
+  }
+
   getTipoEquipo(idTipoEquipo: any) {
     return firstValueFrom(
       this.httpClient.get<any>(`${this.baseUrl}/tiposequipo/${idTipoEquipo}`)

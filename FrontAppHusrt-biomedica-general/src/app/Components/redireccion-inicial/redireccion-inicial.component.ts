@@ -22,6 +22,9 @@ export class RedireccionInicialComponent implements OnInit {
                     case 'SYSTEMADMIN':
                         this.router.navigate(['/adminsistemas']);
                         break;
+                    case 'SYSTEMUSER':
+                        this.router.navigate(['/admin/sistemasinformacion/backups']);
+                        break;
                     case 'SUPERADMIN':
                         this.router.navigate(['/superadmin']);
                         break;

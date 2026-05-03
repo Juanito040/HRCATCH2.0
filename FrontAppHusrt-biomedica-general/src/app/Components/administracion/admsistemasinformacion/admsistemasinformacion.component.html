@@ -8,7 +8,7 @@
         </ng-template>
 
         <ng-template pTemplate="right">
-            <p-button label="Nuevo Sistema" icon="pi pi-plus" (onClick)="openNew()" severity="primary"
+            <p-button *ngIf="esAdmin" label="Nuevo Sistema" icon="pi pi-plus" (onClick)="openNew()" severity="primary"
                 [raised]="true"></p-button>
         </ng-template>
     </p-toolbar>
@@ -58,16 +58,16 @@
                 </td>
                 <td>
                     <div class="flex gap-2">
-                        <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="warn"
+                        <p-button *ngIf="esAdmin" icon="pi pi-pencil" [rounded]="true" [text]="true" severity="warn"
                             (onClick)="openEdit(sistema)" pTooltip="Editar"></p-button>
 
                         <p-button icon="pi pi-calendar" [rounded]="true" [text]="true" severity="info"
                             (onClick)="openCalendarioBackup(sistema)" pTooltip="Calendario de Backups"></p-button>
 
-                        <p-button *ngIf="sistema.estado" icon="pi pi-ban" [rounded]="true" [text]="true"
+                        <p-button *ngIf="esAdmin && sistema.estado" icon="pi pi-ban" [rounded]="true" [text]="true"
                             severity="danger" (onClick)="toggleEstado(sistema)" pTooltip="Desactivar"></p-button>
 
-                        <p-button *ngIf="!sistema.estado" icon="pi pi-check" [rounded]="true" [text]="true"
+                        <p-button *ngIf="esAdmin && !sistema.estado" icon="pi pi-check" [rounded]="true" [text]="true"
                             severity="success" (onClick)="toggleEstado(sistema)" pTooltip="Activar"></p-button>
                     </div>
                 </td>
@@ -149,7 +149,7 @@
             <!-- Encabezado lista + botones de acción global -->
             <div class="flex align-items-center justify-content-between">
                 <h5 class="m-0">Backups asignados</h5>
-                <div class="flex gap-2">
+                <div *ngIf="esAdmin" class="flex gap-2">
                     <p-button label="Eliminar todos" icon="pi pi-trash" severity="danger" [outlined]="true"
                         [disabled]="backupsDelMes.length === 0"
                         pTooltip="Eliminar todos los backups de este sistema" tooltipPosition="top"
@@ -177,15 +177,18 @@
                         <td>{{ backup.tipo }}</td>
                         <td>{{ backup.frecuencia_backup }}</td>
                         <td>
-                            <p-select [options]="estadoBackupOptions" [(ngModel)]="backup.estado"
+                            <p-select *ngIf="esAdmin" [options]="estadoBackupOptions" [(ngModel)]="backup.estado"
                                 optionLabel="label" optionValue="value"
                                 (onChange)="cambiarEstadoBackup(backup, backup.estado)"
                                 appendTo="body" [style]="{ width: '130px' }">
                             </p-select>
+                            <p-tag *ngIf="!esAdmin" [value]="backup.estado"
+                                [severity]="getEstadoSeverity(backup.estado)">
+                            </p-tag>
                         </td>
                         <td>{{ backup.observacion }}</td>
                         <td>
-                            <div class="backup-acciones">
+                            <div *ngIf="esAdmin" class="backup-acciones">
                                 <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="info"
                                     (onClick)="editarBackup(backup)" pTooltip="Editar" tooltipPosition="top"
                                     styleClass="accion-btn accion-btn--editar"></p-button>

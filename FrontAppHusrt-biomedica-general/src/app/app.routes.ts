@@ -1,6 +1,7 @@
 import { OlvidoContrasenaComponent } from './Components/gestionarContraseña/olvido-contrasena/olvido-contrasena.component';
 import { NgModule } from '@angular/core';
 import { authGuard } from './auth.guard';
+import { sistemasModuloAccessGuard } from './sistemas-modulo-access.guard';
 import { RouterModule, Routes } from '@angular/router';
 import { ReportceComponent } from './Components/Imaging/ReportCE/reportce/reportce.component';
 import { ReportspediatricsComponent } from './Components/Servinte/Reports/reportspediatrics/reportspediatrics.component';
@@ -33,7 +34,6 @@ import { EditarUsuarioComponent } from './Components/editar-usuario/editar-usuar
 import { CambiarContrasenaComponent } from './Components/gestionarContraseña/cambiar-contrasena/cambiar-contrasena.component';
 import { CrearReporteComponent } from './Components/userBiomedica/Reportes/crear-reporte/crear-reporte.component';
 import { HojavidaComponent } from './Components/userBiomedica/vista-Equipos/hojavida/hojavida.component';
-import { MesaAdminComponent } from './Components/MesaServicios/Admin/mesa-admin/mesa-admin.component';
 import { MesaCategoriasComponent } from './Components/MesaServicios/Parametrization/mesa-categorias/mesa-categorias.component';
 import { MesaRolesComponent } from './Components/MesaServicios/Parametrization/mesa-roles/mesa-roles.component';
 import { MesaCasosListComponent } from './Components/MesaServicios/Cases/mesa-casos-list/mesa-casos-list.component';
@@ -80,6 +80,22 @@ import { ThemeCustomizerComponent } from './Components/administracion/personaliz
 import { RedireccionInicialComponent } from './Components/redireccion-inicial/redireccion-inicial.component';
 import { SemaforizacionGarantiasComponent } from './Components/userBiomedica/semaforizacion/semaforizacion-garantias/semaforizacion-garantias.component';
 
+// Módulo Sistemas
+import { SisEquiposComponent } from './Components/Sistemas/equipos/equipos.component';
+import { SisMantenimientosComponent } from './Components/Sistemas/mantenimientos/mantenimientos.component';
+import { SysHojaVidaComponent } from './Components/Sistemas/hoja-vida/hoja-vida.component';
+import { ClasificacionTipoEquipoSisComponent } from './Components/Sistemas/clasificacion-tipo-equipo/clasificacion-tipo-equipo-sis.component';
+import { EquiposTipoSisComponent } from './Components/Sistemas/equipos-tipo/equipos-tipo-sis.component';
+import { SysTrazabilidadGlobalComponent } from './Components/Sistemas/trazabilidad-global/trazabilidad-global.component';
+import { SysProtocolosComponent } from './Components/Sistemas/protocolos/protocolos.component';
+import { ParametrizacionSistemasComponent } from './Components/Homepage/parametrizacion-sistemas/parametrizacion-sistemas.component';
+import { AdmTiposEquipoSisComponent } from './Components/Sistemas/adm-tiposequipo-sis/adm-tiposequipo-sis.component';
+import { ClasificacionServicioSisComponent } from './Components/Sistemas/clasificacion-servicio-sis/clasificacion-servicio-sis.component';
+import { EquiposServicioSisComponent } from './Components/Sistemas/equipos-servicio-sis/equipos-servicio-sis.component';
+import { ClasificacionSedesSisComponent } from './Components/Sistemas/clasificacion-sedes-sis/clasificacion-sedes-sis.component';
+import { EquiposSedesSisComponent } from './Components/Sistemas/equipos-sede-sis/equipos-sede-sis.component';
+import { SysReporteEntregaFormComponent } from './Components/Sistemas/sys-reporte-form/sys-reporte-form.component';
+
 export const routes: Routes = [
 
   {
@@ -93,19 +109,19 @@ export const routes: Routes = [
   { path: 'superadmin', component: HomesuperadminComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN'] } },
   { path: 'access-denied', component: AccessDeniedComponent },
   { path: 'registro', component: RegistroComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'BIOMEDICAADMIN', 'ADMINISTRADOR', 'ADM'] } },
-  { path: 'adminsistemas', component: HomeadminsistemasComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'ADMINISTRADOR', 'AG'] } },
+  { path: 'adminsistemas', component: HomeadminsistemasComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'ADMINISTRADOR', 'AG', 'SYSTEMADMIN', 'SYSTEMUSER'] } },
   { path: 'adminbiomedica', component: HomeadminbiomedicaComponent, canActivate: [authGuard], data: { roles: ['BIOMEDICAADMIN', 'SUPERADMIN'] } },
   { path: 'adminmantenimiento', component: HomeadminmantenimientoComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'ADMINISTRADOR', 'AG'] } },
-  { path: 'adminmesaservicios', component: HomeadminmesaserviciosComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'BIOMEDICAADMIN', 'BIOMEDICAUSER', 'BIOMEDICATECNICO', 'ADM', 'AG', 'ADMINISTRADOR', 'MESAADMIN'] } },
+  { path: 'adminmesaservicios', component: HomeadminmesaserviciosComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'BIOMEDICAADMIN', 'BIOMEDICAUSER', 'BIOMEDICATECNICO', 'ADM', 'AG', 'ADMINISTRADOR', 'MESAADMIN', 'SYSTEMADMIN'] } },
   // Mesa de Servicios Children
   { path: 'adminmesaservicios/config/categorias', component: MesaCategoriasComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'BIOMEDICAADMIN', 'ADM', 'ADMINISTRADOR', 'MESAADMIN'] } },
   { path: 'adminmesaservicios/config/roles', component: MesaRolesComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'BIOMEDICAADMIN', 'ADM', 'ADMINISTRADOR', 'MESAADMIN'] } },
-  { path: 'adminmesaservicios/casos', component: MesaCasosListComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'BIOMEDICAADMIN', 'BIOMEDICAUSER', 'BIOMEDICATECNICO', 'ADM', 'AG', 'ADMINISTRADOR', 'MESAUSER', 'SOL', 'OBS', 'MESAADMIN'] } },
-  { path: 'adminmesaservicios/casos/novo', component: MesaCasoCreateComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'BIOMEDICAADMIN', 'BIOMEDICAUSER', 'BIOMEDICATECNICO', 'ADM', 'AG', 'ADMINISTRADOR', 'MESAUSER', 'SOL', 'OBS', 'MESAADMIN'] } },
-  { path: 'adminmesaservicios/casos/:id', component: MesaCasoDetailComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'BIOMEDICAADMIN', 'BIOMEDICAUSER', 'BIOMEDICATECNICO', 'ADM', 'AG', 'ADMINISTRADOR', 'MESAUSER', 'SOL', 'OBS', 'MESAADMIN'] } },
+  { path: 'adminmesaservicios/casos', component: MesaCasosListComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'BIOMEDICAADMIN', 'BIOMEDICAUSER', 'BIOMEDICATECNICO', 'ADM', 'AG', 'ADMINISTRADOR', 'MESAUSER', 'SOL', 'OBS', 'MESAADMIN', 'SYSTEMADMIN'] } },
+  { path: 'adminmesaservicios/casos/novo', component: MesaCasoCreateComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'BIOMEDICAADMIN', 'BIOMEDICAUSER', 'BIOMEDICATECNICO', 'ADM', 'AG', 'ADMINISTRADOR', 'MESAUSER', 'SOL', 'OBS', 'MESAADMIN', 'SYSTEMADMIN'] } },
+  { path: 'adminmesaservicios/casos/:id', component: MesaCasoDetailComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'BIOMEDICAADMIN', 'BIOMEDICAUSER', 'BIOMEDICATECNICO', 'ADM', 'AG', 'ADMINISTRADOR', 'MESAUSER', 'SOL', 'OBS', 'MESAADMIN', 'SYSTEMADMIN'] } },
   { path: 'usermantenimiento', component: HomeusermantenimientoComponent, canActivate: [authGuard] },
   { path: 'usersistemas', component: HomeusersistemasComponent, canActivate: [authGuard] },
-  { path: 'userbiomedica', component: HomeuserbiomedicaComponent, canActivate: [authGuard] },
+  { path: 'adminsistemas/gestion', component: HomeusersistemasComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER'] } },
   { path: 'userbiomedica', component: HomeuserbiomedicaComponent, canActivate: [authGuard] },
   { path: 'mesauser/home', component: HomeuserMesaComponent, canActivate: [authGuard], data: { roles: ['MESAUSER', 'SUPERADMIN', 'ADM', 'AG', 'SOL', 'OBS', 'ADMINISTRADOR'] } },
   { path: 'imagenologia/citasCE', component: ReportceComponent },
@@ -152,8 +168,8 @@ export const routes: Routes = [
   { path: 'admin/proveedores', component: AdmProveedoresComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'BIOMEDICAADMIN'] } },
   { path: 'admin/responsables', component: AdmResponsablesComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'BIOMEDICAADMIN'] } },
   { path: 'admin/cargos', component: AdmCargosComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN'] } },
-  { path: 'admin/sistemasinformacion', component: AmdSistemasInformacionComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'ADMINISTRADOR'] } },
-  { path: 'admin/sistemasinformacion/backups', component: CalendarioBackupsComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'ADMINISTRADOR'] } },
+  { path: 'admin/sistemasinformacion', component: AmdSistemasInformacionComponent, canActivate: [authGuard, sistemasModuloAccessGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER'] } },
+  { path: 'admin/sistemasinformacion/backups', component: CalendarioBackupsComponent, canActivate: [authGuard, sistemasModuloAccessGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER'] } },
 
   // Equipos List - Unified
   { path: 'biomedica/adminequipos', component: ListaEquiposComponent, canActivate: [authGuard], data: { roles: ['BIOMEDICAADMIN', 'BIOMEDICAUSER', 'SUPERADMIN', 'BIOMEDICATECNICO'] } },
@@ -172,6 +188,22 @@ export const routes: Routes = [
 
   { path: 'gestion-operativa', component: GestionOperativaComponent, canActivate: [authGuard], data: { roles: ['BIOMEDICAADMIN', 'SUPERADMIN'] } },
   { path: 'parametrizacion', component: ParametrizacionBiomedicaComponent, canActivate: [authGuard], data: { roles: ['BIOMEDICAADMIN', 'SUPERADMIN'] } },
+
+  // Módulo Sistemas
+  { path: 'adminsistemas/parametrizacion', component: ParametrizacionSistemasComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN'] } },
+  { path: 'adminsistemas/tiposequipo', component: ClasificacionTipoEquipoSisComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER'] } },
+  { path: 'adminsistemas/protocolos', component: SysProtocolosComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN'] } },
+  { path: 'adminsistemas/equipostipo', component: EquiposTipoSisComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER'] } },
+  { path: 'adminsistemas/equipos', component: SisEquiposComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER'] } },
+  { path: 'adminsistemas/mantenimientos', component: SisMantenimientosComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER'] } },
+  { path: 'adminsistemas/hojavida/:equipoId', component: SysHojaVidaComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER'] } },
+  { path: 'adminsistemas/trazabilidad', component: SysTrazabilidadGlobalComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'ADMINISTRADOR', 'AG', 'SYSTEMADMIN', 'SYSTEMUSER'] } },
+  { path: 'adminsistemas/admin/tiposequipo', component: AdmTiposEquipoSisComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN'] } },
+  { path: 'adminsistemas/servicios', component: ClasificacionServicioSisComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER'] } },
+  { path: 'adminsistemas/equiposservicio', component: EquiposServicioSisComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER'] } },
+  { path: 'adminsistemas/sedes', component: ClasificacionSedesSisComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER'] } },
+  { path: 'adminsistemas/equipossede', component: EquiposSedesSisComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER'] } },
+  { path: 'adminsistemas/reporte-entrega', component: SysReporteEntregaFormComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER'] } },
 
   { path: 'intranet', component: IntranetComponent }
 ];

@@ -7,6 +7,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { UserService } from '../../Services/appServices/userServices/user.service';
 import { ThemeService } from '../../Services/theme/theme.service';
+import { AccesoModuloSistemasService } from '../../Services/appServices/biomedicaServices/backup/acceso-modulo-sistemas.service';
 
 
 @Component({
@@ -22,6 +23,7 @@ export class LoginComponent implements OnInit {
   userServices = inject(UserService);
   router = inject(Router);
   themeService = inject(ThemeService);
+  private accesoModuloSistemasService = inject(AccesoModuloSistemasService);
 
   constructor(
     private formBuilder: FormBuilder,
@@ -41,8 +43,13 @@ export class LoginComponent implements OnInit {
       const response = await this.userServices.login(this.formulario.value);
       if (!response.error) {
         sessionStorage.setItem('utoken', response.token);
+        // El cache del módulo de sistemas se asocia al usuario; al iniciar sesión se invalida
+        // para que el próximo usuario reciba su propio resultado en lugar del cacheado.
+        this.accesoModuloSistemasService.invalidar();
         if (this.getDecodedAccessToken(sessionStorage.getItem('utoken')!).rol === 'SYSTEMADMIN') {
           this.router.navigate(['/adminsistemas']);
+        } else if (this.getDecodedAccessToken(sessionStorage.getItem('utoken')!).rol === 'SYSTEMUSER') {
+          this.router.navigate(['/admin/sistemasinformacion/backups']);
         } else if (this.getDecodedAccessToken(sessionStorage.getItem('utoken')!).rol === 'SUPERADMIN') {
           this.router.navigate(['/superadmin']);
         } else if (this.getDecodedAccessToken(sessionStorage.getItem('utoken')!).rol === 'MANTENIMIENTOADMIN') {

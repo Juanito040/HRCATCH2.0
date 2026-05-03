@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const TipoEquipo = require('../../models/generales/TipoEquipo');
 const Equipo = require('../../models/Biomedica/Equipo');
+const SysEquipo = require('../../models/Sistemas/SysEquipo');
 const { where } = require('sequelize');
 
 // Obtener todos los tipos de equipo
@@ -44,6 +45,31 @@ router.get('/alltiposequipoBio', async (req, res) => {
         res.json(tiposEquipos);
     } catch (error) {
         res.status(500).json({ error: 'Error al obtener los tipos de equipo', detalle: error.message });
+    }
+});
+
+// Tipos de equipo de Sistemas (tipoR = 2)
+router.get('/tiposequipoSis', async (req, res) => {
+    try {
+        const tiposEquipos = await TipoEquipo.findAll({
+            where: { tipoR: 2, activo: true },
+            order: [['nombres', 'ASC']]
+        });
+        res.json(tiposEquipos);
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener los tipos de equipo de sistemas', detalle: error.message });
+    }
+});
+
+// Cantidad de equipos de sistemas por tipo
+router.get('/cantidadequipostiposis/:id', async (req, res) => {
+    try {
+        const cantidad = await SysEquipo.count({
+            where: { id_tipo_equipo_fk: req.params.id, activo: true, estado_baja: false }
+        });
+        res.json(cantidad);
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener la cantidad de equipos de sistemas', detalle: error.message });
     }
 });
 

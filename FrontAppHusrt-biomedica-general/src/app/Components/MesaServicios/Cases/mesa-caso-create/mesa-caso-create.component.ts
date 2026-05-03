@@ -14,6 +14,7 @@ import { FileUploadModule } from 'primeng/fileupload';
 import { MesaService } from '../../../../Services/mesa-servicios/mesa.service';
 import { ServicioService } from '../../../../Services/appServices/general/servicio/servicio.service';
 import { UserService } from '../../../../Services/appServices/userServices/user.service';
+import { SysequiposService, SysEquipo } from '../../../../Services/appServices/sistemasServices/sysequipos/sysequipos.service';
 import { jwtDecode } from 'jwt-decode';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
@@ -45,12 +46,14 @@ export class MesaCasoCreateComponent implements OnInit {
   servicios: any[] = [];
   categorias: any[] = [];
   subcategorias: any[] = [];
+  equipos: (SysEquipo & { labelEquipo: string })[] = [];
 
   // Selections
   selectedServicio: any = null;
   selectedCategoria: any = null;
   selectedSubcategoria: any = null;
   selectedSumerce: any = null;
+  selectedEquipo: (SysEquipo & { labelEquipo: string }) | null = null;
 
   uploadedFiles: any[] = []; // Store selected files
 
@@ -83,6 +86,7 @@ export class MesaCasoCreateComponent implements OnInit {
     private mesaService: MesaService,
     private servicioService: ServicioService,
     private userService: UserService,
+    private sysequiposService: SysequiposService,
     private messageService: MessageService,
     private router: Router
   ) { }
@@ -90,6 +94,24 @@ export class MesaCasoCreateComponent implements OnInit {
   ngOnInit() {
     this.extractUser();
     this.loadServicios();
+    this.loadEquipos();
+  }
+
+  loadEquipos() {
+    this.sysequiposService.getEquipos({ activo: true }).subscribe({
+      next: (res) => {
+        const lista: SysEquipo[] = Array.isArray(res?.data) ? res.data as SysEquipo[] : [];
+        this.equipos = lista.map(e => ({
+          ...e,
+          labelEquipo: e.placa_inventario
+            ? `${e.nombre_equipo} · ${e.placa_inventario}`
+            : e.nombre_equipo
+        }));
+      },
+      error: () => {
+        this.equipos = [];
+      }
+    });
   }
 
   extractUser() {
@@ -157,6 +179,10 @@ export class MesaCasoCreateComponent implements OnInit {
     formData.append('subcategoriaId', this.selectedSubcategoria.id);
     formData.append('sumerce', this.selectedSumerce.value);
     formData.append('creadorId', this.userId.toString());
+
+    if (this.selectedEquipo?.id_sysequipo != null) {
+      formData.append('equipoId', this.selectedEquipo.id_sysequipo.toString());
+    }
 
     // Append files
     if (this.uploadedFiles && this.uploadedFiles.length > 0) {

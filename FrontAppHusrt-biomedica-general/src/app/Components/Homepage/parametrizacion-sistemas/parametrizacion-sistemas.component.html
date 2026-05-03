@@ -1,0 +1,64 @@
+<div class="dashboard-container">
+
+  <div class="hero-section">
+    <div class="hero-content">
+      <h1>Parametrización — Sistemas</h1>
+      <p>Configura las opciones base del módulo de sistemas.</p>
+    </div>
+  </div>
+
+  <div class="cards-grid">
+    <!-- Tipos de Equipo -->
+    <div class="dashboard-card" (click)="irATiposEquipo()">
+      <div class="card-icon-container gradient-blue">
+        <i class="pi pi-desktop" style="font-size:3rem"></i>
+      </div>
+      <div class="card-content">
+        <h3>Tipos de equipos SIS</h3>
+        <p>Crea y gestiona los tipos de equipo del módulo de sistemas.</p>
+        <span class="card-action">Configurar <i class="pi pi-cog"></i></span>
+      </div>
+    </div>
+
+    <!-- Protocolos Preventivos -->
+    <div class="dashboard-card" (click)="irAProtocolos()">
+      <div class="card-icon-container gradient-blue">
+        <i class="pi pi-list-check" style="font-size:3rem"></i>
+      </div>
+      <div class="card-content">
+        <h3>Protocolos Preventivos</h3>
+        <p>Define los pasos del checklist de mantenimiento preventivo.</p>
+        <span class="card-action">Configurar <i class="pi pi-cog"></i></span>
+      </div>
+    </div>
+
+    <!-- Trazabilidad — superadmin y admin -->
+    @if (isSuperAdmin || isAdminSistemas) {
+      <div class="dashboard-card" (click)="irATrazabilidad()">
+        <div class="card-icon-container gradient-blue">
+          <i class="pi pi-history" style="font-size:3rem"></i>
+        </div>
+        <div class="card-content">
+          <h3>Trazabilidad</h3>
+          <p>Consulta el historial de intervenciones y movimientos de los equipos.</p>
+          <span class="card-action">Ver trazabilidad <i class="pi pi-arrow-right"></i></span>
+        </div>
+      </div>
+    }
+
+    <!-- Usuarios — solo superadmin -->
+    @if (isSuperAdmin) {
+      <div class="dashboard-card" (click)="irAUsuarios()">
+        <div class="card-icon-container gradient-purple">
+          <i class="pi pi-users" style="font-size:3rem"></i>
+        </div>
+        <div class="card-content">
+          <h3>Usuarios</h3>
+          <p>Gestión de usuarios y accesos del sistema.</p>
+          <span class="card-action">Administrar <i class="pi pi-arrow-right"></i></span>
+        </div>
+      </div>
+    }
+
+  </div>
+</div>

@@ -40,6 +40,9 @@ export class AccessDeniedComponent {
                     case 'SYSTEMADMIN':
                         this.router.navigate(['/adminsistemas']);
                         break;
+                    case 'SYSTEMUSER':
+                        this.router.navigate(['/admin/sistemasinformacion/backups']);
+                        break;
                     case 'MANTENIMIENTOADMIN':
                         this.router.navigate(['/adminmantenimiento']);
                         break;

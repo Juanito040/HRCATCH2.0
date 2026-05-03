@@ -1,0 +1,231 @@
+<br>
+<div class="container" [attr.inert]="(isModalOpen || isDetailModalOpen || isHistorialModalOpen || isDeleteOptionsDialogOpen || isPlanDialogOpen || isReporteFormOpen || isReportesListOpen) ? '' : null">
+
+  <div class="page-header">
+    <div class="header-left">
+      <div>
+        <h1>{{ tipoNombre }}</h1>
+        <p class="subtitle">Equipos registrados bajo este tipo</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <span class="search-icon"><i class="fas fa-search"></i></span>
+      <input #searchInput type="text" placeholder="Buscar por nombre, marca, modelo, serie o ubicación..."
+        (input)="onSearch($event)" [disabled]="isLoading" />
+      @if (searchTerm) {
+        <button class="search-clear-btn" type="button" (click)="clearSearch(searchInput)">
+          <i class="fas fa-times"></i>
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="table-container">
+    @if (isLoading) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando equipos...</p>
+      </div>
+    } @else if (error) {
+      <div class="error-state">
+        <div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
+        <p>{{ error }}</p>
+        <button class="btn btn-primary" (click)="loadEquipos()">Reintentar</button>
+      </div>
+    } @else {
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Marca</th>
+            <th>Modelo</th>
+            <th>Serie</th>
+            <th>Placa Inventario</th>
+            <th>Ubicación</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (equipo of pagedEquipos; track equipo.id_sysequipo) {
+            <tr>
+              <td>{{ equipo.id_sysequipo }}</td>
+              <td><strong>{{ equipo.nombre_equipo }}</strong></td>
+              <td>{{ equipo.marca || 'N/A' }}</td>
+              <td>{{ equipo.modelo || 'N/A' }}</td>
+              <td><code class="serie-badge">{{ equipo.serie || 'N/A' }}</code></td>
+              <td>{{ equipo.placa_inventario || 'N/A' }}</td>
+              <td>{{ equipo.ubicacion || 'N/A' }}</td>
+              <td>
+                <span [class]="getEstadoBadgeClass(equipo.activo)">
+                  {{ formatEstado(equipo.activo) }}
+                </span>
+              </td>
+              <td>
+                <div class="action-dropdown">
+                  <button class="btn btn-sm btn-outline-secondary " (click)="verHojaVida(equipo)">
+                    <i class="fas fa-file-alt"></i> HV
+                  </button>
+                  <button class="btn btn-sm btn-outline-secondary dropdown-toggle-btn"
+                    (click)="$event.stopPropagation(); toggleMenu(equipo)">
+                    <i class="fas fa-chevron-down"></i>
+                  </button>
+                  @if (equipo._menuOpen) {
+                    <div class="dropdown-menu-custom">
+                      @for (opcion of equipo.opciones; track opcion.label) {
+                        <button class="dropdown-item-custom"
+                          (click)="$event.stopPropagation(); opcion.command?.(); equipo._menuOpen = false">
+                          <i [class]="opcion.icon ? opcion.icon : ''"></i>
+                          {{ opcion.label }}
+                        </button>
+                      }
+                    </div>
+                  }
+                 </div>
+                 </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="9" class="empty-state">
+                <div class="empty-icon"><i class="fas fa-boxes"></i></div>
+                <p>No se encontraron equipos para este tipo</p>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+
+  @if (!isLoading && !error && filteredEquipos.length > 0) {
+    <div class="pagination">
+      <button class="btn btn-secondary" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">
+        <i class="fas fa-chevron-left"></i> Anterior
+      </button>
+      <div class="pagination-pages">
+        @for (p of getPagesArray(); track p) {
+          <button class="page-number" [class.active]="p === currentPage" (click)="goToPage(p)">{{ p }}</button>
+        }
+      </div>
+      <button class="btn btn-secondary" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">
+        Siguiente <i class="fas fa-chevron-right"></i>
+      </button>
+      <span class="page-info">
+        {{ (currentPage - 1) * pageSize + 1 }}–{{ min(currentPage * pageSize, filteredEquipos.length) }}
+        de {{ filteredEquipos.length }}
+      </span>
+    </div>
+  }
+
+</div>
+<br>
+
+<app-sys-equipo-modal
+  [isOpen]="isModalOpen"
+  [equipo]="selectedEquipo"
+  (closed)="closeModal()"
+  (saved)="onEquipoSaved()"
+></app-sys-equipo-modal>
+
+<app-sys-equipo-detail-modal
+  [isOpen]="isDetailModalOpen"
+  [equipo]="equipoToView"
+  (closed)="closeDetailModal()"
+  (editRequested)="onEditFromDetail($event)"
+></app-sys-equipo-detail-modal>
+
+<app-sys-historial-equipo
+  [isOpen]="isHistorialModalOpen"
+  [equipo]="equipoToHistorial"
+  (closed)="closeHistorialModal()"
+></app-sys-historial-equipo>
+
+<app-sys-delete-dialog
+  [isOpen]="isDeleteOptionsDialogOpen"
+  [itemName]="equipoToDeleteWithOptions?.nombre_equipo || ''"
+  [initialAction]="deleteDialogMode"
+  [hideBodegaOption]="deleteDialogMode === 'baja'"
+  [hideBajaOption]="deleteDialogMode === 'bodega'"
+  [isAdmin]="deleteDialogMode === 'baja'"
+  (confirmed)="handleDeleteOptionsConfirm($event)"
+  (closed)="closeDeleteOptionsDialog()"
+></app-sys-delete-dialog>
+
+<!-- Modal Plan de Mantenimiento -->
+@if (isPlanDialogOpen) {
+  <div class="modal-overlay" (click)="closePlanDialog()">
+    <div class="plan-modal" (click)="$event.stopPropagation()">
+
+      <div class="plan-modal-header">
+        <div>
+          <h2> Plan de mantenimiento</h2>
+          <p class="plan-equipo-nombre">{{ currentEquipoPlan?.nombre_equipo }}</p>
+        </div>
+        <button class="modal-close-btn" (click)="closePlanDialog()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="plan-modal-body">
+        <div class="plan-field">
+          <label>Intervenciones por año</label>
+          <select [(ngModel)]="intervencionesAnuales" (change)="calcularFechas()">
+            @for (opt of intervencionOptions; track opt.value) {
+              <option [value]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="plan-row">
+          <div class="plan-field">
+            <label>Mes de inicio</label>
+            <select [(ngModel)]="mesInicio" (change)="calcularFechas()">
+              @for (m of monthOptions; track m.value) {
+                <option [value]="m.value">{{ m.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="plan-field">
+            <label>Año de inicio</label>
+            <select [(ngModel)]="anioInicio" (change)="calcularFechas()">
+              @for (a of anioOptions; track a) {
+                <option [value]="a">{{ a }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        @if (calculatedMonthsText) {
+          <div class="plan-cycle-banner">
+            
+            <div>
+              <span class="plan-cycle-label">Ciclo calculado:</span>
+              <span class="plan-cycle-text">{{ calculatedMonthsText }}</span>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="plan-modal-footer">
+        <button class="btn btn-secondary" (click)="closePlanDialog()" [disabled]="isSavingPlan">Cancelar</button>
+        <button class="btn btn-primary" (click)="savePlan()" [disabled]="isSavingPlan || selectedPlanes.length === 0">
+          @if (isSavingPlan) { <span class="btn-spinner-sm"></span> Guardando... }
+          @else {  Guardar Plan }
+        </button>
+      </div>
+
+    </div>
+  </div>
+}
+
+<!-- Modal Ver Reportes del Equipo -->
+<app-sys-reportes-equipo
+  [isOpen]="isReportesListOpen"
+  [equipo]="equipoForReportesList"
+  (closed)="closeReportesList()"
+></app-sys-reportes-equipo>
+

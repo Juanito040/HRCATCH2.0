@@ -11,6 +11,7 @@ import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { BackupSistemaService } from '../../../Services/appServices/biomedicaServices/backup/backup-sistema.service';
 import { NotificacionBackupService } from '../../../Services/appServices/biomedicaServices/backup/notificacion-backup.service';
+import { getDecodedAccessToken } from '../../../utilidades';
 
 @Component({
     selector: 'app-calendario-backups',
@@ -33,8 +34,11 @@ export class CalendarioBackupsComponent implements OnInit {
     modalVisible: boolean = false;
 
     readonly diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+    esAdmin = false;
 
     ngOnInit(): void {
+        const decoded = getDecodedAccessToken();
+        this.esAdmin = ['SUPERADMIN', 'SYSTEMADMIN'].includes(decoded?.rol ?? '');
         this.cargarBackupsDelMes();
     }
 
@@ -109,6 +113,10 @@ export class CalendarioBackupsComponent implements OnInit {
             }
             this.semanas.push(semana);
         }
+    }
+
+    get calendarioVacio(): boolean {
+        return !this.loading && this.backupsDelMes.length === 0;
     }
 
     getBackupsDia(fecha: string): any[] {
@@ -235,7 +243,7 @@ export class CalendarioBackupsComponent implements OnInit {
             'Completado':   'd4edda',
             'Pendiente':    'fff3cd',
             'Fallido':      'f8d7da',
-            'No realizado': 'e0e0e0'
+            'No realizado': 'ffecd2'
         };
 
         this.backupsDelMes.forEach((b, i) => {

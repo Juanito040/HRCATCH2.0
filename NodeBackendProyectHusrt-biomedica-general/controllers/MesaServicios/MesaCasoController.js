@@ -1,11 +1,20 @@
 const { MesaCaso, MesaCasoHistorial, MesaCasoAsignado, MesaCategoria, MesaSubcategoria } = require('../../models/MesaServicios');
 const Usuario = require('../../models/generales/Usuario');
 const Servicio = require('../../models/generales/Servicio');
+const SysEquipo = require('../../models/Sistemas/SysEquipo');
 const { Op } = require('sequelize');
 
 exports.createCaso = async (req, res) => {
     try {
-        const { titulo, descripcion, tipo, sumerce, prioridad, servicioId, sedeId, categoriaId, subcategoriaId, creadorId } = req.body;
+        const { titulo, descripcion, tipo, sumerce, prioridad, servicioId, sedeId, categoriaId, subcategoriaId, creadorId, equipoId } = req.body;
+
+        const equipoIdNormalizado = equipoId ? Number(equipoId) : null;
+        if (equipoIdNormalizado != null) {
+            const equipo = await SysEquipo.findByPk(equipoIdNormalizado);
+            if (!equipo) {
+                return res.status(400).json({ error: 'El equipo indicado no existe' });
+            }
+        }
 
         // Fetch creator to get their service
         const creador = await Usuario.findByPk(creadorId);
@@ -15,6 +24,7 @@ exports.createCaso = async (req, res) => {
             titulo, descripcion, tipo, sumerce, prioridad,
             servicioId, sedeId, categoriaId, subcategoriaId, creadorId,
             servicioSolicitanteId, // Auto-populated
+            equipoId: equipoIdNormalizado,
             estado: 'NUEVO'
         });
 
@@ -124,7 +134,8 @@ exports.getCasos = async (req, res) => {
                 { model: Servicio, as: 'servicio' },
                 { model: Servicio, as: 'servicioSolicitante' },
                 { model: Usuario, as: 'creador', attributes: ['nombres', 'apellidos'], include: [{ model: Servicio, as: 'servicio', attributes: ['nombres'] }] },
-                { model: MesaCasoAsignado, as: 'asignaciones', where: { activo: true }, required: false, include: [{ model: Usuario, as: 'usuario' }] }
+                { model: MesaCasoAsignado, as: 'asignaciones', where: { activo: true }, required: false, include: [{ model: Usuario, as: 'usuario' }] },
+                { model: SysEquipo, as: 'equipo', attributes: ['id_sysequipo', 'nombre_equipo'], required: false }
             ],
             order: [['fechaCreacion', 'DESC']]
         });
@@ -147,6 +158,7 @@ exports.getCasoById = async (req, res) => {
                 { model: Servicio, as: 'servicio' },
                 { model: Servicio, as: 'servicioSolicitante' },
                 { model: MesaCasoAsignado, as: 'asignaciones', where: { activo: true }, required: false, include: [{ model: Usuario, as: 'usuario' }] },
+                { model: SysEquipo, as: 'equipo', attributes: ['id_sysequipo', 'nombre_equipo', 'marca', 'modelo', 'placa_inventario'], required: false },
                 {
                     model: require('../../models/MesaServicios').MesaCasoMensaje, as: 'mensajes',
                     include: [
@@ -212,6 +224,8 @@ exports.updateCasoDetails = async (req, res) => {
     try {
         const { id } = req.params;
         const { prioridad, sumerce, servicioId, usuarioId } = req.body;
+        const equipoIdRaw = req.body.equipoId;
+        const equipoIdProvided = Object.prototype.hasOwnProperty.call(req.body, 'equipoId');
 
         const caso = await MesaCaso.findByPk(id);
         if (!caso) return res.status(404).json({ error: 'Caso no encontrado' });
@@ -234,6 +248,17 @@ exports.updateCasoDetails = async (req, res) => {
             }
         }
 
+        let nuevoEquipoId = caso.equipoId;
+        if (equipoIdProvided) {
+            nuevoEquipoId = equipoIdRaw ? Number(equipoIdRaw) : null;
+            if (nuevoEquipoId != null) {
+                const equipo = await SysEquipo.findByPk(nuevoEquipoId);
+                if (!equipo) {
+                    return res.status(400).json({ error: 'El equipo indicado no existe' });
+                }
+            }
+        }
+
         const cambios = [];
         if (prioridad && caso.prioridad !== prioridad) cambios.push(`Prioridad: ${caso.prioridad} -> ${prioridad}`);
         if (sumerce && caso.sumerce !== sumerce) cambios.push(`SUMERCE: ${caso.sumerce} -> ${sumerce}`);
@@ -241,10 +266,14 @@ exports.updateCasoDetails = async (req, res) => {
             const nuevoServicio = await Servicio.findByPk(servicioId);
             cambios.push(`Servicio: ${caso.servicioId} -> ${nuevoServicio ? nuevoServicio.nombres : servicioId}`);
         }
+        if (equipoIdProvided && caso.equipoId !== nuevoEquipoId) {
+            cambios.push(`Equipo: ${caso.equipoId ?? 'ninguno'} -> ${nuevoEquipoId ?? 'ninguno'}`);
+        }
 
         caso.prioridad = prioridad || caso.prioridad;
         caso.sumerce = sumerce || caso.sumerce;
         caso.servicioId = servicioId || caso.servicioId;
+        if (equipoIdProvided) caso.equipoId = nuevoEquipoId;
 
         await caso.save();
 

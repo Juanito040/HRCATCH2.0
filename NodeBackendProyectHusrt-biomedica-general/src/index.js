@@ -31,6 +31,17 @@ const firmaRoutes = require('./../routes/biomedica/firmaRoutes');
 const SistemaInformacion = require('./../routes/biomedica/sistemaInformacionRoutes');
 const BackupRoutes = require('./../routes/biomedica/backupRoutes');
 const { checkToken } = require('./../utilities/middleware');
+
+// Módulo Sistemas
+const SysEquipoRoutes = require('./../routes/sistemas/sysEquipoRoutes');
+const SysHojaVidaRoutes = require('./../routes/sistemas/sysHojaVidaRoutes');
+const SysMantenimientoRoutes = require('./../routes/sistemas/sysMantenimientoRoutes');
+const SysPlanMantenimientoRoutes = require('./../routes/sistemas/sysPlanMantenimientoRoutes');
+const SysProtocoloPreventivoRoutes = require('./../routes/sistemas/sysProtocoloPreventivoRoutes');
+const SysReporteRoutes = require('./../routes/sistemas/sysReporteRoutes');
+const SysReporteEntregaRoutes = require('./../routes/sistemas/sysReporteEntregaRoutes');
+const SysTipoUsoRoutes = require('./../routes/sistemas/sysTipoUsoRoutes');
+const SysTrazabilidadRoutes = require('./../routes/sistemas/sysTrazabilidadRoutes');
 const sequelize = require('./../config/configDb');
 const imagenesRoutes = require('./../routes/general/imagenesRoutes');
 const archivosRoutes = require('./../routes/general/archivosRoutes');
@@ -43,6 +54,19 @@ require('../models/Biomedica/RepuestoReporte');
 require('../models/Biomedica/Firma');
 require('../models/MesaServicios'); // Import associations
 require('../models/Biomedica'); // Import Biomedica associations
+
+// Importar modelos del módulo Sistemas
+require('../models/Sistemas/SysEquipo');
+require('../models/Sistemas/SysHojaVida');
+require('../models/Sistemas/SysMantenimiento');
+require('../models/Sistemas/SysPlanMantenimiento');
+require('../models/Sistemas/SysProtocoloPreventivo');
+require('../models/Sistemas/SysReporte');
+require('../models/Sistemas/SysReporteEntrega');
+require('../models/Sistemas/SysRepuesto');
+require('../models/Sistemas/SysTipoUso');
+require('../models/Sistemas/SysTrazabilidad');
+require('../models/Sistemas/SysBaja');
 
 
 app.use(morgan('dev'));
@@ -87,6 +111,17 @@ app.use(BackupRoutes, checkToken);
 
 const CondicionInicialRoutes = require('./../routes/biomedica/condicionInicialRoutes');
 app.use(CondicionInicialRoutes, checkToken);
+
+// Módulo Sistemas
+app.use('/sysequipo', SysEquipoRoutes, checkToken);
+app.use('/syshojavida', SysHojaVidaRoutes, checkToken);
+app.use('/sysmantenimiento', SysMantenimientoRoutes, checkToken);
+app.use('/sysplanmantenimiento', SysPlanMantenimientoRoutes, checkToken);
+app.use('/sysprotocolo', SysProtocoloPreventivoRoutes, checkToken);
+app.use('/sysreporte', SysReporteRoutes, checkToken);
+app.use('/sysreporteentrega', SysReporteEntregaRoutes, checkToken);
+app.use('/systipouso', SysTipoUsoRoutes, checkToken);
+app.use('/systrazabilidad', SysTrazabilidadRoutes, checkToken);
 
 
 const cargoRoutes = require('./../routes/generales/cargoRoutes');

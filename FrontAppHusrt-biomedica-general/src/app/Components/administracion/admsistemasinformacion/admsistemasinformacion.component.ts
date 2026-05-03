@@ -19,6 +19,7 @@ import { UserService } from '../../../Services/appServices/userServices/user.ser
 import { BackupSistemaService } from '../../../Services/appServices/biomedicaServices/backup/backup-sistema.service';
 import { NotificacionBackupService } from '../../../Services/appServices/biomedicaServices/backup/notificacion-backup.service';
 import Swal from 'sweetalert2';
+import { getDecodedAccessToken } from '../../../utilidades';
 
 @Component({
     selector: 'app-admsistemasinformacion',
@@ -58,6 +59,7 @@ export class AmdSistemasInformacionComponent implements OnInit {
     guardandoBackup: boolean = false;
     isEditingBackup: boolean = false;
     backupEditandoId: number | null = null;
+    esAdmin = false;
 
     tipoBackupOptions = [
         { label: 'Completo', value: 'Completo' },
@@ -94,6 +96,8 @@ export class AmdSistemasInformacionComponent implements OnInit {
     }
 
     async ngOnInit() {
+        const decoded = getDecodedAccessToken();
+        this.esAdmin = ['SUPERADMIN', 'SYSTEMADMIN'].includes(decoded?.rol ?? '');
         this.loadSistemasInformacion();
         this.usuarios = await this.userService.getUsersSistemas();
         this.proveedores = await this.responsableService.getAllResponsables();

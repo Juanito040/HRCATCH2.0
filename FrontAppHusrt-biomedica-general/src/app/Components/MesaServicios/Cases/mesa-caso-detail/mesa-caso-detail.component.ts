@@ -17,6 +17,7 @@ import { FileUploadModule } from 'primeng/fileupload';
 import { MessageService, ConfirmationService } from 'primeng/api';
 import { MesaService } from '../../../../Services/mesa-servicios/mesa.service';
 import { UserService } from '../../../../Services/appServices/userServices/user.service';
+import { SysequiposService, SysEquipo } from '../../../../Services/appServices/sistemasServices/sysequipos/sysequipos.service';
 
 import { ChipModule } from 'primeng/chip';
 import { EditorModule } from 'primeng/editor';
@@ -85,11 +86,17 @@ export class MesaCasoDetailComponent implements OnInit {
     );
   }
 
+  // Equipo de Sistemas (EP-24)
+  equipos: (SysEquipo & { labelEquipo: string })[] = [];
+  editandoEquipo: boolean = false;
+  guardandoEquipo: boolean = false;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private mesaService: MesaService,
     private userService: UserService,
+    private sysequiposService: SysequiposService,
     private messageService: MessageService,
     private confirmationService: ConfirmationService
   ) { }
@@ -98,10 +105,70 @@ export class MesaCasoDetailComponent implements OnInit {
 
   ngOnInit() {
     this.extractUser();
+    this.loadEquipos();
     this.route.params.subscribe(params => {
       this.casoId = +params['id'];
       this.loadCaso();
     });
+  }
+
+  loadEquipos() {
+    this.sysequiposService.getEquipos({ activo: true }).subscribe({
+      next: (res) => {
+        const lista: SysEquipo[] = Array.isArray(res?.data) ? res.data as SysEquipo[] : [];
+        this.equipos = lista.map(e => ({
+          ...e,
+          labelEquipo: e.placa_inventario
+            ? `${e.nombre_equipo} · ${e.placa_inventario}`
+            : e.nombre_equipo
+        }));
+      },
+      error: () => {
+        this.equipos = [];
+      }
+    });
+  }
+
+  onEquipoChange(nuevoId: number | null) {
+    if (!this.caso) return;
+    const idAnterior = this.caso.equipoId ?? null;
+    const idNormalizado = nuevoId ?? null;
+    if (idNormalizado === idAnterior) {
+      this.editandoEquipo = false;
+      return;
+    }
+
+    this.guardandoEquipo = true;
+    this.mesaService.updateCasoDetails(this.casoId, {
+      equipoId: idNormalizado,
+      usuarioId: this.userId
+    }).subscribe({
+      next: () => {
+        this.caso.equipoId = idNormalizado;
+        this.caso.equipo = idNormalizado != null
+          ? (this.equipos.find(e => e.id_sysequipo === idNormalizado) ?? null)
+          : null;
+        this.editandoEquipo = false;
+        this.guardandoEquipo = false;
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Actualizado',
+          detail: idNormalizado != null ? 'Equipo asignado al caso' : 'Equipo desasignado del caso'
+        });
+      },
+      error: (err) => {
+        this.guardandoEquipo = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: err?.error?.error || 'No se pudo actualizar el equipo'
+        });
+      }
+    });
+  }
+
+  cancelarEdicionEquipo() {
+    this.editandoEquipo = false;
   }
 
   userRoleCode: string = '';

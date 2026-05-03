@@ -28,6 +28,11 @@
     }
 }
 
+/* Bell icon color */
+:host ::ng-deep button.p-button-secondary.p-button-text .p-button-icon {
+    color: #1e3a5f;
+}
+
 /* Bell ring animation when there are active alerts */
 .campana-activa {
     animation: campana-ring 3s ease-in-out infinite;
