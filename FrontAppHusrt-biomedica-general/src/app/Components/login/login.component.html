@@ -1,0 +1,40 @@
+<div class="login-layout">
+  <div class="container pb-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-5 col-md-7">
+        <div style="text-align: center; margin-top: 10%;">
+          <img src="LogoAgora.png" alt="Logo Agora" style="max-height: 150px; width: auto;">
+        </div>
+        <h1 style="text-align: center; margin-top: 2%; font-size: 40px;"><strong>Login {{
+            themeService.getThemeConfig().appName }}</strong></h1>
+        <div class="card " style="margin-top: 10%;">
+          <div class="card-body">
+            <form [formGroup]="formulario" (ngSubmit)="onSubmit()">
+              <div class="mb-3">
+                <label for="InputEmailLogin" class="form-label"><strong>Nombre de Usuario</strong></label>
+                <input type="email" class="form-control" formControlName="usuarion" aria-describedby="emailHelp">
+              </div>
+              <div class="mb-3">
+                <label for="InputPasswordLogin" class="form-label"><strong>Contrase&ntilde;a</strong></label>
+                <input type="password" class="form-control" formControlName="contraseña">
+              </div>
+              <button type="submit" class="btn btn-primary">Iniciar sesión</button>
+            </form>
+
+          </div>
+          <div class="card-footer text-muted">
+            <div class="row mt-1">
+              <div class="col-6">
+                <a href="/olvidocontraseña"><small>Olvido su contraseña?</small></a>
+              </div>
+            </div>
+            <div class="mt-3 text-center">
+              <button type="button" class="btn btn-secondary w-100" (click)="loginInvitado()">Acceder como
+                Invitado</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

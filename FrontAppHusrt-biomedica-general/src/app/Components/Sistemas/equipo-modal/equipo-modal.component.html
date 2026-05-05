@@ -1,0 +1,433 @@
+@if (isOpen) {
+  <div class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h2>{{ modalTitle }}</h2>
+        <button class="btn-close" (click)="close()" type="button">✕</button>
+      </div>
+
+      <div class="modal-body">
+        @if (errorMessage) {
+          <div class="alert alert-error">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>{{ errorMessage }}</span>
+          </div>
+        }
+
+        <div class="note-required">
+          <p><span class="required">*</span> Campos obligatorios</p>
+        </div>
+
+        <form [formGroup]="equipoForm">
+          <!-- Información Básica -->
+          <div class="form-section">
+            <h3 class="section-title">Información Básica</h3>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="nombre_equipo">Nombre del Equipo <span class="required">*</span></label>
+                <input type="text" id="nombre_equipo" formControlName="nombre_equipo"
+                  [class.error]="hasError('nombre_equipo')" placeholder="Ej: PC-ADMIN-01" />
+                @if (hasError('nombre_equipo')) {
+                  <span class="error-message">{{ getErrorMessage('nombre_equipo') }}</span>
+                }
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="marca">Marca</label>
+                <input type="text" id="marca" formControlName="marca"
+                  [class.error]="hasError('marca')" placeholder="Ej: Dell, HP, Lenovo" />
+                @if (hasError('marca')) {
+                  <span class="error-message">{{ getErrorMessage('marca') }}</span>
+                }
+              </div>
+              <div class="form-group">
+                <label for="modelo">Modelo</label>
+                <input type="text" id="modelo" formControlName="modelo"
+                  [class.error]="hasError('modelo')" placeholder="Ej: OptiPlex 9020" />
+                @if (hasError('modelo')) {
+                  <span class="error-message">{{ getErrorMessage('modelo') }}</span>
+                }
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="serie">Número de Serie</label>
+                <input type="text" id="serie" formControlName="serie"
+                  [class.error]="hasError('serie')" placeholder="Ej: SN-123456789" />
+                @if (hasError('serie')) {
+                  <span class="error-message">{{ getErrorMessage('serie') }}</span>
+                }
+              </div>
+              <div class="form-group">
+                <label for="placa_inventario">Placa de Inventario</label>
+                <input type="text" id="placa_inventario" formControlName="placa_inventario"
+                  [class.error]="hasError('placa_inventario')" placeholder="Ej: INV-2025-001" />
+                @if (hasError('placa_inventario')) {
+                  <span class="error-message">{{ getErrorMessage('placa_inventario') }}</span>
+                }
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="codigo">Código</label>
+                <input type="text" id="codigo" formControlName="codigo"
+                  [class.error]="hasError('codigo')" placeholder="Ej: EQ-001" />
+                @if (hasError('codigo')) {
+                  <span class="error-message">{{ getErrorMessage('codigo') }}</span>
+                }
+              </div>
+              <div class="form-group">
+                <label for="ano_ingreso">Año de Ingreso</label>
+                <input type="number" id="ano_ingreso" formControlName="ano_ingreso"
+                  [class.error]="hasError('ano_ingreso')" placeholder="Ej: 2025" min="1900" max="2100" />
+                @if (hasError('ano_ingreso')) {
+                  <span class="error-message">{{ getErrorMessage('ano_ingreso') }}</span>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Ubicación -->
+          <div class="form-section">
+            <h3 class="section-title">Ubicación</h3>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="ubicacion">Ubicación</label>
+                <input type="text" id="ubicacion" formControlName="ubicacion"
+                  [class.error]="hasError('ubicacion')" placeholder="Ej: Piso 2, Ala Norte" />
+                @if (hasError('ubicacion')) {
+                  <span class="error-message">{{ getErrorMessage('ubicacion') }}</span>
+                }
+              </div>
+              <div class="form-group">
+                <label for="ubicacion_especifica">Ubicación Específica</label>
+                <input type="text" id="ubicacion_especifica" formControlName="ubicacion_especifica"
+                  [class.error]="hasError('ubicacion_especifica')" placeholder="Ej: Sala 201, Escritorio 5" />
+                @if (hasError('ubicacion_especifica')) {
+                  <span class="error-message">{{ getErrorMessage('ubicacion_especifica') }}</span>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Mantenimiento -->
+          <div class="form-section">
+            <h3 class="section-title">Mantenimiento</h3>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="mtto">Requiere Mantenimiento</label>
+                <select id="mtto" formControlName="mtto" [class.error]="hasError('mtto')">
+                  <option [value]="1">Sí</option>
+                  <option [value]="0">No</option>
+                </select>
+                @if (hasError('mtto')) {
+                  <span class="error-message">{{ getErrorMessage('mtto') }}</span>
+                }
+              </div>
+              <div class="form-group">
+                <label for="periodicidad">Tipo de Mantenimiento</label>
+                <select id="periodicidad" formControlName="periodicidad" [class.error]="hasError('periodicidad')">
+                  <option value="">Seleccionar...</option>
+                  <option [value]="30">MENSUAL (30 días)</option>
+                  <option [value]="90">TRIMESTRAL (90 días)</option>
+                  <option [value]="120">CUATRIMESTRAL (120 días)</option>
+                  <option [value]="180">SEMESTRAL (180 días)</option>
+                  <option [value]="365">ANUAL (365 días)</option>
+                </select>
+                @if (hasError('periodicidad')) {
+                  <span class="error-message">{{ getErrorMessage('periodicidad') }}</span>
+                }
+              </div>
+            </div>
+
+            @if (fechasMantenimiento.length > 0) {
+              <div class="form-row">
+                @for (fecha of fechasMantenimiento; track fecha) {
+                  <div class="form-group">
+                    <label [for]="'fecha_mantenimiento_' + (fecha + 1)">
+                      {{ getFechaLabel(fecha) }} <span class="required">*</span>
+                    </label>
+                    <input type="date" [id]="'fecha_mantenimiento_' + (fecha + 1)"
+                      [formControlName]="'fecha_mantenimiento_' + (fecha + 1)"
+                      [class.error]="hasError('fecha_mantenimiento_' + (fecha + 1))" />
+                    @if (hasError('fecha_mantenimiento_' + (fecha + 1))) {
+                      <span class="error-message">{{ getErrorMessage('fecha_mantenimiento_' + (fecha + 1)) }}</span>
+                    }
+                  </div>
+                }
+              </div>
+            }
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="dias_mantenimiento">Días de Mantenimiento</label>
+                <input type="number" id="dias_mantenimiento" formControlName="dias_mantenimiento"
+                  [class.error]="hasError('dias_mantenimiento')" placeholder="Ej: 30" min="0" />
+                @if (hasError('dias_mantenimiento')) {
+                  <span class="error-message">{{ getErrorMessage('dias_mantenimiento') }}</span>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Configuración de Red -->
+          <div class="form-section">
+            <h3 class="section-title">Configuración de Red</h3>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="administrable">Administrable</label>
+                <select id="administrable" formControlName="administrable" [class.error]="hasError('administrable')">
+                  <option [value]="1">Sí</option>
+                  <option [value]="0">No</option>
+                </select>
+                @if (hasError('administrable')) {
+                  <span class="error-message">{{ getErrorMessage('administrable') }}</span>
+                }
+              </div>
+              <div class="form-group">
+                <label for="numero_puertos">Número de Puertos</label>
+                <input type="number" id="numero_puertos" formControlName="numero_puertos"
+                  [class.error]="hasError('numero_puertos')" placeholder="Ej: 24" min="0" />
+                @if (hasError('numero_puertos')) {
+                  <span class="error-message">{{ getErrorMessage('numero_puertos') }}</span>
+                }
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group full-width">
+                <label for="direccionamiento_Vlan">Direccionamiento VLAN</label>
+                <input type="text" id="direccionamiento_Vlan" formControlName="direccionamiento_Vlan"
+                  [class.error]="hasError('direccionamiento_Vlan')" placeholder="Ej: 192.168.10.0/24 - VLAN 10" />
+                @if (hasError('direccionamiento_Vlan')) {
+                  <span class="error-message">{{ getErrorMessage('direccionamiento_Vlan') }}</span>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Asignaciones -->
+          <div class="form-section">
+            <h3 class="section-title">Asignaciones</h3>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="id_sede_fk">Sede</label>
+                <select id="id_sede_fk" formControlName="id_sede_fk" [class.error]="hasError('id_sede_fk')"
+                  (change)="onSedeChange($any($event.target).value)">
+                  <option value="">Todas las sedes...</option>
+                  @for (sede of sedes; track sede.id) {
+                    <option [value]="sede.id">{{ sede.nombre }}</option>
+                  }
+                </select>
+                @if (hasError('id_sede_fk')) {
+                  <span class="error-message">{{ getErrorMessage('id_sede_fk') }}</span>
+                }
+              </div>
+              <div></div>
+              <div class="form-group">
+                <label for="id_servicio_fk">Servicio</label>
+                <select id="id_servicio_fk" formControlName="id_servicio_fk" [class.error]="hasError('id_servicio_fk')">
+                  <option value="">Seleccionar...</option>
+                  @for (servicio of servicios; track servicio.id) {
+                    <option [value]="servicio.id">{{ servicio.nombre }}</option>
+                  }
+                </select>
+                @if (hasError('id_servicio_fk')) {
+                  <span class="error-message">{{ getErrorMessage('id_servicio_fk') }}</span>
+                }
+              </div>
+              <div></div>
+              <div class="form-group">
+                <label for="id_tipo_equipo_fk">Tipo de Equipo</label>
+                <select id="id_tipo_equipo_fk" formControlName="id_tipo_equipo_fk" [class.error]="hasError('id_tipo_equipo_fk')">
+                  <option value="">Seleccionar...</option>
+                  @for (tipoEquipo of tiposEquipo; track tipoEquipo.id) {
+                    <option [value]="tipoEquipo.id">{{ tipoEquipo.nombre }}</option>
+                  }
+                </select>
+                @if (hasError('id_tipo_equipo_fk')) {
+                  <span class="error-message">{{ getErrorMessage('id_tipo_equipo_fk') }}</span>
+                }
+              </div>
+            </div>
+<div></div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="id_usuario_fk">Usuario Responsable</label>
+                <select id="id_usuario_fk" formControlName="id_usuario_fk" [class.error]="hasError('id_usuario_fk')">
+                  <option value="">Seleccionar...</option>
+                  @for (usuario of usuarios; track usuario.id) {
+                    <option [value]="usuario.id">{{ usuario.nombre }}</option>
+                  }
+                </select>
+                @if (hasError('id_usuario_fk')) {
+                  <span class="error-message">{{ getErrorMessage('id_usuario_fk') }}</span>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Hoja de Vida — solo al crear equipo nuevo -->
+          @if (isCreatingEquipo) {
+            <div class="form-section">
+              <h3 class="section-title collapsible" (click)="toggleHojaVida()">
+                Hoja de Vida del Equipo
+                <span class="toggle-icon">{{ hojaVidaExpanded ? '▼' : '▶' }}</span>
+              </h3>
+
+              @if (hojaVidaExpanded) {
+                <!-- Especificaciones Técnicas -->
+                <div class="subsection">
+                  <h4 class="subsection-title">Especificaciones Técnicas</h4>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="procesador">Procesador</label>
+                      <input type="text" id="procesador" formControlName="procesador" placeholder="Ej: Intel Core i7-10700" />
+                    </div>
+                    <div class="form-group">
+                      <label for="ram">Memoria RAM</label>
+                      <input type="text" id="ram" formControlName="ram" placeholder="Ej: 16 GB DDR4" />
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="disco_duro">Disco Duro</label>
+                      <input type="text" id="disco_duro" formControlName="disco_duro" placeholder="Ej: SSD 512 GB" />
+                    </div>
+                    <div class="form-group">
+                      <label for="sistema_operativo">Sistema Operativo</label>
+                      <input type="text" id="sistema_operativo" formControlName="sistema_operativo" placeholder="Ej: Windows 11 Pro" />
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="office">Office</label>
+                      <input type="text" id="office" formControlName="office" placeholder="Ej: Microsoft Office 2021" />
+                    </div>
+                    <div class="form-group">
+                      <label for="tonner">Tóner</label>
+                      <input type="text" id="tonner" formControlName="tonner" placeholder="Ej: HP CF230A" />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Información de Red -->
+                <div class="subsection">
+                  <h4 class="subsection-title">Información de Red</h4>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="ip">Dirección IP</label>
+                      <input type="text" id="ip" formControlName="ip" placeholder="Ej: 192.168.1.100" />
+                    </div>
+                    <div class="form-group">
+                      <label for="mac">Dirección MAC</label>
+                      <input type="text" id="mac" formControlName="mac" placeholder="Ej: 00:1A:2B:3C:4D:5E" />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Información de Compra -->
+                <div class="subsection">
+                  <h4 class="subsection-title">Información de Compra</h4>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="vendedor">Vendedor</label>
+                      <input type="text" id="vendedor" formControlName="vendedor" placeholder="Ej: Tech Solutions S.A." />
+                    </div>
+                    <div class="form-group">
+                      <label for="fecha_compra">Fecha de Compra</label>
+                      <input type="date" id="fecha_compra" formControlName="fecha_compra" />
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="fecha_instalacion">Fecha de Instalación</label>
+                      <input type="date" id="fecha_instalacion" formControlName="fecha_instalacion" />
+                    </div>
+                    <div class="form-group">
+                      <label for="costo_compra">Costo de Compra</label>
+                      <input type="number" id="costo_compra" formControlName="costo_compra" placeholder="Ej: 2500000" min="0" />
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="contrato">Número de Contrato</label>
+                      <input type="text" id="contrato" formControlName="contrato" placeholder="Ej: CTR-2025-001" />
+                    </div>
+                    <div class="form-group">
+                      <label for="tipo_uso">Tipo de Uso</label>
+                      <input type="text" id="tipo_uso" formControlName="tipo_uso" placeholder="Ej: Administrativo, Médico" />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Tipo de Adquisición -->
+                <div class="subsection">
+                  <h4 class="subsection-title">Tipo de Adquisición</h4>
+                  <div class="form-row">
+                    <div class="form-group checkbox-group">
+                      <label><input type="checkbox" formControlName="compraddirecta" /><span>Compra Directa</span></label>
+                    </div>
+                    <div class="form-group checkbox-group">
+                      <label><input type="checkbox" formControlName="convenio" /><span>Convenio</span></label>
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group checkbox-group">
+                      <label><input type="checkbox" formControlName="donado" /><span>Donado</span></label>
+                    </div>
+                    <div class="form-group checkbox-group">
+                      <label><input type="checkbox" formControlName="comodato" /><span>Comodato</span></label>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Información Adicional -->
+                <div class="subsection">
+                  <h4 class="subsection-title">Información Adicional</h4>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="nombre_usuario">Nombre de Usuario (Sistema)</label>
+                      <input type="text" id="nombre_usuario" formControlName="nombre_usuario" placeholder="Ej: admin, jperez" />
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group full-width">
+                      <label for="observaciones">Observaciones</label>
+                      <textarea id="observaciones" formControlName="observaciones"
+                        placeholder="Observaciones adicionales sobre el equipo..." rows="4"></textarea>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="close()" type="button" [disabled]="isSubmitting">
+          Cancelar
+        </button>
+        <button class="btn btn-primary" (click)="save()" type="button" [disabled]="isSubmitting">
+          @if (isSubmitting) {
+            <span class="spinner-small"></span>
+            <span>Guardando...</span>
+          } @else {
+            <span>Guardar</span>
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}

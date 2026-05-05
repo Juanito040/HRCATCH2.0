@@ -1,0 +1,155 @@
+<div class="profile-container">
+  <div class="card-wrapper">
+    <p-card header="Actualizar Perfil" subheader="Edite su información personal" styleClass="shadow-5 border-round-2xl">
+      <ng-template pTemplate="header">
+        <div class="bg-primary border-round-top-2xl" style="height: 8px;"></div>
+      </ng-template>
+
+      <form (ngSubmit)="guardarCambios()" *ngIf="usuario" class="p-fluid mt-3">
+
+        <div class="formgrid grid">
+          <div class="field col-12 md:col-6">
+            <label for="nombres" class="font-medium text-900">Nombres</label>
+            <p-iconfield position="left">
+              <p-inputicon styleClass="pi pi-user" />
+              <input pInputText id="nombres" [(ngModel)]="usuario.nombres" name="nombres" required class="w-full"
+                placeholder="Nombres" appUppercase />
+            </p-iconfield>
+          </div>
+          <div class="field col-12 md:col-6">
+            <label for="apellidos" class="font-medium text-900">Apellidos</label>
+            <p-iconfield position="left">
+              <p-inputicon styleClass="pi pi-user" />
+              <input pInputText id="apellidos" [(ngModel)]="usuario.apellidos" name="apellidos" required class="w-full"
+                placeholder="Apellidos" appUppercase />
+            </p-iconfield>
+          </div>
+        </div>
+
+        <p-divider styleClass="my-4"></p-divider>
+
+        <p-divider styleClass="my-4"></p-divider>
+
+        <div class="formgrid grid">
+          <div class="field col-12 md:col-6">
+            <label for="nombreUsuario" class="font-medium text-900">Usuario</label>
+            <p-iconfield position="left">
+              <p-inputicon styleClass="pi pi-id-card" />
+              <input pInputText id="nombreUsuario" [(ngModel)]="usuario.nombreUsuario" name="nombreUsuario" required
+                class="w-full" [disabled]="true" />
+            </p-iconfield>
+          </div>
+          <div class="field col-12 md:col-6">
+            <label for="email" class="font-medium text-900">Email</label>
+            <p-iconfield position="left">
+              <p-inputicon styleClass="pi pi-envelope" />
+              <input pInputText id="email" [(ngModel)]="usuario.email" name="email" required class="w-full"
+                appUppercase />
+            </p-iconfield>
+          </div>
+          <div class="field col-12 md:col-6">
+            <label for="telefono" class="font-medium text-900">Tel&eacute;fono</label>
+            <p-iconfield position="left">
+              <p-inputicon styleClass="pi pi-phone" />
+              <input pInputText id="telefono" [(ngModel)]="usuario.telefono" name="telefono" required class="w-full" />
+            </p-iconfield>
+          </div>
+          <div class="field col-12 md:col-6">
+            <label for="estado" class="font-medium text-900">Estado</label>
+            <p-select [options]="estadoOptions" [(ngModel)]="usuario.estado" name="estado" optionLabel="label"
+              optionValue="value" styleClass="w-full" [disabled]="true"></p-select>
+          </div>
+          <div class="field col-12 md:col-6">
+            <label for="cargo" class="font-medium text-900">Cargo</label>
+            <p-iconfield position="left">
+              <p-inputicon styleClass="pi pi-id-card" />
+              <input pInputText id="cargo" [ngModel]="usuario.cargo?.nombre || 'Sin Cargo'" name="cargo" class="w-full"
+                [disabled]="true" />
+            </p-iconfield>
+          </div>
+        </div>
+
+        <p-divider styleClass="my-4"></p-divider>
+
+        <div class="flex flex-column md:flex-row justify-content-between align-items-center gap-3">
+          <!-- Firma Section -->
+          <div class="flex align-items-center gap-3">
+            <div *ngIf="firmaUrl" class="border-round" oncontextmenu="return false;">
+              <div [style.background-image]="'url(' + firmaUrl + ')'"
+                style="width: 150px; height: 50px; background-size: contain; background-repeat: no-repeat; background-position: center; border: 1px solid #ddd; background-color: #fff;">
+              </div>
+            </div>
+            <p-button label="Registrar firma" icon="pi pi-pencil" styleClass="p-button-outlined p-button-info"
+              (onClick)="abrirModalFirma()" type="button"></p-button>
+          </div>
+
+          <!-- Password Section -->
+          <div>
+            <p-button label="Cambiar Contrase&ntilde;a" icon="pi pi-key" styleClass="p-button-outlined p-button-warning"
+              (onClick)="abrirModalPassword()" type="button"></p-button>
+          </div>
+        </div>
+
+        <p-divider styleClass="my-4"></p-divider>
+
+        <div class="flex justify-content-end gap-2">
+          <p-button label="Cancelar" icon="pi pi-times" styleClass="p-button-text p-button-secondary"
+            (onClick)="cancelarEdicion()"></p-button>
+          <p-button label="Guardar" icon="pi pi-check" type="submit"></p-button>
+        </div>
+
+      </form>
+    </p-card>
+  </div>
+</div>
+
+<p-dialog header="Registrar Firma" [(visible)]="mostrarFirmaModal" [modal]="true" [style]="{width: '600px'}"
+  [draggable]="false" [resizable]="false">
+  <div class="flex flex-column align-items-center justify-content-center">
+    <div style="border: 1px solid #ccc; border-radius: 5px;">
+      <signature-pad [options]="signaturePadOptions"></signature-pad>
+    </div>
+    <small class="text-secondary mt-2">Dibuja tu firma en el recuadro</small>
+  </div>
+  <ng-template pTemplate="footer">
+    <div class="flex justify-content-end gap-2">
+      <p-button label="Limpiar" icon="pi pi-eraser" styleClass="p-button-secondary p-button-text"
+        (onClick)="limpiarFirma()"></p-button>
+      <p-button label="Guardar Firma" icon="pi pi-check" (onClick)="guardarFirma()"></p-button>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<p-dialog header="Cambiar Contrase&ntilde;a" [(visible)]="mostrarPasswordModal" [modal]="true"
+  [style]="{width: '500px', height: '600px'}" [draggable]="false" [resizable]="false">
+  <div class="formgrid grid p-fluid">
+    <div class="field col-12">
+      <label for="contraseñaModal" class="font-medium text-900">Nueva Contrase&ntilde;a</label>
+      <p-password id="contraseñaModal" [(ngModel)]="nuevaContrasena" [toggleMask]="true" placeholder="Nueva contraseña"
+        [feedback]="true" promptLabel="Ingrese contraseña" weakLabel="Débil" mediumLabel="Media" strongLabel="Fuerte"
+        styleClass="w-full" inputStyleClass="w-full">
+        <ng-template pTemplate="footer">
+          <p class="mt-2 text-sm text-600">Requisitos:</p>
+          <ul class="pl-3 ml-2 mt-0 text-sm text-600" style="line-height: 1.5;">
+            <li>Mínimo 8 caracteres</li>
+            <li>Incluye mayúscula y minúscula</li>
+            <li>Incluye número y símbolo</li>
+          </ul>
+        </ng-template>
+      </p-password>
+    </div>
+
+    <div class="field col-12">
+      <label for="contraseñavModal" class="font-medium text-900">Confirmar Contrase&ntilde;a</label>
+      <p-password id="contraseñavModal" [(ngModel)]="confirmarContrasena" [toggleMask]="true"
+        placeholder="Confirmar contraseña" [feedback]="false" styleClass="w-full" inputStyleClass="w-full"></p-password>
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <div class="flex justify-content-end gap-2">
+      <p-button label="Cancelar" icon="pi pi-times" styleClass="p-button-secondary p-button-text"
+        (onClick)="cerrarModalPassword()"></p-button>
+      <p-button label="Aplicar" icon="pi pi-check" (onClick)="aplicarPassword()"></p-button>
+    </div>
+  </ng-template>
+</p-dialog>

@@ -1,0 +1,38 @@
+<div class="container mt--8 pb-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-5 col-md-7">
+      <h1 style="text-align: center; margin-top: 13%; font-size: 30px;"><strong>Restablecer contraseña AppHusrt</strong>
+      </h1>
+
+      <div class="card " style="margin-top: 10%;">
+        <div class="card-body">
+          <div class="container mt-5">
+            <form [formGroup]="form" (ngSubmit)="actualizarContrasena()" novalidate>
+              <div class="mb-3">
+                <label for="nuevaContrasena" class="form-label">Nueva contraseña:</label>
+                <input type="password" class="form-control" id="nuevaContrasena" formControlName="nuevaContrasena"
+                  required />
+                  <h1></h1>
+                <label for="nuevaContrasena" class="form-label">Confirme la Contrase&ntilde;a:</label>
+                <input type="password" class="form-control" id="nuevaContrasena2" formControlName="nuevaContrasena2"
+                  required />
+                <div class="text-danger"
+                  *ngIf="form.get('nuevaContrasena')?.invalid && form.get('nuevaContrasena')?.touched">
+                  La contraseña debe tener al menos 8 caracteres.
+                </div>
+                <div
+                  *ngIf="form.get('nuevaContrasena')?.touched && form.get('nuevaContrasena2')?.touched && !validarContrasenas()"
+                  class="text-danger">
+                  Las contraseñas no coinciden.
+                </div>
+              </div>
+              <button class="btn btn-primary" type="submit" [disabled]="!validarContrasenas()">Actualizar
+                contraseña</button>
+            </form>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

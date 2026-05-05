@@ -1,0 +1,26 @@
+<div class="dashboard-container">
+
+  <div class="text-center mb-5">
+    <h1 class="text-3xl font-bold mb-2">Equipos Biomédicos</h1>
+    <p class="text-secondary text-lg">Busque según el Servicio Requerido.</p>
+  </div>
+
+  <div class="search-container">
+    <input type="text" placeholder="Buscar servicio..." [(ngModel)]="searchText" class="search-bar">
+  </div>
+
+  <div class="cards-grid">
+    <div class="dashboard-card" *ngFor="let servicio of filteredServicios()" (click)="viewEquiposServicio(servicio.id)">
+      <div class="card-icon-container gradient-blue">
+        <i class="pi pi-briefcase"></i>
+      </div>
+      <div class="card-content">
+        <h3>{{ servicio.nombres }}</h3>
+        <small class="sede-name">{{ servicio.sede?.nombres || 'Sin Sede' }}</small>
+        <p>Total Equipos: <strong>{{ cantidadesEquipos[servicio.id] || 0 }}</strong></p>
+        <span class="card-action">Ver Equipos <i class="pi pi-arrow-right"></i></span>
+      </div>
+    </div>
+  </div>
+
+</div>

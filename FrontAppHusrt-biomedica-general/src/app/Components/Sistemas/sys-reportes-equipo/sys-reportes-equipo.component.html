@@ -1,0 +1,81 @@
+@if (isOpen) {
+  <div class="modal-overlay" (click)="close()">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title">Reportes de mantenimiento</h2>
+          <p class="modal-sub">{{ equipo?.nombre_equipo }} &nbsp;·&nbsp; {{ equipo?.placa_inventario || 'Sin placa' }}</p>
+        </div>
+        <button class="btn-close" (click)="close()">✕</button>
+      </div>
+
+      <div class="modal-body">
+
+        @if (isLoading) {
+          <div class="estado-centrado">
+            <div class="spinner"></div>
+            <p>Cargando reportes...</p>
+          </div>
+        } @else if (error) {
+          <div class="estado-centrado">
+            <p class="error-text">{{ error }}</p>
+            <button class="btn-reintentar" (click)="cargarReportes()">Reintentar</button>
+          </div>
+        } @else if (reportes.length === 0) {
+          <div class="estado-centrado">
+            <p>Este equipo no tiene reportes de mantenimiento registrados.</p>
+          </div>
+        } @else {
+
+          <p class="total-label">{{ reportes.length }} reporte{{ reportes.length !== 1 ? 's' : '' }}</p>
+
+          <div class="reportes-lista">
+            @for (r of reportes; track r.id_sysreporte_mto) {
+              <div class="reporte-item">
+
+                <div class="reporte-cabecera">
+                  <div class="cabecera-izq">
+                    <span class="fecha-reporte">{{ formatFecha(r.fecha_realizado) }}</span>
+                    @if (r.usuario) {
+                      <span class="horas-reporte">{{ r.usuario.nombres }} {{ r.usuario.apellidos }}</span>
+                    }
+                  </div>
+                  <div class="badges-row">
+                    <span [class]="'badge-tipo ' + getTipoClass(r.tipo_intervencion)">{{ r.tipo_intervencion }}</span>
+                    <span [class]="'badge-estado ' + getEstadoClass(r.estado_equipo)">{{ r.estado_equipo }}</span>
+                  </div>
+                </div>
+
+                <div class="reporte-cuerpo">
+                  @if (r.titulo) {
+                    <p class="caso-titulo">{{ r.titulo }}</p>
+                  }
+                  <div class="campo-bloque">
+                    <span class="campo-label">Trabajo realizado</span>
+                    <p class="campo-valor">{{ r.trabajo_realizado }}</p>
+                  </div>
+                  @if (r.nombre_recibio) {
+                    <div class="campo-bloque">
+                      <span class="campo-label">Recibió</span>
+                      <p class="campo-valor">{{ r.nombre_recibio }}</p>
+                    </div>
+                  }
+                  @if (r.observaciones) {
+                    <div class="campo-bloque">
+                      <span class="campo-label">Observaciones</span>
+                      <p class="campo-valor observaciones-text">{{ r.observaciones }}</p>
+                    </div>
+                  }
+                </div>
+
+              </div>
+            }
+          </div>
+
+        }
+      </div>
+
+    </div>
+  </div>
+}

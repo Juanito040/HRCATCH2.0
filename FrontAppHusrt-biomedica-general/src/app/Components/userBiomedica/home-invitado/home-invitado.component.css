@@ -1,0 +1,101 @@
+/* Estilos para el contenedor */
+.grid-container {
+    display: grid;
+    gap: 10px;
+    padding: 10px;
+}
+
+/* Configuración para pantallas grandes: 4 columnas */
+@media (min-width: 1200px) {
+    .grid-container {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* Para pantallas medianas: 2 columnas */
+@media (min-width: 768px) and (max-width: 1199px) {
+    .grid-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Para pantallas pequeñas: 1 columna */
+@media (max-width: 767px) {
+    .grid-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Estilos para los elementos dentro del grid */
+.grid-item {
+    background-color: transparent;
+    color: white;
+    text-align: center;
+    padding: 2px;
+    font-size: 15px;
+}
+
+.busqueda-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.busqueda-titulo {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0;
+    white-space: nowrap;
+}
+
+.busqueda-select {
+    width: 100%;
+    max-width: 300px;
+    min-width: 200px;
+}
+
+.busqueda-boton {
+    background-color: #343a40;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    font-weight: 500;
+    border-radius: 4px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.3s ease;
+}
+
+.busqueda-boton:hover {
+    background-color: #23272b;
+}
+
+.select-item {
+    display: flex;
+}
+
+/* Standardized Card Styles */
+.card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    height: 100%;
+}
+
+.card:hover {
+    transform: translateY(-5px) !important;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2) !important;
+}
+
+.card h5 {
+    font-size: 1.25rem;
+    font-weight: 600;
+}

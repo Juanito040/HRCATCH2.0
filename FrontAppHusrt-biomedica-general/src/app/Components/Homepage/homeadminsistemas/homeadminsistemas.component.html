@@ -1,0 +1,49 @@
+<div class="dashboard-container">
+
+  <div class="hero-section" style="margin-bottom: 3rem;">
+    <div class="hero-content">
+      <h1>Panel de Sistemas</h1>
+      <p>Bienvenido al sistema de gestión de equipos e infraestructura tecnológica.</p>
+    </div>
+  </div>
+
+  <div class="cards-grid" style="justify-content: center; max-width: 1200px; margin: 0 auto;">
+
+    <!-- Gestión de Sistemas -->
+    <div class="dashboard-card" (click)="irAEquipos()">
+      <div class="card-icon-container gradient-blue">
+        <i class="pi pi-desktop" style="font-size: 4rem;"></i>
+      </div>
+      <div class="card-content">
+        <h3>Gestión de Sistemas</h3>
+        <p>Gestione equipos, inventario, mantenimientos y hoja de vida de equipos de sistemas.</p>
+        <span class="card-action">Ingresar <i class="pi pi-arrow-right"></i></span>
+      </div>
+    </div>
+
+    <!-- Parametrización SIS — solo SYSTEMADMIN y SUPERADMIN -->
+    <div *ngIf="!isSystemUser" class="dashboard-card" (click)="irAParametrizacion()">
+      <div class="card-icon-container gradient-blue">
+        <i class="pi pi-cog" style="font-size: 4rem;"></i>
+      </div>
+      <div class="card-content">
+        <h3>Parametrización SIS</h3>
+        <p>Configura tipos de equipo, protocolos y opciones base del módulo.</p>
+        <span class="card-action">Configurar <i class="pi pi-arrow-right"></i></span>
+      </div>
+    </div>
+
+    <!-- Calendario de Backups -->
+    <div class="dashboard-card" (click)="irACalendarioBackups()">
+      <div class="card-icon-container gradient-blue">
+        <i class="pi pi-calendar" style="font-size: 4rem;"></i>
+      </div>
+      <div class="card-content">
+        <h3>Calendario de Backups</h3>
+        <p>Consulta el calendario de backups programados de los sistemas de información y revisa alertas pendientes.</p>
+        <span class="card-action">Ver calendario <i class="pi pi-arrow-right"></i></span>
+      </div>
+    </div>
+
+  </div>
+</div>

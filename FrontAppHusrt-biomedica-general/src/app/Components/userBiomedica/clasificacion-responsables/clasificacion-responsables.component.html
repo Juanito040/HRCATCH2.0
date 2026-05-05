@@ -1,0 +1,31 @@
+<div class="dashboard-container">
+
+    <div class="text-center mb-5">
+        <h1 class="text-3xl font-bold mb-2">Equipos Biomédicos</h1>
+        <p class="text-secondary text-lg">Busque según el Responsable a Cargo.</p>
+    </div>
+
+    <div class="search-container">
+        <input type="text" placeholder="Buscar responsable..." [(ngModel)]="searchText" class="search-bar">
+    </div>
+
+    <div class="cards-grid">
+        <div class="dashboard-card" *ngFor="let responsable of filteredResponsable()"
+            (click)="viewEquiposResponsable(responsable.id)">
+            <div class="card-icon-container gradient-cyan">
+                <i class="pi pi-user"></i>
+            </div>
+            <div class="card-content">
+                <h3>{{ responsable.nombres }}</h3>
+                <p>Equipos Asignados: <strong>{{ cantidadesEquipos[responsable.id] || 0 }}</strong></p>
+                <span class="card-action">Ver Equipos <i class="pi pi-arrow-right"></i></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-5" *ngIf="filteredResponsable().length === 0">
+        <i class="pi pi-inbox text-500 text-6xl mb-3"></i>
+        <p class="text-xl text-500">No se encontraron responsables</p>
+    </div>
+
+</div>

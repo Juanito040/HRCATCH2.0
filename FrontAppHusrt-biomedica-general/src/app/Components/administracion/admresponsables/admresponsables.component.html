@@ -1,0 +1,127 @@
+<div class="card px-4 py-4 m-4 shadow-2 border-round-xl surface-card">
+    <p-toolbar styleClass="mb-4 gap-2 border-none surface-ground">
+        <ng-template pTemplate="left">
+            <div class="flex align-items-center gap-2">
+                <i class="pi pi-briefcase text-2xl text-primary"></i>
+                <h2 class="m-0 font-bold text-900">Gesti&oacute;n de Responsables</h2>
+            </div>
+        </ng-template>
+
+        <ng-template pTemplate="right">
+            <p-button label="Nuevo Responsable" icon="pi pi-plus" (onClick)="openNew()" severity="primary"
+                [raised]="true"></p-button>
+        </ng-template>
+    </p-toolbar>
+
+    <p-table #dt [value]="responsables" [rows]="10" [paginator]="true" [globalFilterFields]="['nombres']"
+        [tableStyle]="{ 'min-width': '60rem' }" [rowHover]="true" dataKey="id"
+        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+        [showCurrentPageReport]="true">
+
+        <ng-template pTemplate="caption">
+            <div class="flex align-items-center justify-content-between">
+                <h5 class="m-0">Listado de Responsables</h5>
+                <p-iconfield position="left">
+                    <p-inputicon styleClass="pi pi-search" />
+                    <input pInputText type="text" (input)="onGlobalFilter($event)" placeholder="Buscar..." />
+                </p-iconfield>
+            </div>
+        </ng-template>
+
+        <ng-template pTemplate="header">
+            <tr>
+                <th pSortableColumn="nombres">Nombres <p-sortIcon field="nombres"></p-sortIcon></th>
+                <th pSortableColumn="garantia">Garant&iacute;a <p-sortIcon field="garantia"></p-sortIcon></th>
+                <th pSortableColumn="externo">Externo <p-sortIcon field="externo"></p-sortIcon></th>
+                <th pSortableColumn="comodato">Comodato <p-sortIcon field="comodato"></p-sortIcon></th>
+                <th pSortableColumn="calificacion">Calificaci&oacute;n <p-sortIcon field="calificacion"></p-sortIcon></th>
+                <th pSortableColumn="estado">Estado <p-sortIcon field="estado"></p-sortIcon></th>
+                <th>Acciones</th>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-responsable>
+            <tr>
+                <td>{{ responsable.nombres }}</td>
+                <td>
+                    <p-tag [value]="responsable.garantia ? 'S&iacute;' : 'No'"
+                        [severity]="responsable.garantia ? 'success' : 'info'"></p-tag>
+                </td>
+                <td>
+                    <p-tag [value]="responsable.externo ? 'S&iacute;' : 'No'"
+                        [severity]="responsable.externo ? 'warning' : 'primary'"></p-tag>
+                </td>
+                <td>
+                    <p-tag [value]="responsable.comodato ? 'S&iacute;' : 'No'"
+                        [severity]="responsable.comodato ? 'danger' : 'secondary'"></p-tag>
+                </td>
+                <td>{{ responsable.calificacion }}</td>
+                <td>
+                    <p-tag [value]="responsable.estado ? 'Activo' : 'Inactivo'"
+                        [severity]="responsable.estado ? 'success' : 'danger'"></p-tag>
+                </td>
+                <td>
+                    <div class="flex gap-2">
+                        <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="warn"
+                            (onClick)="openEdit(responsable)" pTooltip="Editar"></p-button>
+
+                        <p-button *ngIf="responsable.estado" icon="pi pi-ban" [rounded]="true" [text]="true"
+                            severity="danger" (onClick)="toggleEstado(responsable)" pTooltip="Desactivar"></p-button>
+
+                        <p-button *ngIf="!responsable.estado" icon="pi pi-check" [rounded]="true" [text]="true"
+                            severity="success" (onClick)="toggleEstado(responsable)" pTooltip="Activar"></p-button>
+                    </div>
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="6" class="text-center p-4">No se encontraron responsables.</td>
+            </tr>
+        </ng-template>
+
+    </p-table>
+</div>
+
+<p-dialog [(visible)]="viewModal" styleClass="standard-modal modal-md p-fluid"
+    [header]="isEditing ? 'Editar Responsable' : 'Nuevo Responsable'" [modal]="true">
+    <ng-template pTemplate="content">
+        <form [formGroup]="formGroup">
+            <div class="form-grid">
+                <div class="field" style="grid-column: 1 / -1;">
+                    <label for="nombres">Nombre (Empresa/Responsable)</label>
+                    <input type="text" pInputText id="nombres" formControlName="nombres" required autofocus
+                        class="w-full" appUppercase />
+                </div>
+            </div>
+
+            <div class="field mt-3">
+                <label for="calificacion">Calificaci&oacute;n</label>
+                <p-inputNumber formControlName="calificacion" [min]="0" [showButtons]="true"
+                    styleClass="w-full"></p-inputNumber>
+            </div>
+
+            <div class="flex flex-wrap gap-4 mt-3 justify-content-center">
+                <div class="flex flex-column align-items-center gap-2">
+                    <label class="font-bold">Garant&iacute;a</label>
+                    <p-inputSwitch formControlName="garantia"></p-inputSwitch>
+                </div>
+                <div class="flex flex-column align-items-center gap-2">
+                    <label class="font-bold">Externo</label>
+                    <p-inputSwitch formControlName="externo"></p-inputSwitch>
+                </div>
+                <div class="flex flex-column align-items-center gap-2">
+                    <label class="font-bold">Comodato</label>
+                    <p-inputSwitch formControlName="comodato"></p-inputSwitch>
+                </div>
+            </div>
+        </form>
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+        <button pButton pRipple label="Cancelar" icon="pi pi-times" class="p-button-text p-button-secondary"
+            (click)="viewModal = false"></button>
+        <button pButton pRipple label="Guardar" icon="pi pi-check" (click)="saveResponsable()"></button>
+    </ng-template>
+</p-dialog>

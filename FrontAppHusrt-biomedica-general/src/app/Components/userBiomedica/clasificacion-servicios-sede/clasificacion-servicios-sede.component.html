@@ -1,0 +1,35 @@
+<div class="dashboard-container fadein animation-duration-500">
+
+    <div class="text-center mb-5">
+        <h1 class="text-3xl font-bold mb-2">Servicios de {{sede?.nombres}}</h1>
+        <p class="text-secondary text-lg">Seleccione el servicio para ver los equipos.</p>
+    </div>
+
+    <!-- Search Section -->
+    <div class="search-container">
+        <p-iconfield position="left">
+            <p-inputicon styleClass="pi pi-search" />
+            <input pInputText type="text" placeholder="Buscar servicio..." [(ngModel)]="searchText" />
+        </p-iconfield>
+    </div>
+
+    <!-- Grid Section -->
+    <div class="grid">
+        <div class="col-12 md:col-6 lg:col-4" *ngFor="let servicio of filteredServicios()">
+            <div class="p-card h-full shadow-2 hover:shadow-4 cursor-pointer transition-all transition-duration-300"
+                style="border-radius: 12px; overflow: hidden;">
+                <div class="p-card-body flex flex-column align-items-center text-center p-4">
+                    <div
+                        class="mb-3 border-circle w-4rem h-4rem flex align-items-center justify-content-center bg-blue-100 text-blue-600">
+                        <i class="pi pi-briefcase text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">{{ servicio.nombres }}</h3>
+                    <p class="text-secondary mb-4">{{ cantidadesEquipos[servicio.id]}} equipos</p>
+                    <button pButton label="Ver Equipos" icon="pi pi-arrow-right" iconPos="right"
+                        class="p-button-outlined p-button-rounded w-full"
+                        (click)="viewEquiposServicio(servicio.id)"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

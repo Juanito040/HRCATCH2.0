@@ -1,0 +1,208 @@
+<p-confirmdialog [style]="{width: '450px'}"></p-confirmdialog>
+<div class="grid m-2">
+    <div class="col-12">
+        <div class="card shadow-2 p-3">
+            <p-toolbar styleClass="mb-4 gap-2 border-none">
+                <ng-template pTemplate="left">
+                    <div class="flex align-items-center gap-2">
+                        <i class="pi pi-briefcase text-2xl text-primary"></i>
+                        <div class="flex flex-column">
+                            <h2 class="text-xl font-bold m-0 text-900">Gesti&oacute;n de Casos</h2>
+                            <span class="text-500 text-sm">Listado de incidencias y requerimientos</span>
+                        </div>
+                    </div>
+                </ng-template>
+                <ng-template pTemplate="right">
+                    <button pButton pRipple label="Nuevo Caso" icon="pi pi-plus" class="p-button-success mr-2"
+                        (click)="createNew()"></button>
+                    <button pButton pRipple icon="pi pi-refresh" class="p-button-secondary p-button-outlined"
+                        (click)="loadCasos()" pTooltip="Recargar"></button>
+                </ng-template>
+            </p-toolbar>
+
+            <p-fieldset legend="Filtros de B&uacute;squeda" [toggleable]="true" styleClass="mb-4 surface-ground border-none">
+                <div class="grid p-fluid">
+                    <div class="col-12 sm:col-6 md:col-2">
+                        <label class="block font-bold mb-2 text-900">N° Caso</label>
+                        <input pInputText type="number" [(ngModel)]="selectedId" placeholder="#"
+                            (keyup.enter)="loadCasos()" class="w-full">
+                    </div>
+                    <div class="col-12 sm:col-6 md:col-3">
+                        <label class="block font-bold mb-2 text-900">Servicio</label>
+                        <p-select [options]="servicios" [(ngModel)]="selectedServicio" optionLabel="nombres"
+                            placeholder="Todos" (onChange)="loadCasos()" [showClear]="true" appendTo="body"
+                            styleClass="w-full"></p-select>
+                    </div>
+                    <div class="col-12 sm:col-6 md:col-2">
+                        <label class="block font-bold mb-2 text-900">Estado</label>
+                        <p-select [options]="estados" [(ngModel)]="selectedEstado" optionLabel="label"
+                            placeholder="Todos" (onChange)="loadCasos()" [showClear]="true" appendTo="body"
+                            styleClass="w-full"></p-select>
+                    </div>
+                    <div class="col-12 sm:col-6 md:col-2">
+                        <label class="block font-bold mb-2 text-900">Tipo</label>
+                        <p-select [options]="tipos" [(ngModel)]="selectedTipo" optionLabel="label" placeholder="Todos"
+                            (onChange)="loadCasos()" [showClear]="true" appendTo="body" styleClass="w-full"></p-select>
+                    </div>
+                    <div class="col-12 sm:col-6 md:col-3">
+                        <label class="block font-bold mb-2 text-900">SUMERCE</label>
+                        <p-select [options]="sumerceOptions" [(ngModel)]="selectedSumerce" optionLabel="label"
+                            placeholder="Todos" (onChange)="loadCasos()" [showClear]="true" appendTo="body"
+                            styleClass="w-full"></p-select>
+                    </div>
+                    <div class="col-12 md:col-12 mt-3 flex gap-2">
+                        <p-iconfield position="left" class="flex-grow-1">
+                            <p-inputicon styleClass="pi pi-search" />
+                            <input pInputText type="text" (input)="onGlobalFilter($event)"
+                                placeholder="B&uacute;squeda General en toda la tabla..." class="w-full" appUppercase />
+                        </p-iconfield>
+                        <button pButton label="Limpiar" icon="pi pi-filter-slash" class="p-button-outlined"
+                            (click)="clearFilters()"></button>
+                    </div>
+                </div>
+            </p-fieldset>
+
+            <p-table #dtCasos [value]="casos" [loading]="loading" [rows]="10" [paginator]="true"
+                styleClass="p-datatable-striped p-datatable-sm" [rowsPerPageOptions]="[10, 20, 50]" [scrollable]="true"
+                [globalFilterFields]="['id', 'titulo', 'fechaCreacion', 'servicio.nombres', 'servicioSolicitante.nombres', 'categoria.nombre', 'sumerce', 'estado', 'prioridad']"
+                [tableStyle]="{ 'min-width': '100rem' }" responsiveLayout="scroll" [showCurrentPageReport]="true"
+                currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros">
+                <ng-template pTemplate="header">
+                    <tr>
+                        <th pSortableColumn="id" style="min-width: 80px">ID <p-sortIcon field="id"></p-sortIcon></th>
+                        <th pSortableColumn="titulo" style="min-width: 200px">Título <p-sortIcon
+                                field="titulo"></p-sortIcon></th>
+                        <th pSortableColumn="fechaCreacion" style="min-width: 150px">Fecha <p-sortIcon
+                                field="fechaCreacion"></p-sortIcon></th>
+                        <th pSortableColumn="servicio.nombre" style="min-width: 200px">Servicio Destino <p-sortIcon
+                                field="servicio.nombre"></p-sortIcon></th>
+                        <th pSortableColumn="servicioSolicitante.nombre" style="min-width: 200px">Servicio Solicitante
+                            <p-sortIcon field="servicioSolicitante.nombre"></p-sortIcon>
+                        </th>
+                        <th pSortableColumn="categoria.nombre" style="min-width: 150px">Categor&iacute;a <p-sortIcon
+                                field="categoria.nombre"></p-sortIcon></th>
+                        <th pSortableColumn="sumerce" style="min-width: 120px">SUMERCE <p-sortIcon
+                                field="sumerce"></p-sortIcon></th>
+                        <th pSortableColumn="estado" style="min-width: 120px">Estado <p-sortIcon
+                                field="estado"></p-sortIcon></th>
+                        <th pSortableColumn="prioridad" style="min-width: 120px">Prioridad <p-sortIcon
+                                field="prioridad"></p-sortIcon></th>
+                        <th style="min-width: 100px; text-align: center">Acciones</th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-caso>
+                    <tr>
+                        <td class="font-bold">#{{ caso.id }}</td>
+                        <td class="font-bold cursor-pointer text-900 hover:text-primary transition-colors transition-duration-150"
+                            (click)="viewCaso(caso.id)">
+                            {{ caso.titulo }}
+                        </td>
+                        <td>{{ caso.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</td>
+                        <td>{{ caso.servicio?.nombres || 'N/A' }}</td>
+                        <td>{{ caso.servicioSolicitante?.nombres || caso.creador?.servicio?.nombres || 'N/A' }}</td>
+                        <td>
+                            <div class="font-bold">{{ caso.categoria?.nombre }}</div>
+                            <small *ngIf="caso.subcategoria" class="text-500">{{ caso.subcategoria.nombre }}</small>
+                        </td>
+                        <td>{{ caso.sumerce || 'N/A' }}</td>
+                        <td>
+                            <p-tag [value]="caso.estado" [severity]="getSeverity(caso.estado)"></p-tag>
+                        </td>
+                        <td>
+                            <p-tag [value]="caso.prioridad" [severity]="getPrioritySeverity(caso.prioridad)"></p-tag>
+                        </td>
+                        <td style="text-align: center">
+                            <button pButton icon="pi pi-ellipsis-v"
+                                class="p-button-text p-button-secondary p-button-rounded"
+                                (click)="setMenuCase(caso); menu.toggle($event)"></button>
+                            <p-menu #menu [popup]="true" [model]="menuItems" appendTo="body"></p-menu>
+                        </td>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="emptymessage">
+                    <tr>
+                        <td colspan="10" class="text-center p-4">
+                            <div class="flex flex-column align-items-center">
+                                <i class="pi pi-inbox text-500 mb-2" style="font-size: 2rem"></i>
+                                <span class="text-500 font-medium">No se encontraron casos con los filtros
+                                    seleccionados.</span>
+                            </div>
+                        </td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+    </div>
+</div>
+
+<p-dialog [header]="'Editar caso #' + editingCaso?.id + ' - ' + editingCaso?.titulo" [(visible)]="displayAdminDialog"
+    [modal]="true" [style]="{width: '600px'}" styleClass="p-fluid">
+    <div class="grid p-2">
+        <div class="col-12 md:col-6">
+            <div class="field">
+                <label class="font-bold block mb-2">Prioridad</label>
+                <p-select [options]="prioridades" [(ngModel)]="adminForm.prioridad" optionLabel="label"
+                    optionValue="value" appendTo="body" styleClass="w-full"></p-select>
+            </div>
+        </div>
+        <div class="col-12 md:col-6">
+            <div class="field">
+                <label class="font-bold block mb-2">SUMERCE</label>
+                <p-select [options]="sumerceOptions" [(ngModel)]="adminForm.sumerce" optionLabel="label"
+                    optionValue="value" appendTo="body" styleClass="w-full"></p-select>
+            </div>
+        </div>
+        <div class="col-12 mt-2">
+            <div class="field">
+                <label class="font-bold block mb-2">Servicio Destino</label>
+                <p-select [options]="servicios" [(ngModel)]="adminForm.servicioId" optionLabel="nombres"
+                    optionValue="id" appendTo="body" [filter]="true" filterBy="nombres"
+                    placeholder="Seleccione Servicio" styleClass="w-full"></p-select>
+            </div>
+        </div>
+    </div>
+    <ng-template pTemplate="footer">
+        <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text"
+            (click)="displayAdminDialog = false"></button>
+        <button pButton label="Guardar Cambios" icon="pi pi-check" (click)="saveAdminEdit()"></button>
+    </ng-template>
+</p-dialog>
+
+<!-- Assignment Dialog -->
+<p-dialog [(visible)]="displayAssignDialog" [style]="{width: '450px'}" header="Asignar Responsable" [modal]="true"
+    class="p-fluid">
+    <ng-template pTemplate="content">
+        <div class="field">
+            <label class="font-bold text-lg mb-2 block">Asignado a: <span class="text-red-500">*</span></label>
+            <p-autocomplete [(ngModel)]="selectedResolutor" [suggestions]="filteredUsers"
+                (completeMethod)="filterUsers($event)" field="nombres" [multiple]="true" [dropdown]="true"
+                placeholder="Buscar funcionario..." appendTo="body" styleClass="w-full" [inputStyle]="{'width':'100%'}">
+
+                <ng-template let-user pTemplate="item">
+                    <div class="flex align-items-center gap-2">
+                        <div
+                            class="flex align-items-center justify-content-center bg-orange-100 border-circle w-2rem h-2rem text-orange-700 font-bold">
+                            {{user.nombres.charAt(0)}}
+                        </div>
+                        <div class="flex flex-column">
+                            <span class="font-medium">{{user.nombres}} {{user.apellidos}}</span>
+                            <span class="text-xs text-500">{{user.mesaServicioRol?.nombre}}</span>
+                        </div>
+                    </div>
+                </ng-template>
+
+                <ng-template let-user pTemplate="selectedItem">
+                    <div class="flex align-items-center gap-2" style="background-color: inherit;">
+                        <i class="pi pi-user text-sm"></i>
+                        <span class="text-sm">{{user.nombres}} {{user.apellidos}}</span>
+                    </div>
+                </ng-template>
+            </p-autocomplete>
+        </div>
+    </ng-template>
+    <ng-template pTemplate="footer">
+        <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text"
+            (click)="displayAssignDialog = false"></button>
+        <button pButton label="Asignar" icon="pi pi-check" (click)="confirmAssign()"></button>
+    </ng-template>
+</p-dialog>

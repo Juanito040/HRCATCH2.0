@@ -1,0 +1,119 @@
+<br>
+<div class="container">
+  <div class="page-header">
+    <div>
+      <h1>Trazabilidad de Equipos</h1>
+      <p class="subtitle">Historial completo de acciones sobre todos los equipos de sistemas</p>
+    </div>
+    <button class="btn btn-primary" (click)="cargar()" [disabled]="isLoading">
+      <i class="fas fa-sync-alt" [class.fa-spin]="isLoading"></i>
+      Actualizar
+    </button>
+  </div>
+
+  <!-- Filtros -->
+  <div class="toolbar">
+    <div class="search-box">
+      <span class="search-icon"><i class="fas fa-search"></i></span>
+      <input type="text" placeholder="Buscar por equipo, marca, serie o usuario..."
+        [(ngModel)]="filtroBusqueda" (ngModelChange)="aplicarFiltros()" [disabled]="isLoading" />
+    </div>
+    <div class="filters">
+      <select class="filter-select" [(ngModel)]="filtroAccion" (ngModelChange)="cargar()" [disabled]="isLoading">
+        <option value="">Todas las acciones</option>
+        @for (accion of ACCIONES; track accion) {
+          <option [value]="accion">{{ getEtiqueta(accion) }}</option>
+        }
+      </select>
+      <input type="date" class="filter-select" [(ngModel)]="filtroDesde" (ngModelChange)="cargar()"
+        [disabled]="isLoading" title="Desde" />
+      <input type="date" class="filter-select" [(ngModel)]="filtroHasta" (ngModelChange)="cargar()"
+        [disabled]="isLoading" title="Hasta" />
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="table-container">
+    @if (isLoading) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando trazabilidad...</p>
+      </div>
+    } @else if (error) {
+      <div class="error-state">
+        <div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
+        <p>{{ error }}</p>
+        <button class="btn btn-primary" (click)="cargar()">Reintentar</button>
+      </div>
+    } @else {
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Equipo</th>
+            <th>Acción</th>
+            <th>Usuario</th>
+            <th>Detalles</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (evento of paginados; track $index) {
+            <tr>
+              <td class="td-fecha">{{ formatearFecha(evento.fecha) }}</td>
+              <td>
+                @if (evento.equipo) {
+                  <strong>{{ evento.equipo.nombre_equipo }}</strong>
+                  <br>
+                  <small class="texto-gris">{{ evento.equipo.marca }} {{ evento.equipo.modelo }}</small>
+                } @else {
+                  <span class="texto-gris">—</span>
+                }
+              </td>
+              <td>
+                <span class="accion-badge" [class]="getBadgeClase(evento.accion)">
+                  <i [class]="getIconClase(evento.accion)"></i>
+                  {{ getEtiqueta(evento.accion) }}
+                </span>
+              </td>
+              <td>
+                <div class="usuario-celda">
+                  <i class="fas fa-user-circle"></i>
+                  {{ getNombreUsuario(evento) }}
+                </div>
+              </td>
+              <td class="td-detalles">{{ getResumenDetalles(evento) }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="empty-state">
+                <div class="empty-icon"><i class="fas fa-clipboard-list"></i></div>
+                <p>No hay eventos de trazabilidad registrados</p>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+
+  <!-- Paginación -->
+  @if (!isLoading && !error && filtrados.length > 0) {
+    <div class="pagination">
+      <button class="btn btn-secondary" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">
+        <i class="fas fa-chevron-left"></i> Anterior
+      </button>
+      <div class="pagination-pages">
+        @for (p of getPagesArray(); track p) {
+          <button class="page-number" [class.active]="p === currentPage" (click)="goToPage(p)">{{ p }}</button>
+        }
+      </div>
+      <button class="btn btn-secondary" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">
+        Siguiente <i class="fas fa-chevron-right"></i>
+      </button>
+      <span class="page-info">
+        {{ (currentPage - 1) * pageSize + 1 }}–{{ min(currentPage * pageSize, filtrados.length) }} de {{ filtrados.length }}
+      </span>
+    </div>
+  }
+</div>
+<br>

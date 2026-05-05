@@ -1,0 +1,49 @@
+<div class="card">
+    <p-timeline [value]="events" align="alternate" styleClass="customized-timeline">
+        <ng-template pTemplate="marker" let-event>
+            <span class="custom-marker shadow-2" [style.backgroundColor]="event.color">
+                <i [ngClass]="event.icon"></i>
+            </span>
+        </ng-template>
+        <ng-template pTemplate="content" let-event>
+            <p-card [header]="event.accion" [subheader]="(event.fecha | date:'medium') || ''">
+                <p><strong>Usuario:</strong> {{event.usuario?.nombres}} {{event.usuario?.apellidos}}</p>
+                <div *ngIf="event.detalles" class="mt-2">
+                    <p class="font-bold mb-1">Detalles del Cambio:</p>
+
+                    <!-- Si es objeto (diferencias) -->
+                    <div *ngIf="isObject(event.detalles); else textDetails">
+                        <p-table [value]="objectKeys(event.detalles)" styleClass="p-datatable-sm p-datatable-gridlines"
+                            [showCurrentPageReport]="true"
+                            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros">
+                            <ng-template pTemplate="header">
+                                <tr>
+                                    <th>Campo</th>
+                                    <th>Anterior</th>
+                                    <th>Nuevo</th>
+                                </tr>
+                            </ng-template>
+                            <ng-template pTemplate="body" let-key>
+                                <tr>
+                                    <td class="font-bold">{{key}}</td>
+                                    <td class="text-red-500">{{event.detalles[key]?.anterior}}</td>
+                                    <td class="text-green-500">{{event.detalles[key]?.nuevo}}</td>
+                                </tr>
+                            </ng-template>
+                        </p-table>
+                    </div>
+
+                    <!-- Si es texto simple -->
+                    <ng-template #textDetails>
+                        <div class="p-2 border-round surface-100">
+                            {{event.detalles}}
+                        </div>
+                    </ng-template>
+                </div>
+            </p-card>
+        </ng-template>
+    </p-timeline>
+    <div *ngIf="!events || events.length === 0" class="text-center p-3">
+        No hay historial registrado para este equipo.
+    </div>
+</div>

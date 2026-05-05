@@ -1,0 +1,341 @@
+<div style="margin-top: 3%; margin-left: 5%; margin-right: 5%; background-color: white;">
+</div>
+
+<div style="margin-top: 2%; margin-bottom: 2%;">
+  <h1 style="text-align: center;">EQUIPOS BIOMEDICOS DEL SERVICIO: {{servicio?.nombres}}</h1>
+  <h6 style="text-align: center;"> Todos los equipos relacionados en el servicio de {{servicio?.nombres}}</h6>
+</div>
+
+<div class="card" style="margin-top: 3%; width: 100%;">
+  <p-table #dt2 [value]="equipos" dataKey="id" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 25, 50, 100]"
+    [loading]="loading"
+    [globalFilterFields]="['nombres', 'marca', 'modelo', 'serie', 'placa', 'servicios.sede.nombres', 'servicios.nombres', 'ubicacionEspecifica', 'periodicidadM', 'registroInvima', 'riesgo']"
+    [scrollable]="true" [tableStyle]="{ 'min-width': '70rem' }" [showCurrentPageReport]="true"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros">
+
+    <!-- Filtro -->
+    <ng-template pTemplate="caption">
+      <div class="flex justify-content-end">
+        <p-iconfield iconPosition="left">
+          <p-inputicon>
+            <i class="pi pi-search"></i>
+          </p-inputicon>
+          <input pInputText type="text" (input)="onGlobalFilter($event)" placeholder="B&uacute;squeda General" />
+        </p-iconfield>
+      </div>
+    </ng-template>
+
+    <!-- Cabecera -->
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="nombres">Nombre <p-sortIcon field="nombres"></p-sortIcon></th>
+        <th pSortableColumn="marca">Marca <p-sortIcon field="marca"></p-sortIcon></th>
+        <th pSortableColumn="modelo">Modelo <p-sortIcon field="modelo"></p-sortIcon></th>
+        <th pSortableColumn="serie">Serie <p-sortIcon field="serie"></p-sortIcon></th>
+        <th pSortableColumn="placa">Placa <p-sortIcon field="placa"></p-sortIcon></th>
+        <th pSortableColumn="servicios.sede.nombres">Sede <p-sortIcon field="servicios.sede.nombres"></p-sortIcon></th>
+        <th pSortableColumn="servicios.nombres">Servicio <p-sortIcon field="servicios.nombres"></p-sortIcon></th>
+        <th pSortableColumn="ubicacionEspecifica">Ubicaci&oacute;n Específica <p-sortIcon
+            field="ubicacionEspecifica"></p-sortIcon></th>
+        <th pSortableColumn="periodicidadM">Meses Mtto <p-sortIcon field="periodicidadM"></p-sortIcon></th>
+        <th pSortableColumn="registroInvima">Registro Invima <p-sortIcon field="registroInvima"></p-sortIcon></th>
+        <th pSortableColumn="riesgo">Riesgo <p-sortIcon field="riesgo"></p-sortIcon></th>
+        <th>Opciones</th>
+      </tr>
+    </ng-template>
+
+    <!-- Cuerpo -->
+    <ng-template pTemplate="body" let-equipo>
+      <tr>
+        <td>{{ equipo.nombres }}</td>
+        <td>{{ equipo.marca }}</td>
+        <td>{{ equipo.modelo }}</td>
+        <td>{{ equipo.serie }}</td>
+        <td>{{ equipo.placa }}</td>
+        <td>{{ equipo.servicios?.sede?.nombres }}</td>
+        <td>{{ equipo.servicios?.nombres }}</td>
+        <td>{{ equipo.ubicacionEspecifica }}</td>
+        <td>
+          <span *ngFor="let m of obtenerMesesConCumplimiento(equipo); let last = last" [style.color]="m.color"
+            [style.font-weight]="'bold'">
+            {{ m.mes }}{{ last ? '' : ', ' }}
+          </span>
+          <span *ngIf="!equipo.planesMantenimiento || equipo.planesMantenimiento.length === 0">Sin programación</span>
+        </td>
+        <td>{{ equipo.registroInvima }}</td>
+        <td
+          [ngStyle]="{'background-color': obtenerColorRiesgo(equipo.riesgo), 'color': 'black', 'font-weight': 'bold', 'text-align': 'center'}">
+          {{ equipo.riesgo }}
+        </td>
+        <td>
+          <p-splitbutton label="HV" icon="pi pi-check" dropdownIcon="pi pi-cog" [model]="equipo.opcionesHV"
+            severity="secondary" (onClick)="verHojaVida(equipo.id)">
+          </p-splitbutton>
+        </td>
+      </tr>
+    </ng-template>
+
+    <!-- Mensaje vacío -->
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="11" class="text-center">No hay Equipos.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog header="Editar Plan de Mantenimiento" [(visible)]="displayPlanDialog" [modal]="true"
+  styleClass="standard-modal modal-md" [draggable]="false" [resizable]="false">
+  <div class="p-fluid">
+    <div class="field">
+      <label for="intervenciones">Intervenciones por año</label>
+      <p-select [options]="intervencionOptions" [(ngModel)]="intervencionesAnuales" optionLabel="name"
+        optionValue="value" (onChange)="calcularFechas()"></p-select>
+      <small class="block">Seleccione cuántas veces al año se realizará el mantenimiento.</small>
+    </div>
+    <div class="field">
+      <label for="mesInicio">Mes de Inicio</label>
+      <p-select [options]="monthOptions" [(ngModel)]="mesInicio" optionLabel="name" optionValue="value"
+        (onChange)="calcularFechas()"></p-select>
+      <small class="block">Seleccione el mes en que inicia el primer mantenimiento.</small>
+    </div>
+    <div class="field">
+      <label for="anioInicio">A&ntilde;o de Inicio</label>
+      <p-select [options]="anioOptions" [(ngModel)]="anioInicio" optionLabel="name" optionValue="value"
+        (onChange)="calcularFechas()"></p-select>
+      <small class="block">Seleccione el año de inicio.</small>
+    </div>
+    <div class="field">
+      <label for="meses">Ciclo de Mantenimiento Calculado</label>
+      <p class="font-bold mt-2"
+        [ngClass]="{'text-green-500': selectedPlans.length > 0, 'text-red-500': selectedPlans.length === 0}">
+        {{calculatedMonthsText}}
+      </p>
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button icon="pi pi-times" (click)="displayPlanDialog=false" label="Cancelar"
+      styleClass="p-button-text p-button-secondary"></p-button>
+    <p-button icon="pi pi-check" (click)="savePlan()" label="Guardar"></p-button>
+  </ng-template>
+</p-dialog>
+
+<p-dialog header="Editar Plan de Actividades Metrol&oacute;gicas" [(visible)]="displayPlanMetrologiaDialog" [modal]="true"
+  [style]="{ width: '25rem' }">
+  <div *ngFor="let item of fechasCalibracion; let i = index; trackBy: trackByIndex" class="mb-4">
+    <h5 class="mb-2 font-bold">Actividad {{ i + 1 }}</h5>
+    <div class="field mb-3">
+      <label class="block mb-1 text-sm font-medium" [for]="'fecha-cal-'+i">Fecha Programada</label>
+      <p-datepicker [(ngModel)]="fechasCalibracion[i].fecha" inputId="{{ 'fecha-cal-' + i }}" view="month"
+        dateFormat="mm/yy" [style]="{ width: '100%' }" appendTo="body">
+      </p-datepicker>
+    </div>
+    <div class="field mb-3">
+      <label class="block mb-1 text-sm font-medium" [for]="'tipo-act-'+i">Tipo de Actividad</label>
+      <p-select [options]="tipoActividadOptions" [(ngModel)]="fechasCalibracion[i].tipoActividad" optionLabel="label"
+        optionValue="value" [style]="{ width: '100%' }" placeholder="Seleccione Tipo" appendTo="body">
+      </p-select>
+    </div>
+    <hr *ngIf="i < fechasCalibracion.length - 1" class="my-3 border-gray-300" />
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button icon="pi pi-times" (click)="displayPlanMetrologiaDialog=false" label="Cancelar"
+      styleClass="p-button-text p-button-secondary"></p-button>
+    <p-button icon="pi pi-check" (click)="savePlanMetrologia()" label="Guardar"></p-button>
+  </ng-template>
+</p-dialog>
+
+<!-- Modal Registrar Traslado -->
+<p-dialog header="Registrar Traslado de Equipo" [(visible)]="displayTrasladoDialog" [modal]="true"
+  [style]="{width: '50vw'}" [draggable]="false" [resizable]="false">
+  <div class="p-fluid" *ngIf="selectedEquipoTraslado">
+    <!-- Detalles del Equipo -->
+    <div class="surface-ground p-3 border-round mb-4">
+      <div class="text-xl font-medium mb-3 text-900">Detalles del Equipo</div>
+      <div class="grid">
+        <div class="col-6 md:col-4">
+          <span class="text-500 block mb-1 text-sm">Nombre</span>
+          <span class="text-900 font-medium">{{selectedEquipoTraslado.nombres}}</span>
+        </div>
+        <div class="col-6 md:col-4">
+          <span class="text-500 block mb-1 text-sm">Marca</span>
+          <span class="text-900 font-medium">{{selectedEquipoTraslado.marca}}</span>
+        </div>
+        <div class="col-6 md:col-4">
+          <span class="text-500 block mb-1 text-sm">Modelo</span>
+          <span class="text-900 font-medium">{{selectedEquipoTraslado.modelo}}</span>
+        </div>
+        <div class="col-6 md:col-4">
+          <span class="text-500 block mb-1 text-sm">Serie</span>
+          <span class="text-900 font-medium">{{selectedEquipoTraslado.serie}}</span>
+        </div>
+        <div class="col-6 md:col-4">
+          <span class="text-500 block mb-1 text-sm">Placa</span>
+          <span class="text-900 font-medium">{{selectedEquipoTraslado.placa}}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formulario de Traslado -->
+    <div class="grid formgrid p-2">
+      <div class="col-12 mb-3">
+        <label for="servicioDestino" class="font-medium text-900 block mb-2">Servicio Destino</label>
+        <p-select [options]="serviciosList" [(ngModel)]="servicioDestinoId" optionLabel="nombres" optionValue="id"
+          placeholder="Seleccione un servicio" [filter]="true" filterBy="nombres" appendTo="body"
+          styleClass="w-full"></p-select>
+      </div>
+
+      <div class="col-12 md:col-6 mb-3">
+        <label for="nombreReceptor" class="font-medium text-900 block mb-2">Recibido por (Nombre)</label>
+        <input type="text" pInputText [(ngModel)]="nombreReceptor" placeholder="Nombre Completo" class="w-full">
+      </div>
+
+      <div class="col-12 md:col-6 mb-3">
+        <label for="cargoReceptor" class="font-medium text-900 block mb-2">Cargo</label>
+        <input type="text" pInputText [(ngModel)]="cargoReceptor" placeholder="Ej. Jefe de Enfermería" class="w-full">
+      </div>
+
+      <div class="col-12 mb-3">
+        <label for="observaciones" class="font-medium text-900 block mb-2">Observaciones</label>
+        <textarea pInputTextarea [(ngModel)]="observacionesTransferencia" rows="3" class="w-full"
+          placeholder="Ingrese detalles adicionales..."></textarea>
+      </div>
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <button pButton icon="pi pi-times" (click)="displayTrasladoDialog=false" label="Cancelar"
+      class="p-button-text"></button>
+    <button pButton icon="pi pi-check" (click)="confirmarTraslado()" label="Confirmar Traslado"
+      class="p-button-primary"></button>
+  </ng-template>
+</p-dialog>
+
+<!-- Modal Historial Unificado -->
+<p-dialog header="Historial del Equipo" [(visible)]="displayHistorialTrasladosDialog" [modal]="true"
+  [style]="{width: '70vw'}" [draggable]="false" [resizable]="false">
+  <p-table [value]="historialUnificado" [paginator]="true" [rows]="10" styleClass="p-datatable-sm"
+    responsiveLayout="scroll" [showCurrentPageReport]="true"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Fecha</th>
+        <th>Tipo / Acci&oacute;n</th>
+        <th>Usuario</th>
+        <th>Detalles</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-item>
+      <tr>
+        <td>{{item.fecha | date:'medium'}}</td>
+        <td>
+          <p-tag [value]="item.tipo" [severity]="item.tipo === 'TRASLADO' ? 'warning' : 'info'"></p-tag>
+        </td>
+        <td>{{item.usuario}}</td>
+        <td style="white-space: pre-wrap;">{{item.detalles}}</td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="4" class="text-center">No hay historial registrado para este equipo.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+</p-dialog>
+
+<!-- Modal Registrar Actividad Metrol&oacute;gica -->
+<p-dialog header="Registrar Actividad Metrol&oacute;gica" [modal]="true" [(visible)]="modalAddActividadMetrologica"
+  styleClass="standard-modal modal-lg" [maximizable]="false" [style]="{width: '50vw'}">
+
+  <div class="form-grid" style="width: 100%;" *ngIf="currentEquipo">
+
+    <div class="field">
+      <label>Nombre Equipo</label>
+      <input pInputText type="nombreEquipo" placeholder="{{currentEquipo.nombres}}" disabled />
+    </div>
+
+    <div class="field">
+      <label>Marca</label>
+      <input pInputText type="nombreEquipo" placeholder="{{currentEquipo.marca}}" disabled />
+    </div>
+
+    <div class="field">
+      <label>Modelo</label>
+      <input pInputText type="nombreEquipo" placeholder="{{currentEquipo.modelo}}" disabled />
+    </div>
+
+    <div class="field">
+      <label>Serie</label>
+      <input pInputText type="nombreEquipo" placeholder="{{currentEquipo.serie}}" disabled />
+    </div>
+
+    <div class="field">
+      <label>Servicio</label>
+      <input pInputText type="nombreEquipo" placeholder="{{currentEquipo.servicios?.nombres}}" disabled />
+    </div>
+
+    <div class="field">
+      <label>Ubicaci&oacute;n</label>
+      <input pInputText type="nombreEquipo" placeholder="{{currentEquipo.ubicacion}}" disabled />
+    </div>
+
+    <div class="field">
+      <label>Ubicaci&oacute;n especifica</label>
+      <input pInputText type="nombreEquipo" placeholder="{{currentEquipo.ubicacionEspecifica}}" disabled />
+    </div>
+  </div>
+
+  <div class="form-grid" style="width: 100%; margin-top: 1.5rem;">
+
+    <div class="field">
+      <label>Tipo de Actividad</label>
+      <p-select [options]="opcionesTipoActividad" [(ngModel)]="tipoActividad" optionLabel="label" optionValue="value"
+        placeholder="Seleccione Tipo" appendTo="body" styleClass="w-full"></p-select>
+    </div>
+
+    <div class="field">
+      <label>Empresa</label>
+      <input pInputText type="text" [(ngModel)]="empresa" placeholder="Empresa encargada" />
+    </div>
+
+    <div class="field">
+      <label>Fecha Realizado</label>
+      <p-datepicker [(ngModel)]="fechaRealizadoActividad" dateFormat="dd/mm/yy" [showIcon]="true"
+        appendTo="body"></p-datepicker>
+    </div>
+
+    <div class="field">
+      <label>Resultado</label>
+      <p-select [options]="opcionesResultado" [(ngModel)]="resultado" optionLabel="label" optionValue="value"
+        placeholder="Seleccione Resultado" appendTo="body" styleClass="w-full"></p-select>
+    </div>
+
+    <div class="field">
+      <label>Error Maximo Identificado</label>
+      <input pInputText type="number" [(ngModel)]="errorMaximoIdentificado" placeholder="Valor númerico" />
+    </div>
+
+    <div class="field">
+      <label>Cargar Reporte (PDF)</label>
+      <input type="file" (change)="onFileSelected($event)" accept="application/pdf" class="form-control" />
+    </div>
+
+    <div class="field">
+      <label>Cargar Confirmación Metrol&oacute;gica (PDF)</label>
+      <input type="file" (change)="onFileSelectedConfirmacion($event)" accept="application/pdf" class="form-control" />
+    </div>
+
+    <div class="field" style="grid-column: 1 / -1;">
+      <label>Observaciones</label>
+      <textarea pInputTextarea [(ngModel)]="observaciones" rows="3" style="width: 100%;"></textarea>
+    </div>
+
+  </div>
+
+  <ng-template pTemplate="footer">
+    <button pButton pRipple label="Cancelar" icon="pi pi-times" class="p-button-text p-button-secondary"
+      (click)="modalAddActividadMetrologica = false"></button>
+    <button pButton pRipple label="Guardar" icon="pi pi-check" (click)="registrarMetrologia()"></button>
+  </ng-template>
+
+</p-dialog>

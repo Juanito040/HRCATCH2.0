@@ -1,0 +1,27 @@
+<div class="menubar-wrapper">
+    <p-menubar [model]="items" styleClass="glass-navbar border-none border-round-xl">
+        <ng-template pTemplate="start">
+            <div class="logo-container flex align-items-center gap-2 px-2 cursor-pointer" routerLink="/userbiomedica">
+                <img src="LogoAgora.png" height="40" alt="Logo" />
+                <div class="flex flex-column">
+                    <span class="font-bold text-primary text-lg">{{ themeService.getThemeConfig().appName }}</span>
+                    <span class="text-xs text-secondary">Técnico Biom&eacute;dica</span>
+                </div>
+            </div>
+        </ng-template>
+
+        <ng-template pTemplate="end">
+            <div class="flex align-items-center gap-2">
+                <button pButton label="Pendientes" icon="pi pi-bell" class="p-button-text"
+                    routerLink="/biomedica/tecnico/pendientes"></button>
+                <div class="flex align-items-center gap-2">
+                    <p-avatar icon="pi pi-user" styleClass="mr-2 cursor-pointer" shape="circle"
+                        [style]="{'background-color': '#eef2ff', 'color': '#0056b3'}" (click)="viewUser()"
+                        pTooltip="Perfil"></p-avatar>
+                    <button pButton icon="pi pi-power-off" class="p-button-rounded p-button-text p-button-danger"
+                        pTooltip="Cerrar Sesión" tooltipPosition="bottom" (click)="navigateToAbout()"></button>
+                </div>
+            </div>
+        </ng-template>
+    </p-menubar>
+</div>

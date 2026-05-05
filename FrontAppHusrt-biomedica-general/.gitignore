@@ -1,0 +1,64 @@
+# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
+
+# Compiled output
+/dist
+/tmp
+/out-tsc
+/bazel-out
+
+# Node
+/node_modules
+npm-debug.log
+yarn-error.log
+
+# IDEs and editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
+
+# Miscellaneous
+/.angular/cache
+.sass-cache/
+/connect.lock
+/coverage
+/libpeerconnection.log
+testem.log
+/typings
+
+# System files
+.DS_Store
+Thumbs.db
+
+# SSL certificates (local dev)
+/certs/
+
+# Build logs
+*.log
+build_error*.txt
+build_errors*.txt
+build_log*.txt
+build_output*.txt
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Angular environment files with server data
+src/environments/environment.prod.ts
+
+# Package manager locks (keep only one — uncomment the one not used)
+# package-lock.json
+# yarn.lock

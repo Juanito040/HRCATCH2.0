@@ -1,0 +1,118 @@
+@if (isOpen && equipo) {
+  <div class="modal-overlay">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="header-content">
+          <h2>{{ equipo.nombre_equipo }}</h2>
+          <span [class]="getEstadoBadgeClass(equipo.activo)">{{ formatEstado(equipo.activo) }}</span>
+        </div>
+        <button class="btn-close" (click)="close()" type="button">✕</button>
+      </div>
+      <div class="modal-body">
+
+        <!-- Recuadro razón bodega -->
+        @if (equipo.ubicacion === 'Bodega' && equipo.ubicacion_especifica) {
+          <div class="reason-banner reason-bodega">
+            <div class="reason-icon"><i class="fas fa-warehouse"></i></div>
+            <div class="reason-content">
+              <span class="reason-label">Motivo de envío a bodega</span>
+              <p class="reason-text">{{ equipo.ubicacion_especifica }}</p>
+            </div>
+          </div>
+        }
+
+        <!-- Recuadro razón baja -->
+        @if (equipo.estado_baja) {
+          <div class="reason-banner reason-baja">
+            <div class="reason-icon"><i class="fas fa-ban"></i></div>
+            <div class="reason-content">
+              <span class="reason-label">Justificación de baja
+                @if (equipo.baja?.fecha_baja) { — {{ equipo.baja.fecha_baja }} }
+              </span>
+              <p class="reason-text">{{ equipo.baja?.justificacion_baja || 'Sin justificación registrada' }}</p>
+              @if (equipo.baja?.accesorios_reutilizables) {
+                <span class="reason-extra"><strong>Accesorios reutilizables:</strong> {{ equipo.baja.accesorios_reutilizables }}</span>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Información Básica -->
+        <div class="detail-section">
+          <h3 class="section-title">Información Básica</h3>
+          <div class="detail-grid">
+            <div class="detail-item"><span class="detail-label">ID</span><span class="detail-value">{{ equipo.id_sysequipo }}</span></div>
+            <div class="detail-item"><span class="detail-label">Tipo de Equipo</span><span class="detail-value">{{ formatTipoEquipo() }}</span></div>
+            <div class="detail-item"><span class="detail-label">Marca</span><span class="detail-value">{{ formatValue(equipo.marca) }}</span></div>
+            <div class="detail-item"><span class="detail-label">Modelo</span><span class="detail-value">{{ formatValue(equipo.modelo) }}</span></div>
+            <div class="detail-item"><span class="detail-label">Número de Serie</span><span class="detail-value"><code class="serie-badge">{{ formatValue(equipo.serie) }}</code></span></div>
+            <div class="detail-item"><span class="detail-label">Placa de Inventario</span><span class="detail-value">{{ formatValue(equipo.placa_inventario) }}</span></div>
+            <div class="detail-item"><span class="detail-label">Código</span><span class="detail-value">{{ formatValue(equipo.codigo) }}</span></div>
+            <div class="detail-item"><span class="detail-label">Ubicación</span><span class="detail-value">{{ formatValue(equipo.ubicacion) }}</span></div>
+            <div class="detail-item"><span class="detail-label">Ubicación Específica</span><span class="detail-value">{{ formatValue(equipo.ubicacion_especifica) }}</span></div>
+            <div class="detail-item"><span class="detail-label">Año de Ingreso</span><span class="detail-value">{{ equipo.ano_ingreso || 'No especificado' }}</span></div>
+            <div class="detail-item"><span class="detail-label">Servicio</span><span class="detail-value">{{ formatServicio() }}</span></div>
+            <div class="detail-item"><span class="detail-label">Responsable</span><span class="detail-value">{{ formatUsuario() }}</span></div>
+          </div>
+        </div>
+
+        <!-- Mantenimiento -->
+        <div class="detail-section">
+          <h3 class="section-title">Información de Mantenimiento</h3>
+          <div class="detail-grid">
+            <div class="detail-item"><span class="detail-label">Requiere Mantenimiento</span><span class="detail-value">{{ equipo.mtto === 1 ? 'Sí' : 'No' }}</span></div>
+            <div class="detail-item"><span class="detail-label">Días de Mantenimiento</span><span class="detail-value">{{ equipo.dias_mantenimiento || 'No especificado' }}</span></div>
+            <div class="detail-item"><span class="detail-label">Periodicidad (días)</span><span class="detail-value">{{ equipo.periodicidad || 'No especificado' }}</span></div>
+          </div>
+        </div>
+
+        <!-- Red -->
+        <div class="detail-section">
+          <h3 class="section-title">Configuración de Red</h3>
+          <div class="detail-grid">
+            <div class="detail-item"><span class="detail-label">Administrable</span><span class="detail-value">{{ equipo.administrable === 1 ? 'Sí' : 'No' }}</span></div>
+            <div class="detail-item"><span class="detail-label">Número de Puertos</span><span class="detail-value">{{ equipo.numero_puertos || 'No especificado' }}</span></div>
+            <div class="detail-item">
+              <span class="detail-label">Direccionamiento VLAN</span>
+              <span class="detail-value">
+                @if (equipo.direccionamiento_Vlan) {
+                  <code class="ip-badge">{{ equipo.direccionamiento_Vlan }}</code>
+                } @else {
+                  No especificado
+                }
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hoja de Vida -->
+        @if (equipo.hojaVida) {
+          <div class="detail-section">
+            <h3 class="section-title">Hoja de Vida</h3>
+            <div class="detail-grid">
+              <div class="detail-item"><span class="detail-label">IP</span><span class="detail-value">@if (equipo.hojaVida.ip) {<code class="ip-badge">{{ equipo.hojaVida.ip }}</code>} @else {No especificado}</span></div>
+              <div class="detail-item"><span class="detail-label">MAC</span><span class="detail-value">{{ formatValue(equipo.hojaVida.mac) }}</span></div>
+              <div class="detail-item"><span class="detail-label">Procesador</span><span class="detail-value">{{ formatValue(equipo.hojaVida.procesador) }}</span></div>
+              <div class="detail-item"><span class="detail-label">RAM</span><span class="detail-value">{{ formatValue(equipo.hojaVida.ram) }}</span></div>
+              <div class="detail-item"><span class="detail-label">Disco Duro</span><span class="detail-value">{{ formatValue(equipo.hojaVida.disco_duro) }}</span></div>
+              <div class="detail-item"><span class="detail-label">Sistema Operativo</span><span class="detail-value">{{ formatValue(equipo.hojaVida.sistema_operativo) }}</span></div>
+              <div class="detail-item"><span class="detail-label">Office</span><span class="detail-value">{{ formatValue(equipo.hojaVida.office) }}</span></div>
+              <div class="detail-item"><span class="detail-label">Tóner</span><span class="detail-value">{{ formatValue(equipo.hojaVida.tonner) }}</span></div>
+              <div class="detail-item"><span class="detail-label">Vendedor</span><span class="detail-value">{{ formatValue(equipo.hojaVida.vendedor) }}</span></div>
+              <div class="detail-item"><span class="detail-label">Costo de Compra</span><span class="detail-value">{{ equipo.hojaVida.costo_compra || 'No especificado' }}</span></div>
+              <div class="detail-item"><span class="detail-label">Contrato</span><span class="detail-value">{{ formatValue(equipo.hojaVida.contrato) }}</span></div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="modal-footer no-print">
+        <button class="btn btn-secondary" (click)="close()" type="button">Cerrar</button>
+        <button class="btn btn-info" (click)="verHojaVida()" type="button">
+          <i class="fas fa-file-alt"></i> Hoja de Vida
+        </button>
+        <button class="btn btn-primary" (click)="requestEdit()" type="button">Editar Equipo</button>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,4 @@
+/* Styles are now handled globally in src/styles.css to match ClasificacionTipoEquipoComponent */
+.dashboard-container .text-center {
+    /* Optional: local tweaks if needed, but keeping it clean */
+}

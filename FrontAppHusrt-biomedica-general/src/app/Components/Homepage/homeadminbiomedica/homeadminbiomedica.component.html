@@ -1,0 +1,35 @@
+<div class="dashboard-container">
+
+  <div class="hero-section" style="margin-bottom: 3rem;">
+    <div class="hero-content">
+      <h1>Panel de Administración Biom&eacute;dica</h1>
+      <p>Bienvenido al sistema de gestión de activos y parámetros.</p>
+    </div>
+  </div>
+
+  <div class="cards-grid" style="justify-content: center; max-width: 900px; margin: 0 auto;">
+    <!-- Gestion Operativa -->
+    <div class="dashboard-card" (click)="showViewGestionOperativa()">
+      <div class="card-icon-container gradient-blue">
+        <i class="pi pi-briefcase" style="font-size: 4rem;"></i>
+      </div>
+      <div class="card-content">
+        <h3>Gesti&oacute;n Operativa</h3>
+        <p>Inventarios, mantenimientos, semaforización y reportes.</p>
+        <span class="card-action">Acceder <i class="pi pi-arrow-right"></i></span>
+      </div>
+    </div>
+
+    <!-- Parametrizacion -->
+    <div class="dashboard-card" (click)="showViewParametrizacion()">
+      <div class="card-icon-container gradient-orange">
+        <i class="pi pi-cog" style="font-size: 4rem;"></i>
+      </div>
+      <div class="card-content">
+        <h3>Parametrización</h3>
+        <p>Configuración de equipos, fabricantes, proveedores y tablas maestras.</p>
+        <span class="card-action">Acceder <i class="pi pi-arrow-right"></i></span>
+      </div>
+    </div>
+  </div>
+</div>

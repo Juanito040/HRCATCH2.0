@@ -1,0 +1,85 @@
+<div class="dashboard-container">
+
+  <div class="hero-section">
+    <div class="hero-content">
+      <h1>Panel de Super Administrador</h1>
+      <p>Gesti&oacute;n global del sistema, personalización y configuración avanzada.</p>
+    </div>
+  </div>
+
+  <div class="cards-grid">
+
+    <!-- Parametrización Biom&eacute;dica -->
+    <div class="dashboard-card" (click)="viewParametrizacion()">
+      <div class="card-icon-container gradient-orange">
+        <i class="pi pi-cog"></i>
+      </div>
+      <div class="card-content">
+        <h3>Parametrización</h3>
+        <p>Gestione tipos de equipo, fabricantes, proveedores y más.</p>
+        <span class="card-action">Administrar <i class="pi pi-arrow-right"></i></span>
+      </div>
+    </div>
+
+    <!-- Gesti&oacute;n Biom&eacute;dica -->
+    <div class="dashboard-card" (click)="viewGestionBiomedica()">
+      <div class="card-icon-container gradient-green">
+        <i class="pi pi-heart"></i>
+      </div>
+      <div class="card-content">
+        <h3>Gesti&oacute;n Biom&eacute;dica</h3>
+        <p>Acceda a inventarios, mantenimientos e indicadores operativos.</p>
+        <span class="card-action">Ingresar <i class="pi pi-arrow-right"></i></span>
+      </div>
+    </div>
+
+    <!-- Gesti&oacute;n Mesa de Servicios -->
+    <div class="dashboard-card" (click)="viewMesaServicios()">
+      <div class="card-icon-container gradient-purple">
+        <i class="pi pi-ticket"></i>
+      </div>
+      <div class="card-content">
+        <h3>Mesa de Servicios</h3>
+        <p>Administre las solicitudes de soporte y la mesa de ayuda.</p>
+        <span class="card-action">Gestionar <i class="pi pi-arrow-right"></i></span>
+      </div>
+    </div>
+
+    <!-- Gesti&oacute;n Sistemas -->
+    <div class="dashboard-card" (click)="viewGestionSistemas()">
+      <div class="card-icon-container gradient-blue">
+        <i class="pi pi-server"></i>
+      </div>
+      <div class="card-content">
+        <h3>Gesti&oacute;n Sistemas</h3>
+        <p>Módulo de gestión para el área de sistemas de información.</p>
+        <span class="card-action">Ir al módulo <i class="pi pi-arrow-right"></i></span>
+      </div>
+    </div>
+
+    <!-- Gesti&oacute;n Mantenimiento (Placeholder) -->
+    <div class="dashboard-card opacity-60">
+      <div class="card-icon-container gradient-gray">
+        <i class="pi pi-wrench"></i>
+      </div>
+      <div class="card-content">
+        <h3>Gesti&oacute;n Mantenimiento</h3>
+        <p>Módulo de gestión para mantenimiento general (Pr&oacute;ximamente).</p>
+        <span class="card-action">Desactivado</span>
+      </div>
+    </div>
+
+    <!-- Personalización Estética (Prominent) -->
+    <div class="dashboard-card" (click)="viewPersonalizacion()">
+      <div class="card-icon-container gradient-blue">
+        <i class="pi pi-palette"></i>
+      </div>
+      <div class="card-content">
+        <h3>Personalización</h3>
+        <p>Ajuste los colores, fuentes y apariencia del sistema en tiempo real.</p>
+        <span class="card-action">Configurar <i class="pi pi-arrow-right"></i></span>
+      </div>
+    </div>
+
+  </div>
+</div>

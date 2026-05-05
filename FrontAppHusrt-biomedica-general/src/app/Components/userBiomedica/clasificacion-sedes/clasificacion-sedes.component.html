@@ -1,0 +1,25 @@
+<div class="dashboard-container">
+
+    <div class="text-center mb-5">
+        <h1 class="text-3xl font-bold mb-2">Equipos Biomédicos</h1>
+        <p class="text-secondary text-lg">Busque según la Sede Requerida.</p>
+    </div>
+
+    <div class="search-container">
+        <input type="text" placeholder="Buscar sede..." [(ngModel)]="searchText" class="search-bar">
+    </div>
+
+    <div class="cards-grid">
+        <div class="dashboard-card" *ngFor="let sede of filteredSedes()" (click)="viewServiciosSede(sede.id)">
+            <div class="card-icon-container gradient-teal">
+                <i class="pi pi-building"></i>
+            </div>
+            <div class="card-content">
+                <h3>{{ sede.nombres }}</h3>
+                <p>Servicios Asignados: <strong>{{ sede.servicios?.length || 0 }}</strong></p>
+                <span class="card-action">Ver Servicios <i class="pi pi-arrow-right"></i></span>
+            </div>
+        </div>
+    </div>
+
+</div>

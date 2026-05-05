@@ -1,0 +1,103 @@
+<div class="card px-4 py-4 m-4 shadow-2 border-round-xl surface-card">
+    <p-toolbar styleClass="mb-4 gap-2 border-none surface-ground">
+        <ng-template pTemplate="left">
+            <div class="flex align-items-center gap-2">
+                <i class="pi pi-box text-2xl text-primary"></i>
+                <h2 class="m-0 font-bold text-900">Gesti&oacute;n de Fabricantes</h2>
+            </div>
+        </ng-template>
+
+        <ng-template pTemplate="right">
+            <p-button label="Nuevo Fabricante" icon="pi pi-plus" (onClick)="openNew()" severity="primary"
+                [raised]="true"></p-button>
+        </ng-template>
+    </p-toolbar>
+
+    <p-table #dt [value]="fabricantes" [rows]="10" [paginator]="true" [globalFilterFields]="['nombres', 'pais']"
+        [tableStyle]="{ 'min-width': '50rem' }" [rowHover]="true" dataKey="id"
+        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+        [showCurrentPageReport]="true">
+
+        <ng-template pTemplate="caption">
+            <div class="flex align-items-center justify-content-between">
+                <h5 class="m-0">Listado de Fabricantes</h5>
+                <p-iconfield position="left">
+                    <p-inputicon styleClass="pi pi-search" />
+                    <input pInputText type="text" (input)="onGlobalFilter($event)" placeholder="Buscar..." />
+                </p-iconfield>
+            </div>
+        </ng-template>
+
+        <ng-template pTemplate="header">
+            <tr>
+                <th pSortableColumn="nombres" style="min-width:15rem">Nombres <p-sortIcon field="nombres"></p-sortIcon>
+                </th>
+                <th pSortableColumn="pais" style="min-width:10rem">Pa&iacute;s <p-sortIcon field="pais"></p-sortIcon></th>
+                <th pSortableColumn="estado" style="min-width:10rem">Estado <p-sortIcon field="estado"></p-sortIcon>
+                </th>
+                <th style="min-width:10rem">Acciones</th>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-fabricante>
+            <tr>
+                <td>{{ fabricante.nombres }}</td>
+                <td>{{ fabricante.pais }}</td>
+                <td>
+                    <p-tag [value]="fabricante.estado ? 'Activo' : 'Inactivo'"
+                        [severity]="fabricante.estado ? 'success' : 'danger'"></p-tag>
+                </td>
+                <td>
+                    <p-button icon="pi pi-pencil" class="mr-2" [rounded]="true" [outlined]="true" severity="success"
+                        (onClick)="openEdit(fabricante)" pTooltip="Editar"></p-button>
+
+
+                    <p-button *ngIf="fabricante.estado" icon="pi pi-ban" [rounded]="true" [outlined]="true"
+                        severity="warn" (onClick)="toggleEstado(fabricante)" pTooltip="Desactivar"></p-button>
+
+                    <p-button *ngIf="!fabricante.estado" icon="pi pi-check" [rounded]="true" [outlined]="true"
+                        severity="info" (onClick)="toggleEstado(fabricante)" pTooltip="Activar"></p-button>
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="4" class="text-center p-4">No se encontraron fabricantes.</td>
+            </tr>
+        </ng-template>
+
+    </p-table>
+</div>
+
+<p-dialog [(visible)]="viewModal" styleClass="standard-modal modal-sm p-fluid"
+    [header]="isEditing ? 'Editar Fabricante' : 'Nuevo Fabricante'" [modal]="true">
+    <ng-template pTemplate="content">
+        <form [formGroup]="formGroup">
+            <div class="form-grid">
+                <div class="field">
+                    <label for="nombres">Nombre</label>
+                    <input type="text" pInputText id="nombres" formControlName="nombres" required autofocus
+                        class="w-full" appUppercase />
+                    <small class="p-error"
+                        *ngIf="formGroup.controls['nombres'].invalid && formGroup.controls['nombres'].touched">Nombre es
+                        requerido.</small>
+                </div>
+                <div class="field">
+                    <label for="pais">Pa&iacute;s</label>
+                    <input type="text" pInputText id="pais" formControlName="pais" required class="w-full"
+                        appUppercase />
+                    <small class="p-error"
+                        *ngIf="formGroup.controls['pais'].invalid && formGroup.controls['pais'].touched">Pa&iacute;s es
+                        requerido.</small>
+                </div>
+            </div>
+        </form>
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+        <button pButton pRipple label="Cancelar" icon="pi pi-times" class="p-button-text p-button-secondary"
+            (click)="viewModal = false"></button>
+        <button pButton pRipple label="Guardar" icon="pi pi-check" (click)="saveFabricante()"></button>
+    </ng-template>
+</p-dialog>

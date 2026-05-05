@@ -1,0 +1,19 @@
+<div class="scanner-container">
+  <label for="camera">Selecciona la cámara:</label>
+  <select [(ngModel)]="deviceSelected" id="camera">
+    <option *ngFor="let device of devices" [ngValue]="device">
+      {{ device.label || 'Cámara sin nombre' }}
+    </option>
+  </select>
+
+  <zxing-scanner
+    [device]="deviceSelected"
+    (camerasFound)="onCamerasFound($event)"
+    (scanSuccess)="onCodeResult($event)">
+  </zxing-scanner>
+
+  <div *ngIf="qrResult" class="resultado">
+    <h3>📋 Resultado:</h3>
+    <p>{{ qrResult }}</p>
+  </div>
+</div>

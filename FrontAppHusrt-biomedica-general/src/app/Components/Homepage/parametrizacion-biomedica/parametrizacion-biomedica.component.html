@@ -1,0 +1,131 @@
+<div class="dashboard-container">
+
+    <div class="hero-section">
+        <div class="hero-content">
+            <h1>Parametrización</h1>
+        </div>
+    </div>
+
+    <div class="cards-grid">
+
+        <!-- Usuarios -->
+        <div class="dashboard-card" *ngIf="isSuperAdmin" (click)="showViewUsuarios()">
+            <div class="card-icon-container gradient-blue">
+                <i class="pi pi-users"></i>
+            </div>
+            <div class="card-content">
+                <h3>Usuarios</h3>
+                <p>Gesti&oacute;n de usuarios y accesos.</p>
+                <span class="card-action">Administrar <i class="pi pi-users"></i></span>
+            </div>
+        </div>
+
+        <!-- Cargos -->
+        <div class="dashboard-card" *ngIf="isSuperAdmin" (click)="showViewCargos()">
+            <div class="card-icon-container gradient-purple">
+                <i class="pi pi-id-card"></i>
+            </div>
+            <div class="card-content">
+                <h3>Cargos</h3>
+                <p>Gesti&oacute;n de cargos y roles.</p>
+                <span class="card-action">Administrar <i class="pi pi-cog"></i></span>
+            </div>
+        </div>
+
+        <!-- Servicios -->
+        <div class="dashboard-card" *ngIf="isSuperAdmin" (click)="showViewServicios()">
+            <div class="card-icon-container gradient-teal">
+                <i class="pi pi-list"></i>
+            </div>
+            <div class="card-content">
+                <h3>Servicios</h3>
+                <p>Gesti&oacute;n de servicios hospitalarios.</p>
+                <span class="card-action">Configurar <i class="pi pi-cog"></i></span>
+            </div>
+        </div>
+
+        <!-- Tipos de Equipo -->
+        <div class="dashboard-card" (click)="showViewTiposEquipo()">
+            <div class="card-icon-container gradient-purple">
+                <i class="pi pi-tags"></i>
+            </div>
+            <div class="card-content">
+                <h3>Tipos de Equipo</h3>
+                <p>Gestiona categorías y clasificaciones.</p>
+                <span class="card-action">Configurar <i class="pi pi-cog"></i></span>
+            </div>
+        </div>
+
+        <!-- Fabricantes -->
+        <div class="dashboard-card" (click)="showViewFabricantes()">
+            <div class="card-icon-container gradient-red">
+                <i class="pi pi-building"></i>
+            </div>
+            <div class="card-content">
+                <h3>Fabricantes</h3>
+                <p>Administra las marcas de los equipos.</p>
+                <span class="card-action">Configurar <i class="pi pi-cog"></i></span>
+            </div>
+        </div>
+
+        <!-- Proveedores -->
+        <div class="dashboard-card" (click)="showViewProveedores()">
+            <div class="card-icon-container gradient-cyan">
+                <i class="pi pi-truck"></i>
+            </div>
+            <div class="card-content">
+                <h3>Proveedores</h3>
+                <p>Gestiona la base de datos de proveedores.</p>
+                <span class="card-action">Configurar <i class="pi pi-cog"></i></span>
+            </div>
+        </div>
+
+        <!-- Responsables -->
+        <div class="dashboard-card" (click)="showViewResponsables()">
+            <div class="card-icon-container gradient-orange">
+                <i class="pi pi-user-edit"></i>
+            </div>
+            <div class="card-content">
+                <h3>Responsables</h3>
+                <p>Asigna responsables a los equipos.</p>
+                <span class="card-action">Configurar <i class="pi pi-cog"></i></span>
+            </div>
+        </div>
+
+        <!-- Tipos Documento -->
+        <div class="dashboard-card" (click)="showViewTiposDocumento()">
+            <div class="card-icon-container gradient-gray">
+                <i class="pi pi-file"></i>
+            </div>
+            <div class="card-content">
+                <h3>Tipos Documento</h3>
+                <p>Define los tipos de documentos permitidos.</p>
+                <span class="card-action">Configurar <i class="pi pi-cog"></i></span>
+            </div>
+        </div>
+
+        <!-- Sistemas de Información -->
+        <div class="dashboard-card" *ngIf="puedeVerGestionSistemas" (click)="showViewSistemasInformacion()">
+            <div class="card-icon-container gradient-teal">
+                <i class="pi pi-desktop"></i>
+            </div>
+            <div class="card-content">
+                <h3>Sistemas de Información</h3>
+                <p>Gestiona los sistemas de información institucionales.</p>
+                <span class="card-action">Configurar <i class="pi pi-cog"></i></span>
+            </div>
+        </div>
+
+        <!-- Gesti&oacute;n de Equipos -->
+        <div class="dashboard-card" *ngIf="isSuperAdmin || isBiomedicaAdmin" (click)="showViewEquipos()">
+            <div class="card-icon-container gradient-cyan">
+                <i class="pi pi-briefcase"></i>
+            </div>
+            <div class="card-content">
+                <h3>Gesti&oacute;n de Equipos</h3>
+                <p>Administración general de equipos biomédicos.</p>
+                <span class="card-action">Gestionar <i class="pi pi-cog"></i></span>
+            </div>
+        </div>
+    </div>
+</div>

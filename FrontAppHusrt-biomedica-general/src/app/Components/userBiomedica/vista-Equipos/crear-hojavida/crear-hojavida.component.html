@@ -1,0 +1,405 @@
+<div class="w-full px-4 pt-4">
+    <p-toast></p-toast>
+    <div class="card shadow-2 border-round-xl surface-card p-4">
+        <div class="flex align-items-center justify-content-between mb-4">
+            <h2 class="m-0 font-bold text-900 text-3xl">{{ hojaVidaData ? 'Editar Hoja de Vida' : 'Crear Hoja de Vida'
+                }}</h2>
+            <div class="flex gap-2">
+                <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text p-button-secondary"
+                    (click)="cancelar()"></button>
+                <button pButton [label]="hojaVidaData ? 'Actualizar' : 'Guardar'" icon="pi pi-check"
+                    (click)="onSubmit()" [disabled]="!hojaVidaForm.valid"></button>
+            </div>
+        </div>
+
+        <!-- Equipment Info Panel -->
+        <p-panel *ngIf="equipo" header="Informaci&oacute;n del Equipo" [toggleable]="true" styleClass="mb-4">
+            <div class="grid">
+                <div class="col-12 md:col-6 lg:col-4"><strong>Tipo de Equipo:</strong> {{ equipo.tipoEquipos?.nombres }}
+                </div>
+                <div class="col-12 md:col-6 lg:col-4"><strong>Equipo:</strong> {{ equipo.nombres }}</div>
+                <div class="col-12 md:col-6 lg:col-4"><strong>Marca:</strong> {{ equipo.marca }}</div>
+                <div class="col-12 md:col-6 lg:col-4"><strong>Modelo:</strong> {{ equipo.modelo }}</div>
+                <div class="col-12 md:col-6 lg:col-4"><strong>Serie:</strong> {{ equipo.serie }}</div>
+                <div class="col-12 md:col-6 lg:col-4"><strong>Placa:</strong> {{ equipo.placa }}</div>
+                <div class="col-12 md:col-6 lg:col-4"><strong>Ubicaci&oacute;n:</strong> {{ equipo.ubicacion }} - {{
+                    equipo.ubicacionEspecifica }}</div>
+            </div>
+        </p-panel>
+
+        <form [formGroup]="hojaVidaForm" novalidate class="w-full">
+            <p-tabView styleClass="w-full">
+
+                <!-- TAB 1: Informaci&oacute;n General -->
+                <p-tabPanel>
+                    <ng-template pTemplate="header">
+                        <i class="pi pi-info-circle mr-2 text-primary"></i>
+                        <span class="font-bold">Informaci&oacute;n General</span>
+                    </ng-template>
+
+                    <div class="mt-3">
+                        <div class="text-xl font-bold text-primary mb-4 border-bottom-1 surface-border pb-2">
+                            <i class="pi pi-id-card mr-2"></i>Datos de Identificaci&oacute;n y Registro
+                        </div>
+
+                        <div class="grid p-fluid">
+                            <div class="col-12 md:col-6">
+                                <label for="codigoInternacional" class="font-bold block mb-2"><i
+                                        class="pi pi-barcode mr-2"></i>Código Internacional</label>
+                                <input type="text" pInputText id="codigoInternacional"
+                                    formControlName="codigoInternacional" placeholder="Ej: EQ-2024-001" class="w-full"
+                                    appUppercase />
+                            </div>
+
+                            <div class="col-12 md:col-6">
+                                <label for="contrato" class="font-bold block mb-2"><i
+                                        class="pi pi-file-pdf mr-2"></i>Contrato</label>
+                                <input type="text" pInputText id="contrato" formControlName="contrato"
+                                    placeholder="No. Contrato" class="w-full" appUppercase />
+                            </div>
+
+
+
+                            <div class="col-12 md:col-6">
+                                <label for="tipoAdquisicion" class="font-bold block mb-2"><i
+                                        class="pi pi-shopping-cart mr-2"></i>Tipo de Adquisición</label>
+                                <p-select inputId="tipoAdquisicion" [options]="tiposAdquisicion"
+                                    formControlName="tipoAdquisicion" placeholder="Seleccione Tipo" [showClear]="true"
+                                    styleClass="w-full"></p-select>
+                            </div>
+
+                            <div class="col-12">
+                                <label for="foto" class="font-bold block mb-2"><i class="pi pi-camera mr-2"></i>Foto del
+                                    Equipo</label>
+                                <input type="file" pInputText id="foto" (change)="onFileSelect($event)" accept="image/*"
+                                    class="w-full" />
+                                <small class="text-500 mt-1 block">Formatos permitidos: JPG, PNG, WEBP.</small>
+                            </div>
+                        </div>
+
+                        <div class="text-xl font-bold text-primary mb-4 mt-5 border-bottom-1 surface-border pb-2">
+                            <i class="pi pi-map-marker mr-2"></i>Origen y Procedencia
+                        </div>
+
+                        <div class="grid p-fluid">
+                            <div class="col-12 md:col-6">
+                                <label for="proveedorIdFk" class="font-bold block mb-2"><i
+                                        class="pi pi-truck mr-2"></i>Proveedor</label>
+                                <p-select inputId="proveedorIdFk" [options]="proveedores"
+                                    formControlName="proveedorIdFk" optionLabel="nombres" optionValue="id"
+                                    placeholder="Seleccione Proveedor" [showClear]="true" [filter]="true"
+                                    filterBy="nombres" styleClass="w-full"></p-select>
+                            </div>
+
+                            <div class="col-12 md:col-6">
+                                <label for="fabricanteIdFk" class="font-bold block mb-2"><i
+                                        class="pi pi-home mr-2"></i>Fabricante</label>
+                                <p-select inputId="fabricanteIdFk" [options]="fabricantes"
+                                    formControlName="fabricanteIdFk" optionLabel="nombres" optionValue="id"
+                                    placeholder="Seleccione Fabricante" [showClear]="true" [filter]="true"
+                                    filterBy="nombres" styleClass="w-full"></p-select>
+                            </div>
+                        </div>
+                    </div>
+                </p-tabPanel>
+
+                <!-- TAB 2: Clasificación y Económica -->
+                <p-tabPanel>
+                    <ng-template pTemplate="header">
+                        <i class="pi pi-chart-line mr-2 text-primary"></i>
+                        <span class="font-bold">Clasificación y Económica</span>
+                    </ng-template>
+
+                    <div class="mt-3">
+                        <div class="text-xl font-bold text-primary mb-4 border-bottom-1 surface-border pb-2">
+                            <i class="pi pi-calendar mr-2"></i>Fechas y Cronología
+                        </div>
+
+                        <div class="grid p-fluid">
+                            <div class="col-12 md:col-6 lg:col-3">
+                                <label for="fechaCompra" class="font-bold block mb-2"><i
+                                        class="pi pi-calendar mr-2"></i>Fecha Compra</label>
+                                <p-calendar inputId="fechaCompra" formControlName="fechaCompra" dateFormat="yy-mm-dd"
+                                    [showIcon]="true" styleClass="w-full"></p-calendar>
+                            </div>
+
+                            <div class="col-12 md:col-6 lg:col-3">
+                                <label for="fechaInstalacion" class="font-bold block mb-2"><i
+                                        class="pi pi-wrench mr-2"></i>Fecha Instalación</label>
+                                <p-calendar inputId="fechaInstalacion" formControlName="fechaInstalacion"
+                                    dateFormat="yy-mm-dd" [showIcon]="true" styleClass="w-full"></p-calendar>
+                            </div>
+
+                            <div class="col-12 md:col-6 lg:col-3">
+                                <label for="fechaIncorporacion" class="font-bold block mb-2"><i
+                                        class="pi pi-sign-in mr-2"></i>Fecha Incorporación</label>
+                                <p-calendar inputId="fechaIncorporacion" formControlName="fechaIncorporacion"
+                                    dateFormat="yy-mm-dd" [showIcon]="true" styleClass="w-full"></p-calendar>
+                            </div>
+
+                            <div class="col-12 md:col-6 lg:col-3">
+                                <label for="fechaVencimientoGarantia" class="font-bold block mb-2 text-red-500"><i
+                                        class="pi pi-shield mr-2"></i>Vencimiento Garant&iacute;a</label>
+                                <p-calendar inputId="fechaVencimientoGarantia"
+                                    formControlName="fechaVencimientoGarantia" dateFormat="yy-mm-dd" [showIcon]="true"
+                                    styleClass="w-full"></p-calendar>
+                            </div>
+                        </div>
+
+                        <div class="text-xl font-bold text-primary mb-4 mt-5 border-bottom-1 surface-border pb-2">
+                            <i class="pi pi-tags mr-2"></i>Detalles y Clasificación Técnica
+                        </div>
+
+                        <div class="grid p-fluid">
+                            <div class="col-12 md:col-6 lg:col-4">
+                                <label for="costoCompra" class="font-bold block mb-2"><i
+                                        class="pi pi-money-bill mr-2"></i>Costo de Compra</label>
+                                <p-inputNumber inputId="costoCompra" formControlName="costoCompra" mode="currency"
+                                    currency="COP" locale="es-CO" [min]="0" placeholder="$ 0.00"
+                                    styleClass="w-full"></p-inputNumber>
+                            </div>
+
+                            <div class="col-12 md:col-6 lg:col-4">
+                                <label for="fuente" class="font-bold block mb-2"><i class="pi pi-bolt mr-2"></i>Fuente
+                                    de Alimentación</label>
+                                <p-select inputId="fuente" [options]="fuentes" formControlName="fuente"
+                                    placeholder="Seleccione" [showClear]="true" styleClass="w-full"></p-select>
+                            </div>
+
+                            <div class="col-12 md:col-6 lg:col-4">
+                                <label for="tipoUso" class="font-bold block mb-2"><i
+                                        class="pi pi-briefcase mr-2"></i>Tipo de Uso</label>
+                                <p-select inputId="tipoUso" [options]="tiposUso" formControlName="tipoUso"
+                                    placeholder="Seleccione" [showClear]="true" styleClass="w-full"></p-select>
+                            </div>
+
+                            <div class="col-12 md:col-6 lg:col-4">
+                                <label for="clase" class="font-bold block mb-2"><i
+                                        class="pi pi-list mr-2"></i>Clase</label>
+                                <p-select inputId="clase" [options]="clases" formControlName="clase"
+                                    placeholder="Seleccione" [showClear]="true" styleClass="w-full"></p-select>
+                            </div>
+
+                            <div class="col-12 md:col-6 lg:col-4">
+                                <label for="mantenimiento" class="font-bold block mb-2"><i
+                                        class="pi pi-cog mr-2"></i>Mantenimiento</label>
+                                <p-select inputId="mantenimiento" [options]="mantenimientos"
+                                    formControlName="mantenimiento" placeholder="Seleccione" [showClear]="true"
+                                    styleClass="w-full"></p-select>
+                            </div>
+
+                            <div class="col-12 md:col-6 lg:col-4">
+                                <label for="propiedad" class="font-bold block mb-2"><i
+                                        class="pi pi-key mr-2"></i>Propiedad</label>
+                                <p-select inputId="propiedad" [options]="propiedades" formControlName="propiedad"
+                                    placeholder="Seleccione" [showClear]="true" styleClass="w-full"></p-select>
+                            </div>
+
+                            <div class="col-12 md:col-6">
+                                <label for="equipoPortatil" class="font-bold block mb-2"><i
+                                        class="pi pi-mobile mr-2"></i>¿Equipo Portátil?</label>
+                                <p-select inputId="equipoPortatil" [options]="opcionesBinarias"
+                                    formControlName="equipoPortatil" placeholder="Seleccione" [showClear]="true"
+                                    styleClass="w-full"></p-select>
+                            </div>
+                        </div>
+                    </div>
+                </p-tabPanel>
+
+                <!-- TAB 3: Especificaciones Técnicas -->
+                <p-tabPanel>
+                    <ng-template pTemplate="header">
+                        <i class="pi pi-cog mr-2 text-primary"></i>
+                        <span class="font-bold">Datos Técnicos</span>
+                    </ng-template>
+
+                    <div class="mt-3">
+                        <div class="text-xl font-bold text-primary mb-4 border-bottom-1 surface-border pb-2">
+                            <i class="pi pi-bolt mr-2"></i>Parámetros Eléctricos y Operativos
+                        </div>
+
+                        <div class="grid p-fluid">
+                            <div class="col-12 md:col-6 lg:col-4">
+                                <label for="vMaxOperacion" class="font-bold block mb-2"><i
+                                        class="pi pi-directions-alt mr-2"></i>V Max Operación</label>
+                                <div class="p-inputgroup">
+                                    <input type="text" pInputText id="vMaxOperacion" formControlName="vMaxOperacion"
+                                        placeholder="0" class="w-full" appUppercase />
+                                    <span class="p-inputgroup-addon font-bold">V</span>
+                                </div>
+                            </div>
+                            <div class="col-12 md:col-6 lg:col-4">
+                                <label for="vMinOperacion" class="font-bold block mb-2"><i
+                                        class="pi pi-directions-alt mr-2"></i>V Min Operación</label>
+                                <div class="p-inputgroup">
+                                    <input type="text" pInputText id="vMinOperacion" formControlName="vMinOperacion"
+                                        placeholder="0" class="w-full" appUppercase />
+                                    <span class="p-inputgroup-addon font-bold">V</span>
+                                </div>
+                            </div>
+                            <div class="col-12 md:col-6 lg:col-4">
+                                <label for="wConsumida" class="font-bold block mb-2"><i
+                                        class="pi pi-power-off mr-2"></i>Potencia Consumida</label>
+                                <div class="p-inputgroup">
+                                    <input type="text" pInputText id="wConsumida" formControlName="wConsumida"
+                                        placeholder="0" class="w-full" appUppercase />
+                                    <span class="p-inputgroup-addon font-bold">W</span>
+                                </div>
+                            </div>
+
+                            <div class="col-12 md:col-6 lg:col-4">
+                                <label for="iMaxOperacion" class="font-bold block mb-2"><i
+                                        class="pi pi-arrows-h mr-2"></i>I Max Operación</label>
+                                <div class="p-inputgroup">
+                                    <input type="text" pInputText id="iMaxOperacion" formControlName="iMaxOperacion"
+                                        placeholder="0" class="w-full" appUppercase />
+                                    <span class="p-inputgroup-addon font-bold">A</span>
+                                </div>
+                            </div>
+                            <div class="col-12 md:col-6 lg:col-4">
+                                <label for="iMinOperacion" class="font-bold block mb-2"><i
+                                        class="pi pi-arrows-h mr-2"></i>I Min Operación</label>
+                                <div class="p-inputgroup">
+                                    <input type="text" pInputText id="iMinOperacion" formControlName="iMinOperacion"
+                                        placeholder="0" class="w-full" appUppercase />
+                                    <span class="p-inputgroup-addon font-bold">A</span>
+                                </div>
+                            </div>
+                            <div class="col-12 md:col-6 lg:col-4">
+                                <label for="frecuencia" class="font-bold block mb-2"><i
+                                        class="pi pi-sync mr-2"></i>Frecuencia</label>
+                                <div class="p-inputgroup">
+                                    <input type="text" pInputText id="frecuencia" formControlName="frecuencia"
+                                        placeholder="0" class="w-full" appUppercase />
+                                    <span class="p-inputgroup-addon font-bold">Hz</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-xl font-bold text-primary mb-4 mt-5 border-bottom-1 surface-border pb-2">
+                            <i class="pi pi-box mr-2"></i>Parámetros Físicos y Mecánicos
+                        </div>
+
+                        <div class="grid p-fluid">
+                            <div class="col-12 md:col-6 lg:col-4">
+                                <label for="presion" class="font-bold block mb-2"><i
+                                        class="pi pi-sort-alt mr-2"></i>Presión</label>
+                                <div class="p-inputgroup">
+                                    <input type="text" pInputText id="presion" formControlName="presion" placeholder="0"
+                                        class="w-full" appUppercase />
+                                    <span class="p-inputgroup-addon font-bold">PSI</span>
+                                </div>
+                            </div>
+                            <div class="col-12 md:col-6 lg:col-4">
+                                <label for="velocidad" class="font-bold block mb-2"><i
+                                        class="pi pi-forward mr-2"></i>Velocidad</label>
+                                <div class="p-inputgroup">
+                                    <input type="text" pInputText id="velocidad" formControlName="velocidad"
+                                        placeholder="0" class="w-full" appUppercase />
+                                    <span class="p-inputgroup-addon font-bold">RPM</span>
+                                </div>
+                            </div>
+                            <div class="col-12 md:col-6 lg:col-4">
+                                <label for="temperatura" class="font-bold block mb-2"><i
+                                        class="pi pi-sun mr-2"></i>Temperatura</label>
+                                <div class="p-inputgroup">
+                                    <input type="text" pInputText id="temperatura" formControlName="temperatura"
+                                        placeholder="0" class="w-full" appUppercase />
+                                    <span class="p-inputgroup-addon font-bold">°C</span>
+                                </div>
+                            </div>
+                            <div class="col-12 md:col-6 lg:col-4">
+                                <label for="peso" class="font-bold block mb-2"><i
+                                        class="pi pi-map mr-2"></i>Peso</label>
+                                <div class="p-inputgroup">
+                                    <input type="text" pInputText id="peso" formControlName="peso" placeholder="0"
+                                        class="w-full" appUppercase />
+                                    <span class="p-inputgroup-addon font-bold">Kg</span>
+                                </div>
+                            </div>
+                            <div class="col-12 md:col-6 lg:col-4">
+                                <label for="capacidad" class="font-bold block mb-2"><i
+                                        class="pi pi-database mr-2"></i>Capacidad</label>
+                                <div class="p-inputgroup">
+                                    <input type="text" pInputText id="capacidad" formControlName="capacidad"
+                                        placeholder="0" class="w-full" appUppercase />
+                                    <span class="p-inputgroup-addon font-bold">Und</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-5">
+                            <label for="observaciones" class="font-bold block mb-2"><i
+                                    class="pi pi-comment mr-2"></i>Observaciones Generales</label>
+                            <textarea id="observaciones" rows="4" pTextarea formControlName="observaciones"
+                                [autoResize]="true" class="w-full"
+                                placeholder="Ingrese notas o detalles adicionales aquí..." appUppercase></textarea>
+                        </div>
+                    </div>
+                </p-tabPanel>
+
+                <!-- TAB 4: Accesorios -->
+                <p-tabPanel>
+                    <ng-template pTemplate="header">
+                        <i class="pi pi-list mr-2 text-primary"></i>
+                        <span class="font-bold">Accesorios</span>
+                    </ng-template>
+
+                    <div class="mt-3">
+                        <div
+                            class="flex align-items-center justify-content-between mb-4 border-bottom-1 surface-border pb-2">
+                            <div class="text-xl font-bold text-primary">
+                                <i class="pi pi-list mr-2"></i>Listado de Accesorios
+                            </div>
+                            <button pButton label="Agregar Accesorio" icon="pi pi-plus" (click)="addAccesorio()"
+                                type="button" class="p-button-outlined p-button-sm"></button>
+                        </div>
+
+                        <div *ngFor="let acc of accesorios; let i = index"
+                            class="card p-3 shadow-1 border-round-lg mb-3 surface-50">
+                            <div class="grid p-fluid align-items-end">
+                                <div class="col-12 md:col-5">
+                                    <label class="font-bold block mb-2"><i class="pi pi-tag mr-2"></i>Nombre del
+                                        Accesorio</label>
+                                    <p-iconfield position="left" class="w-full">
+                                        <p-inputicon styleClass="pi pi-tag" />
+                                        <input pInputText [(ngModel)]="acc.nombre" [ngModelOptions]="{standalone: true}"
+                                            placeholder="Nombre del accesorio" class="w-full" appUppercase />
+                                    </p-iconfield>
+                                </div>
+                                <div class="col-12 md:col-3">
+                                    <label class="font-bold block mb-2"><i
+                                            class="pi pi-sort-numeric-up mr-2"></i>Cantidad</label>
+                                    <p-inputNumber [(ngModel)]="acc.cantidad" [ngModelOptions]="{standalone: true}"
+                                        [min]="1" [showButtons]="true" buttonLayout="horizontal" inputId="horizontal"
+                                        spinnerMode="horizontal" [step]="1" decrementButtonClass="p-button-secondary"
+                                        incrementButtonClass="p-button-secondary" incrementButtonIcon="pi pi-plus"
+                                        decrementButtonIcon="pi pi-minus" styleClass="w-full"></p-inputNumber>
+                                </div>
+                                <div class="col-12 md:col-3">
+                                    <label class="font-bold block mb-2"><i
+                                            class="pi pi-info-circle mr-2"></i>Estado</label>
+                                    <p-select [options]="opcionesBinarias" [(ngModel)]="acc.estado"
+                                        [ngModelOptions]="{standalone: true}" placeholder="Seleccione Estado"
+                                        styleClass="w-full"></p-select>
+                                </div>
+                                <div class="col-12 md:col-1 text-center">
+                                    <button pButton [icon]="acc.estado ? 'pi pi-check' : 'pi pi-times'"
+                                        [class]="acc.estado ? 'p-button-success p-button-rounded' : 'p-button-danger p-button-rounded'"
+                                        (click)="toggleAccesorioState(i)" type="button"
+                                        [pTooltip]="acc.estado ? 'Inactivar' : 'Activar'"></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-center p-5 surface-50 border-round-lg border-dashed border-2 surface-border"
+                            *ngIf="accesorios.length === 0">
+                            <i class="pi pi-info-circle text-4xl text-500 mb-3 block"></i>
+                            <span class="text-600 font-medium">No hay accesorios vinculados a este equipo.</span>
+                        </div>
+                    </div>
+                </p-tabPanel>
+            </p-tabView>
+        </form>
+    </div>
+</div>

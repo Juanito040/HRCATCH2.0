@@ -1,0 +1,37 @@
+<div class="container mt--8 pb-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-5 col-md-7">
+      <h1 style="text-align: center; margin-top: 13%; font-size: 30px;"><strong>Recuperar contraseña AppHusrt</strong></h1>
+
+      <div class="card " style="margin-top: 10%;">
+        <div class="card-body">
+
+          <div class="container mt-5">
+
+            <div *ngIf="enviado" class="alert alert-success">
+              Si el correo está registrado, se enviará un enlace para restablecer tu contraseña.
+            </div>
+
+            <div *ngIf="mensajeError" class="alert alert-danger">
+              {{ mensajeError }}
+            </div>
+
+            <form [formGroup]="form" (ngSubmit)="enviarCorreoU()" novalidate>
+              <div class="mb-3">
+                <label for="email" class="form-label">Correo electrónico</label>
+                <input type="email" class="form-control" id="email" formControlName="email" required />
+                <div class="text-danger" *ngIf="form.get('email')?.invalid && form.get('email')?.touched">
+                  Ingresa un correo válido.
+                </div>
+              </div>
+
+              <button class="btn btn-primary" type="submit" [disabled]="form.invalid">Enviar enlace</button>
+            </form>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

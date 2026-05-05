@@ -1,0 +1,23 @@
+<div class="modal-overlay" *ngIf="isOpen">
+  <div class="modal-dialog" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div><h2>Reactivar Equipo</h2><p class="subtitle">{{ equipoNombre }}</p></div>
+      <button class="btn-close" (click)="close()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="info-section"><p>El equipo será marcado como activo. Ingresa la nueva ubicación o déjalo en bodega.</p></div>
+      <div class="form-group">
+        <label for="ubicacion">Nueva Ubicación</label>
+        <input type="text" id="ubicacion" class="form-control" [(ngModel)]="ubicacion" placeholder="Ej: Datacenter Piso 2" (keyup.enter)="confirm()" autofocus />
+        <small class="form-hint" *ngIf="ubicacionAnterior">Ubicación anterior: <strong>{{ ubicacionAnterior }}</strong></small>
+        <small class="form-hint" *ngIf="!ubicacion || ubicacion === 'Bodega'">Si dejas "Bodega", el equipo quedará activo pero en bodega</small>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="close()" [disabled]="isSubmitting">Cancelar</button>
+      <button class="btn btn-success" (click)="confirm()" [disabled]="isSubmitting">
+        Reactivar Equipo
+      </button>
+    </div>
+  </div>
+</div>

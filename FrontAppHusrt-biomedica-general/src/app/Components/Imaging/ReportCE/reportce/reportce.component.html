@@ -1,0 +1,89 @@
+<div style="width: 80%; margin-top: 1%; margin-left: 10%;">
+    <h4 style="text-align: center;">REPORTE MENSUAL DE CITAS DE IMAGENOLOGIA</h4>
+</div>
+<div style="width: 80%; margin-top: 2%; margin-left: 10%;">
+    <form [formGroup]="formDate">
+        <div>
+            <label class="form-label">Desde:</label>
+        </div>
+        <div>
+            <input type="date" formControlName="fechaI" id="fechaI" class="form-control" />
+        </div>
+        <div>
+            <label class="form-label">Hasta:</label>
+        </div>
+        <div>
+            <input type="date" formControlName="fechaF" id="fechaF" class="form-control" />
+        </div>
+        <div style="margin-top: 1%;">
+            <button type="button" class="btn btn-primary" (click)="filtrarporFecha()">Filtrar</button>
+        </div>
+    </form>
+</div>
+
+<div style="width: 80%; margin-top: 1%; margin-left: 10%;">
+    <div class="card">
+        <p-table [value]="cites" [paginator]="true" [rows]="5" [showCurrentPageReport]="true"
+            [tableStyle]="{ 'min-width': '50rem' }"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+            [rowsPerPageOptions]="[5, 10, 20]">
+            <ng-template pTemplate="header">
+                <tr>
+                    <th>Tipo Identificacion</th>
+                    <th>Numero ID</th>
+                    <th>Estado de la cita</th>
+                    <th>EX_CODE</th>
+                    <th>EX_DESCRIPTION</th>
+                    <th>Fecha Nacimiento</th>
+                    <th>Edad</th>
+                    <th>Sexo</th>
+                    <th>Primer Apellido</th>
+                    <th>Nombre Paciente</th>
+                    <th>Municipio</th>
+                    <th>Modalidad</th>
+                    <th>Entidad</th>
+                    <th>Aseguradora</th>
+                    <th>Fecha Deseada</th>
+                    <th>Tipo Solicitud</th>
+                    <th>EAPB</th>
+                    <th>Tipo Usuario</th>
+                    <th>S_CODE</th>
+                    <th>S_NAME</th>
+                    <th>Fecha Creacion Cita</th>
+                    <th>Fecha Cita</th>
+                    <th>Usuario que Asigno</th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-cite>
+                <tr>
+                    <td>{{cite.Tipo_de_Identificacion}}</td>
+                    <td>{{cite.Num_de_Identificacion}}</td>
+                    <td>{{cite.Estado_de_la_Cita}}</td>
+                    <td>{{cite.EX_CODE}}</td>
+                    <td>{{cite.EX_DESCRIPTION}}</td>
+                    <td>{{cite.Fecha_de_Nacimiento}}</td>
+                    <td>{{cite.Edad}}</td>
+                    <td>{{cite.Sexo}}</td>
+                    <td>{{cite.Primer_Apellido}}</td>
+                    <td>{{cite.Nombre_del_Paciente}}</td>
+                    <td>{{cite.Municipio}}</td>
+                    <td>{{cite.Modalidad}}</td>
+                    <td>{{cite.Entidad}}</td>
+                    <td>{{cite.Aseguradora}}</td>
+                    <td>{{cite.Fecha_Deseada}}</td>
+                    <td>{{cite.Tipo_Solicitud}}</td>
+                    <td>{{cite.EAPB}}</td>
+                    <td>{{cite.Tipo_Usuario}}</td>
+                    <td>{{cite.s_code}}</td>
+                    <td>{{cite.s_name}}</td>
+                    <td>{{cite.F_Creacion_Cita}}</td>
+                    <td>{{cite.Fecha_Cita}}</td>
+                    <td>{{cite.Usuario_que_Asigna}}</td>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="paginatorright">
+                <button type="button" class="btn btn-primary" (click)="generateExcel()">Descargar</button>
+            </ng-template>
+        </p-table>
+    </div>
+</div>

@@ -1,0 +1,106 @@
+<div class="bg-white flex justify-content-center px-3 py-4">
+
+  <p-card styleClass="w-full max-w-6xl shadow-6 border-round-xl p-fluid surface-card overflow-hidden">
+
+    <div class="text-center mb-5">
+      <h2 class="text-3xl font-bold text-900 m-0">Registro de Usuario</h2>
+      <span class="text-600 font-medium">
+        Complete la información del nuevo usuario
+      </span>
+    </div>
+
+    <form [formGroup]="formGroup" (ngSubmit)="registro()" class="grid formgrid p-2">
+
+      <!-- Row 1 -->
+      <div class="field col-12 md:col-6 lg:col-4">
+        <label class="font-bold">Nombres</label>
+        <input pInputText formControlName="nombres" class="w-full" appUppercase />
+      </div>
+
+      <div class="field col-12 md:col-6 lg:col-4">
+        <label class="font-bold">Apellidos</label>
+        <input pInputText formControlName="apellidos" class="w-full" appUppercase />
+      </div>
+
+      <div class="field col-12 md:col-6 lg:col-4">
+        <label class="font-bold">Usuario</label>
+        <input pInputText formControlName="nombreUsuario" class="w-full" appUppercase />
+      </div>
+
+      <!-- Row 2 -->
+      <div class="field col-12 md:col-6 lg:col-4">
+        <label class="font-bold">Tipo Documento</label>
+        <p-select [options]="tipoIdOptions" formControlName="tipoId" optionLabel="label" optionValue="value"
+          placeholder="Seleccionar" styleClass="w-full" appendTo="body"></p-select>
+      </div>
+
+      <div class="field col-12 md:col-6 lg:col-4">
+        <label class="font-bold">No. Documento</label>
+        <input pInputText formControlName="numeroId" class="w-full" appUppercase />
+      </div>
+
+      <div class="field col-12 md:col-6 lg:col-4">
+        <label class="font-bold">Tel&eacute;fono</label>
+        <input pInputText formControlName="telefono" class="w-full" appUppercase />
+      </div>
+
+      <!-- Row 3 -->
+      <div class="field col-12 md:col-6 lg:col-4">
+        <label class="font-bold">Correo</label>
+        <input pInputText type="email" formControlName="email" class="w-full" appUppercase />
+      </div>
+
+      <div class="field col-12 md:col-6 lg:col-4">
+        <label class="font-bold">Registro Invima</label>
+        <input pInputText formControlName="registroInvima" class="w-full" appUppercase />
+      </div>
+
+      <div class="field col-12 md:col-6 lg:col-4">
+        <label class="font-bold">Rol</label>
+        <p-select [options]="roles" formControlName="rolId" optionLabel="nombre" optionValue="id"
+          placeholder="Seleccionar Rol" styleClass="w-full" appendTo="body"></p-select>
+      </div>
+
+      <div class="field col-12 md:col-6 lg:col-4">
+        <label class="font-bold">Cargo</label>
+        <p-select [options]="cargos" formControlName="cargoId" optionLabel="nombre" optionValue="id"
+          placeholder="Seleccionar Cargo" styleClass="w-full" appendTo="body" [showClear]="true"></p-select>
+      </div>
+
+      <div class="field col-12 md:col-6 lg:col-4">
+        <label class="font-bold">Servicio</label>
+        <p-select [options]="servicios" formControlName="servicioId" optionLabel="nombres" optionValue="id"
+          placeholder="Seleccionar Servicio" styleClass="w-full" appendTo="body" [filter]="true"></p-select>
+      </div>
+
+      <div class="field col-12 md:col-6 lg:col-4">
+        <label class="font-bold">Rol Mesa de Servicios</label>
+        <p-select [options]="mesaRoles" formControlName="mesaServicioRolId" optionLabel="nombre" optionValue="id"
+          placeholder="Seleccionar Rol Mesa" styleClass="w-full" appendTo="body"></p-select>
+      </div>
+
+      <div class="field col-12 md:col-6 lg:col-4">
+        <label for="password" class="font-bold text-900">Contrase&ntilde;a</label>
+
+        <p-password id="password" formControlName="password" [toggleMask]="true" [feedback]="false" styleClass="w-full"
+          inputStyleClass="w-full">
+        </p-password>
+      </div>
+
+      <div class="field col-12 md:col-6 lg:col-4">
+        <label for="password2" class="font-bold text-900">Confirmar</label>
+
+        <p-password id="password2" formControlName="password2" [toggleMask]="true" [feedback]="false"
+          styleClass="w-full" inputStyleClass="w-full">
+        </p-password>
+      </div>
+
+      <div class="field col-12 md:col-6 lg:col-4 flex align-items-end">
+        <p-button label="REGISTRAR" icon="pi pi-user-plus" styleClass="w-full font-bold" severity="primary"
+          type="submit">
+        </p-button>
+      </div>
+
+    </form>
+  </p-card>
+</div>

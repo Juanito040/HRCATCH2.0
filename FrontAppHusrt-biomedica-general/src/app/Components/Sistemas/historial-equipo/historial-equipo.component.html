@@ -1,0 +1,120 @@
+@if (isOpen) {
+  <div class="modal-overlay">
+    <div class="modal-container" (click)="$event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="modal-header">
+        <div class="header-content">
+          <div class="header-icon"><i class="fas fa-history"></i></div>
+          <div>
+            <h2>Historial del Equipo</h2>
+            <p class="header-sub">{{ equipo?.nombre_equipo }} · {{ equipo?.marca }} {{ equipo?.modelo }}</p>
+          </div>
+        </div>
+        <button class="btn-close" (click)="close()" title="Cerrar">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body">
+
+        @if (isLoading) {
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Cargando historial...</p>
+          </div>
+        } @else if (error) {
+          <div class="error-state">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p>{{ error }}</p>
+            <button class="btn btn-primary" (click)="cargarHistorial()">Reintentar</button>
+          </div>
+        } @else if (eventos.length === 0) {
+          <div class="empty-state">
+            <i class="fas fa-clipboard-list"></i>
+            <p>No hay eventos registrados para este equipo.</p>
+          </div>
+        } @else {
+
+          <div class="timeline-resumen">
+            <span class="resumen-badge"><i class="fas fa-list-ul"></i> {{ eventos.length }} eventos registrados</span>
+          </div>
+
+          <div class="timeline">
+            @for (evento of eventos; track $index) {
+              <div class="timeline-item" [class]="getColorClase(evento.accion)">
+
+                <!-- Nodo con icono -->
+                <div class="timeline-node">
+                  <div class="node-icon">
+                    <i [class]="getIconClase(evento.accion)"></i>
+                  </div>
+                  <div class="timeline-line" [class.last]="$last"></div>
+                </div>
+
+                <!-- Contenido del evento -->
+                <div class="timeline-card">
+                  <div class="card-header">
+                    <span class="accion-badge">{{ getEtiqueta(evento.accion) }}</span>
+                    <span class="fecha-texto">
+                      <i class="fas fa-calendar-alt"></i>
+                      {{ formatearFecha(evento.fecha) }}
+                    </span>
+                  </div>
+
+                  <div class="card-usuario">
+                    <i class="fas fa-user-circle"></i>
+                    <span>{{ getNombreUsuario(evento) }}</span>
+                  </div>
+
+                  <!-- Detalles simples (no edición) -->
+                  @if (evento.accion !== 'EDICION' && evento.detalles) {
+                    <div class="card-detalles">
+                      <p>{{ evento.detalles }}</p>
+                    </div>
+                  }
+
+                  <!-- Detalles de edición: tabla de cambios -->
+                  @if (evento.accion === 'EDICION') {
+                    @if (evento.cambios && evento.cambios.length > 0) {
+                      <div class="cambios-container">
+                        <p class="cambios-titulo"><i class="fas fa-exchange-alt"></i> Campos modificados</p>
+                        <table class="cambios-tabla">
+                          <thead>
+                            <tr>
+                              <th>Campo</th>
+                              <th>Antes</th>
+                              <th>Después</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            @for (cambio of evento.cambios; track cambio.campo) {
+                              <tr>
+                                <td><strong>{{ formatNombreCampo(cambio.campo) }}</strong></td>
+                                <td class="valor-anterior">{{ cambio.anterior ?? '—' }}</td>
+                                <td class="valor-nuevo">{{ cambio.nuevo ?? '—' }}</td>
+                              </tr>
+                            }
+                          </tbody>
+                        </table>
+                      </div>
+                    } @else {
+                      <div class="card-detalles sin-cambios">
+                        <i class="fas fa-info-circle"></i>
+                        <p>Edición registrada sin cambios detectados en los campos principales.</p>
+                      </div>
+                    }
+                  }
+
+                </div>
+              </div>
+            }
+          </div>
+
+        }
+      </div>
+
+    </div>
+  </div>
+}

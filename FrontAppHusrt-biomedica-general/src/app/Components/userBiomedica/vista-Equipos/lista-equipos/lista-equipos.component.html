@@ -1,0 +1,125 @@
+<div class="dashboard-container">
+
+    <div class="text-center mb-5">
+        <h1 class="text-3xl font-bold mb-2">Listado General de Equipos</h1>
+        <p class="text-secondary text-lg">Gesti&oacute;n completa: Editar, Desactivar, Reportes y Hoja de Vida.</p>
+    </div>
+
+    <div class="card border-0 shadow-sm border-round-xl surface-card p-4">
+        <p-table #dt2 [value]="equipos" dataKey="id" [paginator]="true" [rows]="10"
+            [rowsPerPageOptions]="[10, 25, 50, 100]" [loading]="loading"
+            [globalFilterFields]="['id', 'nombres', 'marca', 'modelo', 'serie', 'ubicacionEspecifica', 'placa', 'periodicidadM']"
+            styleClass="p-datatable-striped p-datatable-sm" [rowHover]="true" [scrollable]="true" scrollHeight="600px"
+            [showCurrentPageReport]="true"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros">
+
+            <ng-template pTemplate="caption">
+                <div class="flex flex-column sm:flex-row justify-content-between align-items-center gap-3">
+                    <div class="flex gap-2">
+                        <button pButton label="Limpiar Filtros" class="p-button-outlined p-button-secondary p-button-sm"
+                            icon="pi pi-filter-slash" (click)="dt2.clear()"></button>
+                        <button pButton label="Descargar Inventario" class="p-button-success p-button-sm"
+                            icon="pi pi-file-excel" (click)="descargarInventario()"></button>
+                    </div>
+
+                    <p-iconfield position="left" class="w-full sm:w-auto">
+                        <p-inputicon styleClass="pi pi-search" />
+                        <input pInputText type="text" (input)="onGlobalFilter($event)" placeholder="B&uacute;squeda General"
+                            class="w-full sm:w-auto" appUppercase />
+                    </p-iconfield>
+                </div>
+            </ng-template>
+
+            <ng-template pTemplate="header">
+                <tr>
+                    <th pSortableColumn="id" style="min-width:80px">ID <p-sortIcon field="id"></p-sortIcon></th>
+                    <th pSortableColumn="nombres" style="min-width:200px">Nombre <p-sortIcon
+                            field="nombres"></p-sortIcon></th>
+                    <th pSortableColumn="marca" style="min-width:150px">Marca <p-sortIcon field="marca"></p-sortIcon>
+                    </th>
+                    <th pSortableColumn="modelo" style="min-width:150px">Modelo <p-sortIcon field="modelo"></p-sortIcon>
+                    </th>
+                    <th pSortableColumn="serie" style="min-width:150px">Serie <p-sortIcon field="serie"></p-sortIcon>
+                    </th>
+                    <th pSortableColumn="placa" style="min-width:120px">Placa <p-sortIcon field="placa"></p-sortIcon>
+                    </th>
+                    <th pSortableColumn="ubicacionEspecifica" style="min-width:200px">Ubicaci&oacute;n <p-sortIcon
+                            field="ubicacionEspecifica"></p-sortIcon></th>
+                    <th pSortableColumn="periodicidadM" style="min-width:120px">Period.<p-sortIcon
+                            field="periodicidadM"></p-sortIcon></th>
+                    <th style="min-width:100px" class="text-center">Acciones</th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-equipo>
+                <tr>
+                    <td class="text-center"><p-tag [value]="equipo.id" severity="info"></p-tag></td>
+                    <td><span class="font-bold">{{ equipo.nombres }}</span></td>
+                    <td>{{ equipo.marca }}</td>
+                    <td>{{ equipo.modelo }}</td>
+                    <td>{{ equipo.serie }}</td>
+                    <td>{{ equipo.placa }}</td>
+                    <td>{{ equipo.ubicacionEspecifica }}</td>
+                    <td class="text-center">
+                        <span *ngIf="equipo.periodicidadM">{{ equipo.periodicidadM }} Veces</span>
+                        <span *ngIf="!equipo.periodicidadM" class="text-400">-</span>
+                    </td>
+                    <td class="text-center">
+                        <p-splitButton label="HV" icon="pi pi-eye" [model]="equipo.opciones"
+                            styleClass="p-button-sm p-button-help p-button-outlined" (onClick)="verHojaVida(equipo.id)"
+                            appendTo="body">
+                        </p-splitButton>
+                    </td>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="9" class="text-center p-4">
+                        <div class="flex flex-column align-items-center">
+                            <i class="pi pi-inbox text-500 text-6xl mb-3"></i>
+                            <span class="text-xl text-500">No se encontraron equipos.</span>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+
+</div>
+
+<p-dialog header="Editar Plan de Mantenimiento" [(visible)]="displayPlanDialog" [modal]="true"
+    styleClass="standard-modal modal-md" [draggable]="false" [resizable]="false">
+    <div class="p-fluid">
+        <div class="field">
+            <label for="intervenciones">Intervenciones por año</label>
+            <p-select [options]="intervencionOptions" [(ngModel)]="intervencionesAnuales" optionLabel="name"
+                optionValue="value" (onChange)="calcularFechas()"></p-select>
+            <small class="block">Seleccione cuántas veces al año se realizará el mantenimiento.</small>
+        </div>
+        <div class="field">
+            <label for="mesInicio">Mes de Inicio</label>
+            <p-select [options]="monthOptions" [(ngModel)]="mesInicio" optionLabel="name" optionValue="value"
+                (onChange)="calcularFechas()"></p-select>
+            <small class="block">Seleccione el mes en que inicia el primer mantenimiento.</small>
+        </div>
+        <div class="field">
+            <label for="anioInicio">A&ntilde;o de Inicio</label>
+            <p-select [options]="anioOptions" [(ngModel)]="anioInicio" optionLabel="name" optionValue="value"
+                (onChange)="calcularFechas()"></p-select>
+            <small class="block">Seleccione el año de inicio.</small>
+        </div>
+        <div class="field">
+            <label for="meses">Ciclo de Mantenimiento Calculado</label>
+            <p class="font-bold mt-2"
+                [ngClass]="{'text-green-500': selectedPlans.length > 0, 'text-red-500': selectedPlans.length === 0}">
+                {{calculatedMonthsText}}
+            </p>
+        </div>
+    </div>
+    <ng-template pTemplate="footer">
+        <p-button icon="pi pi-times" (click)="displayPlanDialog=false" label="Cancelar"
+            styleClass="p-button-text p-button-secondary"></p-button>
+        <p-button icon="pi pi-check" (click)="savePlan()" label="Guardar"></p-button>
+    </ng-template>
+</p-dialog>
