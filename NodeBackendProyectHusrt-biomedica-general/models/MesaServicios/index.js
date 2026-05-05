@@ -12,6 +12,7 @@ const MesaCasoCalificacion = require('./MesaCasoCalificacion');
 const Servicio = require('../generales/Servicio');
 const Usuario = require('../generales/Usuario');
 const Sede = require('../generales/Sede');
+const SysEquipo = require('../Sistemas/SysEquipo');
 
 // Parametrization Associations
 Servicio.hasMany(MesaCategoria, { foreignKey: 'servicioId', as: 'mesaCategorias' });
@@ -73,6 +74,10 @@ MesaCasoHistorial.belongsTo(Usuario, { foreignKey: 'usuarioId', as: 'usuario' })
 // Rating Associations
 MesaCaso.hasOne(MesaCasoCalificacion, { foreignKey: 'casoId', as: 'calificacion' });
 MesaCasoCalificacion.belongsTo(MesaCaso, { foreignKey: 'casoId', as: 'caso' });
+
+// Equipo de Sistemas Association (EP-24)
+MesaCaso.belongsTo(SysEquipo, { foreignKey: 'equipoId', as: 'equipo' });
+SysEquipo.hasMany(MesaCaso, { foreignKey: 'equipoId', as: 'mesaCasos' });
 
 module.exports = {
     MesaCategoria,

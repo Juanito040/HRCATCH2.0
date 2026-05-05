@@ -430,7 +430,7 @@ doc.font('Arial').fontSize(7).fillColor('#000')
          rx + 2, y + logoH + (row3H - 7) / 2,
          { width: logoColW - 4, align: 'center', lineBreak: false });
 
-    
+
         // Foto del equipo (se carga más abajo, en la sección IDENTIFICACIÓN)
         const fotoPath = hv.foto ? path.normalize(hv.foto) : null;
 

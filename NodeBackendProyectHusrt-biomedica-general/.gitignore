@@ -22,6 +22,12 @@ logs/
 .DS_Store
 Thumbs.db
 
+# ─── SSL (local dev) ─────────────────────────────
+certs/
+*.pem
+*.key
+*.crt
+
 # ─── Misc ─────────────────────────────────────────
 *.tmp
 *.cache

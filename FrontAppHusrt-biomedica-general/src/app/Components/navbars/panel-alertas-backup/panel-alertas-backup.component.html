@@ -1,0 +1,61 @@
+<div class="panel-alertas">
+
+    <!-- Header -->
+    <div class="panel-header">
+        <div class="flex align-items-center gap-2">
+            <i class="pi pi-bell text-primary" style="font-size: 1.1rem;"></i>
+            <span class="font-bold text-lg">Alertas de Backup</span>
+        </div>
+        <button pButton icon="pi pi-refresh" label="Actualizar"
+                class="p-button-text p-button-sm p-button-rounded"
+                (click)="actualizar()">
+        </button>
+    </div>
+
+    <!-- Lista -->
+    <div class="alertas-lista">
+        <ng-container *ngIf="alertas$ | async as alertas">
+
+            <!-- Estado vacío -->
+            <div *ngIf="alertas.length === 0" class="empty-state">
+                <div class="empty-icon">
+                    <i class="pi pi-check-circle"></i>
+                </div>
+                <span class="empty-titulo">Todo al día</span>
+                <span class="empty-subtitulo">No hay alertas de backup pendientes</span>
+            </div>
+
+            <!-- Tarjetas de alerta -->
+            <div *ngFor="let alerta of alertas"
+                 class="alerta-card"
+                 [class.alerta-card--pendiente]="alerta.estado === 'Pendiente'"
+                 [class.alerta-card--no-realizado]="alerta.estado === 'No realizado'">
+
+                <div class="alerta-card__icon-wrap">
+                    <i class="pi"
+                       [class.pi-exclamation-triangle]="alerta.estado !== 'No realizado'"
+                       [class.pi-times-circle]="alerta.estado === 'No realizado'">
+                    </i>
+                </div>
+
+                <div class="alerta-card__content">
+                    <div class="flex align-items-center justify-content-between gap-1">
+                        <span class="alerta-card__nombre">{{ alerta.nombre }}</span>
+                        <span class="alerta-card__badge"
+                              [class.badge--pendiente]="alerta.estado === 'Pendiente'"
+                              [class.badge--no-realizado]="alerta.estado === 'No realizado'">
+                            {{ alerta.estado }}
+                        </span>
+                    </div>
+                    <span class="alerta-card__frecuencia">{{ alerta.frecuencia_backup }}</span>
+                    <span class="alerta-card__mensaje">{{ alerta.mensaje }}</span>
+                    <span class="alerta-card__fecha">
+                        <i class="pi pi-calendar"></i>
+                        {{ alerta.fecha }}
+                    </span>
+                </div>
+
+            </div>
+        </ng-container>
+    </div>
+</div>

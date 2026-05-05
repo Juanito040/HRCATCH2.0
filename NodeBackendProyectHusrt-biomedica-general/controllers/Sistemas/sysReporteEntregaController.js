@@ -507,8 +507,8 @@ exports.exportarPdfBaja = async (req, res) => {
         if (eq.id_sysequipo) {
             ultimoMtto = await SysMantenimiento.findOne({
                 where: { id_sysequipo_fk: eq.id_sysequipo },
-                order: [['fechaRealizado', 'DESC'], ['createdAt', 'DESC']],
-                attributes: ['id', 'fechaRealizado']
+                order: [['fecha', 'DESC'], ['createdAt', 'DESC']],
+                attributes: ['id_sysmtto', 'numero_reporte', 'fecha']
             });
         }
 
@@ -714,8 +714,10 @@ exports.exportarPdfBaja = async (req, res) => {
         // Fila de datos del último mantenimiento
         drawRect(M,        y, hFecha,   DATA_H);
         drawRect(M+hFecha, y, hReporte, DATA_H);
-        const mttoFecha   = ultimoMtto ? fmtF(ultimoMtto.fechaRealizado) : '';
-        const mttoReporte = ultimoMtto ? String(ultimoMtto.id).padStart(5, '0') : '';
+        const mttoFecha   = ultimoMtto ? fmtF(ultimoMtto.fecha) : '';
+        const mttoReporte = ultimoMtto
+            ? (ultimoMtto.numero_reporte || String(ultimoMtto.id_sysmtto).padStart(5, '0'))
+            : '';
         doc.font('Arial').fontSize(8).fillColor('#000')
            .text(mttoFecha,   M + 4,        y + (DATA_H-8)/2, { width: hFecha   - 8, align: 'center', lineBreak: false });
         doc.font('Arial').fontSize(8).fillColor('#000')

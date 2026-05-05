@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
@@ -27,6 +28,8 @@ const IndicadoresRoutes = require('./../routes/biomedica/indicadoresRoutes');
 const TrazabilidadRoutes = require('./../routes/biomedica/trazabilidadRoutes');
 const TrasladoRoutes = require('./../routes/biomedica/trasladoRoutes');
 const firmaRoutes = require('./../routes/biomedica/firmaRoutes');
+const SistemaInformacion = require('./../routes/biomedica/sistemaInformacionRoutes');
+const BackupRoutes = require('./../routes/biomedica/backupRoutes');
 const { checkToken } = require('./../utilities/middleware');
 const sequelize = require('./../config/configDb');
 const imagenesRoutes = require('./../routes/general/imagenesRoutes');
@@ -39,6 +42,7 @@ require('../models/Biomedica/ValorMedicionPreventivo');
 require('../models/Biomedica/RepuestoReporte');
 require('../models/Biomedica/Firma');
 require('../models/MesaServicios'); // Import associations
+require('../models/Biomedica'); // Import Biomedica associations
 
 
 app.use(morgan('dev'));
@@ -78,9 +82,12 @@ app.use(IndicadoresRoutes, checkToken);
 app.use(TrazabilidadRoutes, checkToken);
 app.use(TrasladoRoutes, checkToken);
 app.use(firmaRoutes, checkToken);
+app.use(SistemaInformacion, checkToken);
+app.use(BackupRoutes, checkToken);
 
 const CondicionInicialRoutes = require('./../routes/biomedica/condicionInicialRoutes');
 app.use(CondicionInicialRoutes, checkToken);
+
 
 // ===== MÓDULO SISTEMAS =====
 require('../models/Sistemas/SysEquipo');
@@ -113,6 +120,7 @@ const sysTipoRepuestoRoutes = require('./../routes/sistemas/sysTipoRepuestoRoute
 const sysRepuestoRoutes = require('./../routes/sistemas/sysRepuestoRoutes');
 const sysAuditoriaRepuestoRoutes = require('./../routes/sistemas/sysAuditoriaRepuestoRoutes');
 const sysMovimientosStockRoutes = require('./../routes/sistemas/sysMovimientosStockRoutes');
+const sysMantenimientoRoutes = require('./../routes/sistemas/sysMantenimientoRoutes');
 app.use('/syscumplimiento', checkToken, sysCumplimientoProtocoloPreventivoRoutes);
 app.use('/sysprogramacion', checkToken, sysProgramacionRoutes);
 app.use('/sysequipo', checkToken, sysEquipoRoutes);
@@ -127,6 +135,7 @@ app.use('/sysplanmantenimiento', checkToken, sysPlanMantenimientoRoutes);
 app.use('/sysreporte', checkToken, sysReporteRoutes);
 app.use('/sysreporteentrega', checkToken, sysReporteEntregaRoutes);
 app.use('/systipouso', checkToken, sysTipoUsoRoutes);
+app.use('/sysmantenimiento', checkToken, sysMantenimientoRoutes);
 
 
 const cargoRoutes = require('./../routes/generales/cargoRoutes');

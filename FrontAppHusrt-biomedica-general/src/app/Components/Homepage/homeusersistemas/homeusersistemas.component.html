@@ -72,14 +72,25 @@
     </div>
 
     <!-- Gestión de Backups -->
-    <div class="dashboard-card" (click)="irAEquipos()">
+    <div class="dashboard-card mantenimiento-card">
       <div class="card-icon-container gradient-blue">
         <i class="pi pi-database" style="font-size: 4rem;"></i>
       </div>
       <div class="card-content">
         <h3>Backups</h3>
-        <p>Gestión de backups de equipos de sistemas.</p>
-        <span class="card-action">Acceder <i class="pi pi-arrow-right"></i></span>
+        <p>Gestión y seguimiento de backups de sistemas de información.</p>
+        <div class="sub-actions">
+          <button class="sub-action-btn" (click)="irABackups()">
+            <i class="pi pi-list"></i>
+            <span>Sistemas de Información</span>
+            <i class="pi pi-arrow-right sub-arrow"></i>
+          </button>
+          <button class="sub-action-btn" (click)="irACalendarioBackups()">
+            <i class="pi pi-calendar"></i>
+            <span>Calendario de Backups</span>
+            <i class="pi pi-arrow-right sub-arrow"></i>
+          </button>
+        </div>
       </div>
     </div>
 

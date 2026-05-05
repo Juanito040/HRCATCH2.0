@@ -39,4 +39,6 @@ export class HomeadminsistemasComponent implements OnInit {
   irAServiciosSis() { this.router.navigate(['/adminsistemas/servicios']); }
   irASedesSis() { this.router.navigate(['/adminsistemas/sedes']); }
   irAIndicadores() { this.router.navigate(['/adminsistemas/indicadores']); }
+  irABackups()           { this.router.navigate(['/admin/sistemasinformacion']); }
+  irACalendarioBackups() { this.router.navigate(['/admin/sistemasinformacion/backups']); }
 }
