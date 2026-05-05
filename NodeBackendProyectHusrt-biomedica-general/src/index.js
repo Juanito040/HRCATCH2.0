@@ -101,6 +101,7 @@ require('../models/Sistemas/SysProtocoloPreventivo');
 require('../models/Sistemas/SysPlanMantenimiento');
 require('../models/Sistemas/SysReporte');
 require('../models/Sistemas/SysReporteEntrega');
+require('../models/Sistemas/SysReporteMantenimiento');
 require('../models/Sistemas/SysTipoUso');
 require('../models/Sistemas/Sysprogramacionpreventivomes');
 require('../models/Sistemas/SysCumplimientoProtocoloPreventivo');
@@ -113,6 +114,7 @@ const sysProtocoloPreventivoRoutes = require('./../routes/sistemas/sysProtocoloP
 const sysPlanMantenimientoRoutes = require('./../routes/sistemas/sysPlanMantenimientoRoutes');
 const sysReporteRoutes = require('./../routes/sistemas/sysReporteRoutes');
 const sysReporteEntregaRoutes = require('./../routes/sistemas/sysReporteEntregaRoutes');
+const sysReporteMantenimientoRoutes = require('./../routes/sistemas/sysReporteMantenimientoRoutes');
 const sysTipoUsoRoutes = require('./../routes/sistemas/sysTipoUsoRoutes');
 const sysProgramacionRoutes = require('./../routes/sistemas/sysProgramacionPreventivoRoutes');
 const sysCumplimientoProtocoloPreventivoRoutes = require('./../routes/sistemas/sysCumplimientoProtocoloPreventivo');
@@ -134,6 +136,7 @@ app.use('/sysprotocolo', checkToken, sysProtocoloPreventivoRoutes);
 app.use('/sysplanmantenimiento', checkToken, sysPlanMantenimientoRoutes);
 app.use('/sysreporte', checkToken, sysReporteRoutes);
 app.use('/sysreporteentrega', checkToken, sysReporteEntregaRoutes);
+app.use('/sysreportesmtto', checkToken, sysReporteMantenimientoRoutes);
 app.use('/systipouso', checkToken, sysTipoUsoRoutes);
 app.use('/sysmantenimiento', checkToken, sysMantenimientoRoutes);
 

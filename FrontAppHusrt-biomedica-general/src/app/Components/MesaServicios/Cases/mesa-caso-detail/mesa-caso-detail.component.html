@@ -61,6 +61,37 @@
                                 <p-tag [value]="caso.estado"
                                     [severity]="caso.estado === 'NUEVO' ? 'info' : (caso.estado === 'RESUELTO' ? 'success' : (caso.estado === 'CERRADO' ? 'success' : 'warning'))"></p-tag>
                             </div>
+                            <div class="col-12 mb-2">
+                                <div class="flex justify-content-between align-items-center mb-1">
+                                    <label class="font-bold block text-900 m-0"><i class="pi pi-desktop mr-2"></i>Equipo</label>
+                                    <button *ngIf="caso.equipo && !editandoEquipo && canAssign() && caso.estado !== 'CERRADO'"
+                                        pButton icon="pi pi-pencil" label="Cambiar"
+                                        class="p-button-text p-button-sm p-0"
+                                        (click)="editandoEquipo = true"></button>
+                                </div>
+                                <ng-container *ngIf="caso.equipo && !editandoEquipo">
+                                    <span class="text-600">
+                                        {{caso.equipo.nombre_equipo}}<span *ngIf="caso.equipo.placa_inventario"> ({{caso.equipo.placa_inventario}})</span>
+                                    </span>
+                                </ng-container>
+                                <ng-container *ngIf="(!caso.equipo || editandoEquipo) && canAssign() && caso.estado !== 'CERRADO'">
+                                    <p-select [options]="equipos" [ngModel]="caso.equipoId"
+                                        (onChange)="onEquipoChange($event.value)"
+                                        optionLabel="labelEquipo" optionValue="id_sysequipo"
+                                        placeholder="Asignar equipo (opcional)"
+                                        [filter]="true" [showClear]="true"
+                                        [disabled]="guardandoEquipo"
+                                        emptyMessage="No hay equipos disponibles"
+                                        styleClass="w-full"></p-select>
+                                    <button *ngIf="editandoEquipo" pButton icon="pi pi-times" label="Cancelar"
+                                        class="p-button-text p-button-sm mt-1"
+                                        [disabled]="guardandoEquipo"
+                                        (click)="cancelarEdicionEquipo()"></button>
+                                </ng-container>
+                                <ng-container *ngIf="!caso.equipo && (!canAssign() || caso.estado === 'CERRADO')">
+                                    <span class="text-500 font-italic text-sm">Sin equipo asignado.</span>
+                                </ng-container>
+                            </div>
                         </div>
 
                         <hr class="my-3 surface-border">
