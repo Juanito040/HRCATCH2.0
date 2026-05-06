@@ -226,7 +226,10 @@ export class SysEquipoModalComponent implements OnInit, OnChanges, OnDestroy {
       compraddirecta: [false],
       convenio: [false],
       donado: [false],
-      comodato: [false]
+      comodato: [false],
+      // Soporte del fabricante
+      fecha_inicio_soporte: [''],
+      anos_soporte_fabricante: ['']
     });
   }
 
@@ -348,7 +351,8 @@ export class SysEquipoModalComponent implements OnInit, OnChanges, OnDestroy {
     const formData = this.equipoForm.value;
     const hojaVidaFields = ['ip', 'mac', 'procesador', 'ram', 'disco_duro', 'sistema_operativo', 'office',
       'tonner', 'nombre_usuario', 'vendedor', 'tipo_uso', 'fecha_compra', 'fecha_instalacion',
-      'costo_compra', 'contrato', 'observaciones', 'foto', 'compraddirecta', 'convenio', 'donado', 'comodato'];
+      'costo_compra', 'contrato', 'observaciones', 'foto', 'compraddirecta', 'convenio', 'donado', 'comodato',
+      'fecha_inicio_soporte', 'anos_soporte_fabricante'];
     const uiOnlyFields = ['id_sede_fk'];
 
     const equipoData: any = {};
