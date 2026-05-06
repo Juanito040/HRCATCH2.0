@@ -92,7 +92,56 @@ export class SysindicadoresComponent {
 
   totalReportesLabel = computed(() => `Total: ${this.reportes().length}`);
 
+  // KPIs globales computados
+  totalPendientes = computed(() =>
+    [...this.allPreventivos(), ...this.allCorrectivos()].filter(r => !this.isRealizado(r)).length
+  );
+
+  cumplimientoGlobal = computed(() => {
+    const total = this.reportes().length;
+    if (total === 0) return 0;
+    const realizados = this.reportes().filter(r => this.isRealizado(r)).length;
+    return parseFloat(((realizados / total) * 100).toFixed(1));
+  });
+
+  alertaPreventivo = computed(() => this.preventivoInfo().cumplimiento < 80 && this.allPreventivos().length > 0);
+
   constructor() { this.refrescar(); }
+
+  // ── Filtros rápidos ──────────────────────────────────────────────
+  filtrarEsteMes() {
+    const hoy = new Date();
+    this.anio = hoy.getFullYear();
+    this.mesInicio = hoy.getMonth() + 1;
+    this.mesFin = hoy.getMonth() + 1;
+    this.refrescar();
+  }
+
+  filtrarEsteTrimsestre() {
+    const hoy = new Date();
+    const mes = hoy.getMonth() + 1;
+    const trimestre = Math.ceil(mes / 3);
+    this.anio = hoy.getFullYear();
+    this.mesInicio = (trimestre - 1) * 3 + 1;
+    this.mesFin = trimestre * 3;
+    this.refrescar();
+  }
+
+  filtrarEsteSemestre() {
+    const hoy = new Date();
+    const mes = hoy.getMonth() + 1;
+    this.anio = hoy.getFullYear();
+    this.mesInicio = mes <= 6 ? 1 : 7;
+    this.mesFin = mes <= 6 ? 6 : 12;
+    this.refrescar();
+  }
+
+  filtrarEsteAnio() {
+    this.anio = new Date().getFullYear();
+    this.mesInicio = 1;
+    this.mesFin = 12;
+    this.refrescar();
+  }
 
   async refrescar() {
     if (!this.anio || !this.mesInicio || !this.mesFin) return;
@@ -249,8 +298,7 @@ export class SysindicadoresComponent {
         x: { ticks: { autoSkip: true, font: { size: 12 } }, grid: { display: false } },
         y: {
           beginAtZero: true,
-          max: 100,
-          ticks: { stepSize: 5, precision: 0, font: { size: 12 }, color: '#6b7280' },
+          ticks: { precision: 0, font: { size: 12 }, color: '#6b7280' },
           grid: { color: '#f3f4f6' }
         }
       }
