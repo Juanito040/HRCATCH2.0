@@ -83,7 +83,7 @@ export class SysHistorialEquipoComponent implements OnChanges, OnDestroy {
   }
 
   private parseCambios(evento: EventoTrazabilidad): CambioCampo[] | undefined {
-    if (evento.accion !== 'EDICION' || !evento.detalles) return undefined;
+    if ((evento.accion !== 'EDICION' && evento.accion !== 'HOJA_VIDA') || !evento.detalles) return undefined;
     try {
       const parsed = JSON.parse(evento.detalles);
       if (!Array.isArray(parsed)) return undefined;
@@ -98,6 +98,7 @@ export class SysHistorialEquipoComponent implements OnChanges, OnDestroy {
     const mapa: Record<string, string> = {
       CREACION:          'fas fa-plus-circle',
       EDICION:           'fas fa-pencil-alt',
+      HOJA_VIDA:         'fas fa-laptop',
       BODEGA:            'fas fa-warehouse',
       BAJA:              'fas fa-ban',
       REACTIVACION:      'fas fa-power-off',
@@ -111,6 +112,7 @@ export class SysHistorialEquipoComponent implements OnChanges, OnDestroy {
     const mapa: Record<string, string> = {
       CREACION:          'evento-creacion',
       EDICION:           'evento-edicion',
+      HOJA_VIDA:         'evento-hoja-vida',
       BODEGA:            'evento-bodega',
       BAJA:              'evento-baja',
       REACTIVACION:      'evento-reactivacion',
@@ -123,7 +125,8 @@ export class SysHistorialEquipoComponent implements OnChanges, OnDestroy {
   getEtiqueta(accion: string): string {
     const mapa: Record<string, string> = {
       CREACION:          'Creación',
-      EDICION:           'Edición',
+      EDICION:           'Edición de equipo',
+      HOJA_VIDA:         'Hoja de vida',
       BODEGA:            'Enviado a Bodega',
       BAJA:              'Dado de Baja',
       REACTIVACION:      'Reactivado',
@@ -146,7 +149,27 @@ export class SysHistorialEquipoComponent implements OnChanges, OnDestroy {
       activo: 'Estado activo',
       id_servicio_fk: 'Servicio',
       id_tipo_equipo_fk: 'Tipo de equipo',
-      id_usuario_fk: 'Usuario responsable'
+      id_usuario_fk: 'Usuario responsable',
+      ip: 'Dirección IP',
+      mac: 'Dirección MAC',
+      procesador: 'Procesador',
+      ram: 'Memoria RAM',
+      disco_duro: 'Disco duro',
+      sistema_operativo: 'Sistema operativo',
+      office: 'Office',
+      tonner: 'Referencia tóner',
+      nombre_usuario: 'Usuario del equipo',
+      vendedor: 'Vendedor',
+      tipo_uso: 'Tipo de uso',
+      fecha_compra: 'Fecha de compra',
+      fecha_instalacion: 'Fecha de instalación',
+      costo_compra: 'Costo de compra',
+      contrato: 'Contrato',
+      observaciones: 'Observaciones',
+      compraddirecta: 'Compra directa',
+      convenio: 'Convenio',
+      donado: 'Donado',
+      comodato: 'Comodato'
     };
     return mapa[campo] || campo;
   }

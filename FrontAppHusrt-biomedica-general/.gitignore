@@ -40,3 +40,25 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# SSL certificates (local dev)
+/certs/
+
+# Build logs
+*.log
+build_error*.txt
+build_errors*.txt
+build_log*.txt
+build_output*.txt
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Angular environment files with server data
+src/environments/environment.prod.ts
+
+# Package manager locks (keep only one — uncomment the one not used)
+# package-lock.json
+# yarn.lock

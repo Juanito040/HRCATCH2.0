@@ -1,6 +1,7 @@
-import { Component, OnInit, HostListener, ViewChild, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { SplitButtonModule } from 'primeng/splitbutton';
 import { Router } from '@angular/router';
 import { SysequiposService, SysEquipo } from '../../../Services/appServices/sistemasServices/sysequipos/sysequipos.service';
 import { TipoEquipoService } from '../../../Services/appServices/general/tipoEquipo/tipo-equipo.service';
@@ -9,17 +10,18 @@ import { SysEquipoModalComponent } from '../equipo-modal/equipo-modal.component'
 import { SysEquipoDetailModalComponent } from '../equipo-detail-modal/equipo-detail-modal.component';
 import { SysHistorialEquipoComponent } from '../historial-equipo/historial-equipo.component';
 import { SysDeleteConfirmationDialogComponent, DeleteAction } from '../delete-confirmation-dialog/delete-confirmation-dialog.component';
-import { SysReporteFormComponent } from '../sys-reporte-form/sys-reporte-form.component';
 import { SysReportesEquipoComponent } from '../sys-reportes-equipo/sys-reportes-equipo.component';
-import { SysReporteService } from '../../../Services/appServices/sistemasServices/sysreporte/sysreporte.service';
+import { SysReporteEntregaService } from '../../../Services/appServices/sistemasServices/sysreporteentrega/sysreporteentrega.service';
 import { getDecodedAccessToken } from '../../../utilidades';
 import { MenuItem } from 'primeng/api';
 import Swal from 'sweetalert2';
+import { extractError } from '../../../utils/error-utils';
+import { getEstadoSoporte, LABELS_SOPORTE } from '../../../utils/soporte-utils';
 
 @Component({
   selector: 'app-equipos-tipo-sis',
   standalone: true,
-  imports: [CommonModule, FormsModule, SysEquipoModalComponent, SysEquipoDetailModalComponent, SysHistorialEquipoComponent, SysDeleteConfirmationDialogComponent, SysReporteFormComponent, SysReportesEquipoComponent],
+  imports: [CommonModule, FormsModule, SplitButtonModule, SysEquipoModalComponent, SysEquipoDetailModalComponent, SysHistorialEquipoComponent, SysDeleteConfirmationDialogComponent, SysReportesEquipoComponent],
   templateUrl: './equipos-tipo-sis.component.html',
   styleUrl: './equipos-tipo-sis.component.css'
 })
@@ -36,7 +38,8 @@ export class EquiposTipoSisComponent implements OnInit {
   isLoading: boolean = false;
   error: string | null = null;
 
-  readonly pageSize = 15;
+  pageSize = 8;
+  readonly pageSizeOptions = [8, 25, 50];
   currentPage: number = 1;
   totalPages: number = 1;
 
@@ -92,7 +95,10 @@ export class EquiposTipoSisComponent implements OnInit {
   private sysequiposService = inject(SysequiposService);
   private tipoEquipoService = inject(TipoEquipoService);
   private planService = inject(SysplanmantenimientoService);
-  private reporteService = inject(SysReporteService);
+  private reporteService = inject(SysReporteEntregaService);
+
+  getEstadoSoporte = getEstadoSoporte;
+  labelsSoporte = LABELS_SOPORTE;
 
   get isAdmin(): boolean {
     const decoded = getDecodedAccessToken();
@@ -137,7 +143,7 @@ export class EquiposTipoSisComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error al cargar equipos:', err);
-        this.error = 'Error al conectar con el servidor.';
+        this.error = extractError(err, 'cargar equipos del tipo');
         this.equipos = [];
         this.filteredEquipos = [];
         this.isLoading = false;
@@ -147,6 +153,12 @@ export class EquiposTipoSisComponent implements OnInit {
 
   onSearch(event: Event) {
     this.searchTerm = (event.target as HTMLInputElement).value.toLowerCase();
+    this.applyFilters();
+  }
+
+  clearSearch(input: HTMLInputElement) {
+    input.value = '';
+    this.searchTerm = '';
     this.applyFilters();
   }
 
@@ -172,9 +184,11 @@ export class EquiposTipoSisComponent implements OnInit {
       { label: 'Ver Detalles',          icon: 'pi pi-eye',          command: () => this.openDetailModal(equipo) },
       { label: 'Editar',                icon: 'pi pi-pencil',       command: () => this.openEditModal(equipo) },
       { label: 'Plan de Mantenimiento', icon: 'pi pi-calendar',     command: () => this.openPlanDialog(equipo) },
-      { label: 'Reporte de Entrega',    icon: 'fas fa-file-export', command: () => this.openReporteForm(equipo) },
-      { label: 'Ver Reportes',          icon: 'fas fa-clipboard-list', command: () => this.openReportesList(equipo) },
-      { label: 'Ver Historial',         icon: 'fas fa-history',     command: () => this.openHistorialModal(equipo) },
+      { label: 'Reporte de Entrega',      icon: 'fas fa-file-export',    command: () => this.openReporteForm(equipo) },
+      { label: 'Ver Reportes Entrega',   icon: 'fas fa-clipboard-list', command: () => this.openReportesList(equipo) },
+      { label: 'Nuevo Reporte de Casos', icon: 'pi pi-plus',            command: () => this.router.navigate(['/adminsistemas/nuevoreporte', equipo.id_sysequipo]) },
+      { label: 'Ver Reportes de Casos',  icon: 'pi pi-list',            command: () => this.router.navigate(['/adminsistemas/reportesequipo', equipo.id_sysequipo]) },
+      { label: 'Ver Historial',          icon: 'fas fa-history',        command: () => this.openHistorialModal(equipo) },
       { label: 'Enviar a Bodega',       icon: 'fas fa-warehouse',   command: () => this.confirmBodega(equipo) },
       { label: 'Dar de Baja',           icon: 'pi pi-ban',          command: () => this.confirmBaja(equipo) },
     ];
@@ -219,7 +233,7 @@ export class EquiposTipoSisComponent implements OnInit {
           }
         },
         error: (err) => {
-          const msg = err.error?.message || 'Error al conectar con el servidor.';
+          const msg = extractError(err, 'enviar el equipo a bodega');
           if (this.deleteDialog) this.deleteDialog.showError(msg);
           Swal.fire({ icon: 'error', title: 'Error', text: msg });
         }
@@ -245,10 +259,7 @@ export class EquiposTipoSisComponent implements OnInit {
           }
         },
         error: (err) => {
-          let msg = 'Error al conectar con el servidor';
-          if (err.status === 403) msg = err.error?.message || 'Contraseña incorrecta';
-          else if (err.status === 400) msg = err.error?.message || 'Datos inválidos';
-          else if (err.error?.message) msg = err.error.message;
+          const msg = extractError(err, 'dar de baja el equipo');
           if (this.deleteDialog) this.deleteDialog.showError(msg);
           Swal.fire({ icon: 'error', title: 'Error', text: msg });
         }
@@ -272,13 +283,9 @@ export class EquiposTipoSisComponent implements OnInit {
   }
 
   openReporteForm(equipo: any) {
-    this.equipoForReporte = equipo;
-    this.isReporteFormOpen = true;
-  }
-
-  closeReporteForm() {
-    this.isReporteFormOpen = false;
-    this.equipoForReporte = null;
+    sessionStorage.setItem('equipoParaReporte', JSON.stringify(equipo));
+    sessionStorage.setItem('origenReporte', '/adminsistemas/equipostipo');
+    this.router.navigate(['/adminsistemas/reporte-entrega']);
   }
 
   openReportesList(equipo: any) {
@@ -319,6 +326,12 @@ export class EquiposTipoSisComponent implements OnInit {
 
   min(a: number, b: number): number { return Math.min(a, b); }
 
+  onPageSizeChange(event: Event) {
+    this.pageSize = Number((event.target as HTMLSelectElement).value);
+    this.currentPage = 1;
+    this.updatePage();
+  }
+
   getEstadoBadgeClass(activo: number | undefined): string {
     return `badge badge-${Number(activo) === 1 ? 'success' : 'danger'}`;
   }
@@ -327,18 +340,6 @@ export class EquiposTipoSisComponent implements OnInit {
     return Number(activo) === 1 ? 'Activo' : 'Inactivo';
   }
 
-  toggleMenu(equipo: any) {
-    const wasOpen = equipo._menuOpen;
-    this.closeAllMenus();
-    equipo._menuOpen = !wasOpen;
-  }
-
-  closeAllMenus() {
-    this.filteredEquipos.forEach((e: any) => e._menuOpen = false);
-  }
-
-  @HostListener('document:click')
-  onDocumentClick() { this.closeAllMenus(); }
 
   verHojaVida(equipo: SysEquipo) {
     if (equipo.id_sysequipo) {
@@ -438,10 +439,20 @@ export class EquiposTipoSisComponent implements OnInit {
       await this.planService.reemplazarPlanesEquipo(this.currentEquipoPlan.id_sysequipo, this.selectedPlanes);
       Swal.fire({ icon: 'success', title: 'Plan actualizado', text: `Se programaron ${this.selectedPlanes.length} mantenimiento(s).`, timer: 2000, showConfirmButton: false });
       this.closePlanDialog();
-    } catch {
-      Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo guardar el plan de mantenimiento.' });
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Error', text: extractError(err, 'guardar el plan de mantenimiento') });
     } finally {
       this.isSavingPlan = false;
     }
+  }
+
+  openHistoricoMantenimientos(equipo: any) {
+    if (!equipo?.id_sysequipo) return;
+    this.router.navigate(['/adminsistemas/historico-mantenimiento', equipo.id_sysequipo]);
+  }
+
+  onRowClick(event: MouseEvent, equipo: any) {
+    if ((event.target as HTMLElement).closest('td.col-opciones')) return;
+    this.openHistoricoMantenimientos(equipo);
   }
 }

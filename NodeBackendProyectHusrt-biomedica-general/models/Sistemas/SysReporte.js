@@ -91,7 +91,6 @@ const SysReporte = sequelize.define('SysReporte', {
             key: 'id'
         },
     },
-    // FK al equipo de sistemas (equivalente a equipoIdFk en Reporte)
     id_sysequipo_fk: {
         type: DataTypes.INTEGER,
         allowNull: false,

@@ -7,7 +7,7 @@
   display: flex; align-items: center; gap: 0.6rem;
 }
 
-.page-header h1 i { color: #2563eb; font-size: 1.5rem; }
+.page-header h1 i { color: var(--primary-color); font-size: 1.5rem; }
 .subtitle { color: #6b7280; font-size: 0.9375rem; margin: 0; }
 
 /* ── Selector card ── */
@@ -34,7 +34,7 @@
   cursor: pointer; transition: border-color 0.15s;
 }
 
-.filter-select:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+.filter-select:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
 
 /* ── Empty banner ── */
 .empty-banner {
@@ -56,7 +56,7 @@
 
 .spinner {
   width: 2.25rem; height: 2.25rem;
-  border: 3px solid #e5e7eb; border-top-color: #2563eb;
+  border: 3px solid #e5e7eb; border-top-color: var(--primary-color);
   border-radius: 50%; margin: 0 auto 1rem;
   animation: spin 0.75s linear infinite;
 }
@@ -78,11 +78,11 @@
 
 .checklist-title {
   display: flex; align-items: center; gap: 0.6rem;
-  font-size: 1rem; font-weight: 600; color: #1f2937;
+  font-size: 1rem; font-weight: 400; color: #1f2937;
 }
 
-.checklist-title i { color: #2563eb; }
-.tipo-nombre { color: #2563eb; }
+.checklist-title i { color: var(--primary-color); }
+.tipo-nombre { color: #2e2e2f; }
 
 .checklist-stats { display: flex; align-items: center; gap: 1rem; }
 
@@ -100,10 +100,10 @@
   padding: 1rem 1.125rem;
   border: 1px solid #e5e7eb; border-radius: 0.625rem;
   background: white; transition: box-shadow 0.15s, border-color 0.15s;
-  border-left: 4px solid #2563eb;
+  border-left: 4px solid #bfdbfe;
 }
 
-.checklist-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-color: #bfdbfe; }
+.checklist-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-color: #7a7a7a; }
 
 .checklist-item.item-inactive {
   border-left-color: #d1d5db;
@@ -118,7 +118,7 @@
   flex-shrink: 0; margin-top: 0.1rem;
 }
 
-.step-active { background: #2563eb; color: white; }
+.step-active { background: #bfdbfe; color: white; }
 .step-inactive { background: #e5e7eb; color: #9ca3af; }
 
 /* ── Step content ── */
@@ -160,9 +160,10 @@
 }
 
 .btn-edit { color: #0891b2; }
-.btn-edit:hover { background: #cffafe; }
-.btn-delete { color: #ef4444; }
-.btn-delete:hover { background: #fee2e2; }
+.btn-edit:hover { background: #bfc4c5; }
+.btn-delete { color: #234277; }
+.btn-delete:hover { background: #bfc4c5; }
+
 
 /* ── Empty checklist ── */
 .empty-checklist {
@@ -176,7 +177,7 @@
   font-size: 1.75rem; color: #93c5fd; margin-bottom: 0.5rem;
 }
 
-.empty-checklist h3 { margin: 0; font-size: 1.125rem; color: #1f2937; }
+.empty-checklist h2 { margin: 0; font-size: 1.125rem; color: #1f2937; }
 .empty-checklist p { margin: 0; color: #6b7280; font-size: 0.9375rem; }
 
 /* ── Checklist footer ── */
@@ -188,11 +189,11 @@
   display: inline-flex; align-items: center; gap: 0.4rem;
   padding: 0.5rem 1.125rem; border-radius: 0.5rem;
   border: 1.5px dashed #93c5fd; background: #eff6ff;
-  color: #2563eb; font-size: 0.875rem; font-weight: 500;
+  color: var(--primary-color); font-size: 0.875rem; font-weight: 500;
   cursor: pointer; transition: all 0.15s;
 }
 
-.btn-outline:hover { background: #dbeafe; border-color: #2563eb; }
+.btn-outline:hover { background: #dbeafe; border-color: var(--primary-color); }
 
 /* ── Botones globales ── */
 .btn {
@@ -202,8 +203,8 @@
   cursor: pointer; transition: all 0.15s;
 }
 
-.btn-primary { background: #2563eb; color: white; }
-.btn-primary:hover { background: #1d4ed8; }
+.btn-primary { background: var(--primary-color); color: white; }
+.btn-primary:hover { background: var(--primary-dark); }
 .btn-secondary { background: white; color: #374151; border: 1px solid #d1d5db; }
 .btn-secondary:hover { background: #f9fafb; }
 .btn:disabled { opacity: 0.55; cursor: not-allowed; }
@@ -238,7 +239,7 @@
 .modal-icon {
   width: 2.5rem; height: 2.5rem; border-radius: 0.5rem;
   background: #eff6ff; display: flex; align-items: center; justify-content: center;
-  color: #2563eb; font-size: 1rem; flex-shrink: 0;
+  color: var(--primary-color); font-size: 1rem; flex-shrink: 0;
 }
 
 .modal-header h2 { font-size: 1.125rem; font-weight: 600; color: #111827; margin: 0 0 0.15rem; }
@@ -271,7 +272,7 @@
   width: 100%; box-sizing: border-box;
 }
 
-.form-control:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+.form-control:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
 
 .hint { font-size: 0.78rem; color: #6b7280; display: flex; align-items: center; gap: 0.3rem; }
 
@@ -291,7 +292,7 @@
   transition: background 0.2s; flex-shrink: 0;
 }
 
-.estado-toggle-indicator.on { background: #2563eb; }
+.estado-toggle-indicator.on { background: var(--primary-color); }
 
 .toggle-knob {
   width: 1.0625rem; height: 1.0625rem; border-radius: 50%;

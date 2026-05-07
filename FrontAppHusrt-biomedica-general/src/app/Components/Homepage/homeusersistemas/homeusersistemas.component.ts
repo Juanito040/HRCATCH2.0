@@ -42,5 +42,11 @@ export class HomeusersistemasComponent {
       this.router.navigate(['/adminsistemas/mantenimiento']);
     }
   }
-  irARepuestos() { this.router.navigate(['/adminsistemas/repuestos']); }
+    irAServiciosSis()          { this.router.navigate(['/adminsistemas/servicios']); }
+  irASedesSis()              { this.router.navigate(['/adminsistemas/sedes']); }
+  irACalendarioEquipo()      { this.router.navigate(['/adminsistemas/planMantenimiento']); }
+  irARepuestos()             { this.router.navigate(['/adminsistemas/repuestos']); }
+  irAIndicadores() { this.router.navigate(['/adminsistemas/indicadores']); }
+  irABackups()           { this.router.navigate(['/admin/sistemasinformacion']); }
+  irACalendarioBackups() { this.router.navigate(['/admin/sistemasinformacion/backups']); }
 }

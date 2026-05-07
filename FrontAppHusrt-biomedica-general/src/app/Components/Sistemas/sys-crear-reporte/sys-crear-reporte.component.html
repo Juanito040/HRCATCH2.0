@@ -1,0 +1,170 @@
+<div class="title-container">
+  <h2><strong>REPORTE DE MANTENIMIENTO DE SISTEMAS</strong></h2>
+  @if (casoId) {
+    <p class="text-muted">Vinculado al caso de mesa #{{ casoId }}</p>
+  }
+</div>
+
+<div class="title-container">
+  <h4><strong>DATOS DEL EQUIPO</strong></h4>
+</div>
+
+<div class="custom-grid" style="width: 94%; margin-left: 3%; margin-right: 3%;">
+  <div class="form-item">
+    <label>Nombre Equipo</label>
+    <input pInputText placeholder="{{ equipo?.nombre_equipo || '...' }}" disabled />
+  </div>
+  <div class="form-item">
+    <label>Marca</label>
+    <input pInputText placeholder="{{ equipo?.marca || '' }}" disabled />
+  </div>
+  <div class="form-item">
+    <label>Modelo</label>
+    <input pInputText placeholder="{{ equipo?.modelo || '' }}" disabled />
+  </div>
+  <div class="form-item">
+    <label>Serie</label>
+    <input pInputText placeholder="{{ equipo?.serie || '' }}" disabled />
+  </div>
+  <div class="form-item">
+    <label>Placa Inventario</label>
+    <input pInputText placeholder="{{ equipo?.placa_inventario || '' }}" disabled />
+  </div>
+  <div class="form-item">
+    <label>Ubicación</label>
+    <input pInputText placeholder="{{ equipo?.ubicacion || '' }}" disabled />
+  </div>
+</div>
+
+<div class="title-container">
+  <h4><strong>DATOS DEL REPORTE</strong></h4>
+</div>
+
+<div class="form-container">
+  <p-card>
+    <form [formGroup]="reporteForm" (ngSubmit)="onSubmit()">
+
+      <div class="custom-grid">
+        <div class="form-item">
+          <label>Fecha Realizado</label>
+          <p-datePicker formControlName="fecha_realizado" inputId="fecha_realizado" showIcon dateFormat="yy-mm-dd" />
+        </div>
+        <div class="form-item">
+          <label>Hora Inicio</label>
+          <input pInputText type="time" formControlName="hora_inicio" />
+        </div>
+        <div class="form-item">
+          <label>Hora Terminación</label>
+          <input pInputText type="time" formControlName="hora_terminacion" />
+        </div>
+        <div class="form-item">
+          <label>Hora Total</label>
+          <input pInputText type="text" formControlName="hora_total" readonly />
+        </div>
+        <div class="form-item">
+          <label>Tipo de Mantenimiento</label>
+          <p-select [options]="tiposMantenimiento" formControlName="tipo_mantenimiento" placeholder="Seleccione" />
+        </div>
+        <div class="form-item">
+          <label>Tipo de Falla</label>
+          <p-select [options]="tiposFalla" formControlName="tipo_falla" placeholder="Seleccione" />
+        </div>
+        <div class="form-item">
+          <label>Estado Operativo</label>
+          <p-select [options]="estadosOperativos" formControlName="estado_operativo" placeholder="Seleccione" />
+        </div>
+        <div class="form-item">
+          <label>Calificación (1–5)</label>
+          <p-select [options]="calificaciones" formControlName="calificacion" placeholder="Seleccione" />
+        </div>
+        <div class="form-item">
+          <label>Técnico Responsable</label>
+          <input pInputText [value]="nombreUsuario" disabled />
+        </div>
+        <div class="form-item">
+          <label>Nombre Recibió</label>
+          <input pInputText formControlName="nombre_recibio" />
+        </div>
+        <div class="form-item">
+          <label>Cédula Recibió</label>
+          <input pInputText formControlName="cedula_recibio" />
+        </div>
+      </div>
+
+      <div style="margin-top: 3%;"></div>
+
+      <div class="custom-grid">
+        <div class="form-item">
+          <label>Motivo</label>
+          <textarea pInputTextarea rows="3" formControlName="motivo"></textarea>
+        </div>
+        <div class="form-item">
+          <label>Trabajo Realizado</label>
+          <textarea pInputTextarea rows="3" formControlName="trabajo_realizado"></textarea>
+        </div>
+        <div class="form-item">
+          <label>Observaciones</label>
+          <textarea pInputTextarea rows="3" formControlName="observaciones"></textarea>
+        </div>
+      </div>
+
+      <div style="margin-top: 3%;"></div>
+
+      <div class="title-container">
+        <h4><strong>INSUMOS / REPUESTOS</strong></h4>
+        <h6>Registre los repuestos o insumos utilizados en el mantenimiento</h6>
+      </div>
+
+      <div>
+        <div formArrayName="repuestos" class="w-full px-3">
+          <p-table [value]="repuestosArray.controls" responsiveLayout="scroll"
+            styleClass="p-datatable-sm"
+            [showCurrentPageReport]="true"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros">
+            <ng-template pTemplate="header">
+              <tr>
+                <th style="width: 40%">Nombre Insumo</th>
+                <th style="width: 20%">Cantidad</th>
+                <th style="width: 30%">Comprobante Egreso</th>
+                <th style="width: 10%">Acción</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-repuesto let-i="rowIndex">
+              <tr [formGroupName]="i">
+                <td><input pInputText formControlName="nombre_insumo" class="w-full" placeholder="Nombre" /></td>
+                <td><input pInputText formControlName="cantidad" class="w-full" placeholder="Cantidad" /></td>
+                <td><input pInputText formControlName="comprobante_egreso" class="w-full" placeholder="Ref. / Comprobante" /></td>
+                <td class="text-center">
+                  <button pButton type="button" icon="pi pi-trash"
+                    class="p-button-danger p-button-rounded p-button-text"
+                    (click)="eliminarRepuesto(i)"></button>
+                </td>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="footer">
+              <tr>
+                <td colspan="4" class="text-right">
+                  <button pButton label="Agregar Insumo" icon="pi pi-plus"
+                    class="p-button-sm p-button-outlined"
+                    (click)="agregarRepuesto()" type="button"></button>
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </div>
+
+      <div style="margin-top: 3%;"></div>
+
+      <div class="custom-grid">
+        <button type="submit" class="btn btn-dark" [disabled]="isLoading">
+          {{ isLoading ? 'Guardando...' : 'Guardar Reporte' }}
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="goBack()">Cancelar</button>
+        <div></div>
+        <div></div>
+      </div>
+
+    </form>
+  </p-card>
+</div>

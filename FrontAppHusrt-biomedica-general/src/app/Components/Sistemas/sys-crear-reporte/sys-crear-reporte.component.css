@@ -1,0 +1,32 @@
+.form-container {
+  width: 95%;
+  margin: 0 auto;
+}
+
+.title-container {
+  width: 95%;
+  margin: 0 auto;
+  margin-top: 3%;
+  text-align: center;
+}
+
+.custom-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+@media (max-width: 600px) {
+  .custom-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}

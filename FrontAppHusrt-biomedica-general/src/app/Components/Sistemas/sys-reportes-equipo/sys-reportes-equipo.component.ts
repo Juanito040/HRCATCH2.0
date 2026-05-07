@@ -1,7 +1,8 @@
 import { Component, Input, Output, EventEmitter, OnChanges, OnDestroy, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SysReporteService, SysReporte } from '../../../Services/appServices/sistemasServices/sysreporte/sysreporte.service';
+import { SysReporteEntregaService, SysReporteEntrega } from '../../../Services/appServices/sistemasServices/sysreporteentrega/sysreporteentrega.service';
 import Swal from 'sweetalert2';
+import { extractError } from '../../../utils/error-utils';
 
 @Component({
   selector: 'app-sys-reportes-equipo',
@@ -15,12 +16,12 @@ export class SysReportesEquipoComponent implements OnChanges, OnDestroy {
   @Input() equipo: any = null;
   @Output() closed = new EventEmitter<void>();
 
-  reportes: SysReporte[] = [];
+  reportes: SysReporteEntrega[] = [];
   isLoading = false;
   error: string | null = null;
   downloadingId: number | null = null;
 
-  private reporteService = inject(SysReporteService);
+  private reporteService = inject(SysReporteEntregaService);
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['isOpen'] && typeof document !== 'undefined') {
@@ -56,7 +57,7 @@ export class SysReportesEquipoComponent implements OnChanges, OnDestroy {
     });
   }
 
-  async descargarPdf(reporte: SysReporte) {
+  async descargarPdf(reporte: SysReporteEntrega) {
     if (!reporte.id_sysreporte) return;
     this.downloadingId = reporte.id_sysreporte;
     try {
@@ -67,8 +68,8 @@ export class SysReportesEquipoComponent implements OnChanges, OnDestroy {
       a.download = `ReporteEntrega_${reporte.id_sysreporte}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
-    } catch {
-      Swal.fire('Error', 'No se pudo generar el PDF.', 'error');
+    } catch (err) {
+      Swal.fire('Error', extractError(err, 'generar el PDF del reporte de equipo'), 'error');
     } finally {
       this.downloadingId = null;
     }

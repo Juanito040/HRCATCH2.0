@@ -33,6 +33,16 @@
             <span>Dados de Baja</span>
             <i class="pi pi-arrow-right sub-arrow"></i>
           </button>
+          <button class="sub-action-btn" (click)="irAServiciosSis()">
+            <i class="pi pi-sitemap"></i>
+            <span>Por Servicio</span>
+            <i class="pi pi-arrow-right sub-arrow"></i>
+          </button>
+          <button class="sub-action-btn" (click)="irASedesSis()">
+            <i class="pi pi-map-marker"></i>
+            <span>Por Sede</span>
+            <i class="pi pi-arrow-right sub-arrow"></i>
+          </button>
         </div>
       </div>
     </div>
@@ -62,19 +72,30 @@
     </div>
 
     <!-- Gestión de Backups -->
-    <div class="dashboard-card" (click)="irAEquipos()">
+    <div class="dashboard-card mantenimiento-card">
       <div class="card-icon-container gradient-blue">
         <i class="pi pi-database" style="font-size: 4rem;"></i>
       </div>
       <div class="card-content">
         <h3>Backups</h3>
-        <p>Gestión de backups de equipos de sistemas.</p>
-        <span class="card-action">Acceder <i class="pi pi-arrow-right"></i></span>
+        <p>Gestión y seguimiento de backups de sistemas de información.</p>
+        <div class="sub-actions">
+          <button class="sub-action-btn" (click)="irABackups()">
+            <i class="pi pi-list"></i>
+            <span>Sistemas de Información</span>
+            <i class="pi pi-arrow-right sub-arrow"></i>
+          </button>
+          <button class="sub-action-btn" (click)="irACalendarioBackups()">
+            <i class="pi pi-calendar"></i>
+            <span>Calendario de Backups</span>
+            <i class="pi pi-arrow-right sub-arrow"></i>
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Gestión de indicadores -->
-    <div class="dashboard-card" (click)="irAEquipos()">
+     <!-- Gestión de indicadores -->
+    <div class="dashboard-card" (click)="irAIndicadores()">
       <div class="card-icon-container gradient-blue">
         <i class="pi pi-chart-bar" style="font-size: 4rem;"></i>
       </div>
@@ -97,6 +118,20 @@
         <span class="card-action">Acceder <i class="pi pi-arrow-right"></i></span>
       </div>
     </div>
+
+    <!-- Parametrización — solo admin -->
+    @if (!isSystemUser) {
+      <div class="dashboard-card" (click)="irAParametrizacion()">
+        <div class="card-icon-container gradient-blue">
+          <i class="pi pi-sliders-h" style="font-size: 4rem;"></i>
+        </div>
+        <div class="card-content">
+          <h3>Parametrización</h3>
+          <p>Configura tipos de equipo, protocolos, servicios y sedes.</p>
+          <span class="card-action">Configurar <i class="pi pi-cog"></i></span>
+        </div>
+      </div>
+    }
 
   </div>
 </div>

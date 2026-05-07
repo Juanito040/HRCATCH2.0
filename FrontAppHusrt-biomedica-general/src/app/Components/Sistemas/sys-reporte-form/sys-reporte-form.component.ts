@@ -1,9 +1,13 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { SysReporteService, SysReporte } from '../../../Services/appServices/sistemasServices/sysreporte/sysreporte.service';
+import { Router } from '@angular/router';
+import { SysReporteEntregaService, SysReporteEntrega } from '../../../Services/appServices/sistemasServices/sysreporteentrega/sysreporteentrega.service';
+import { ServicioService } from '../../../Services/appServices/general/servicio/servicio.service';
+import { SysequiposService } from '../../../Services/appServices/sistemasServices/sysequipos/sysequipos.service';
 import { getDecodedAccessToken } from '../../../utilidades';
 import Swal from 'sweetalert2';
+import { extractError } from '../../../utils/error-utils';
 
 @Component({
   selector: 'app-sys-reporte-form',
@@ -12,27 +16,43 @@ import Swal from 'sweetalert2';
   templateUrl: './sys-reporte-form.component.html',
   styleUrls: ['./sys-reporte-form.component.css']
 })
-export class SysReporteFormComponent implements OnChanges {
-  @Input() isOpen: boolean = false;
-  @Input() equipo: any = null;
-  @Output() closed = new EventEmitter<void>();
-  @Output() saved = new EventEmitter<void>();
+export class SysReporteFormComponent implements OnInit {
+
+  equipo: any = null;
+  origenRuta: string = '/adminsistemas/equipos';
 
   isSubmitting = false;
   isDownloadingPdf = false;
   savedReporteId: number | null = null;
 
-  form: SysReporte = this.emptyForm();
+  servicios: any[] = [];
+  equiposList: any[] = [];
+  equipoRetirado: string = '';
 
-  constructor(private reporteService: SysReporteService) {}
+  form: SysReporteEntrega = this.emptyForm();
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['isOpen'] && this.isOpen) {
-      this.reset();
+  constructor(
+    private router: Router,
+    private reporteService: SysReporteEntregaService,
+    private servicioService: ServicioService,
+    private sysequiposService: SysequiposService
+  ) {}
+
+  ngOnInit() {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    this.origenRuta = sessionStorage.getItem('origenReporte') || '/adminsistemas/equipos';
+    const raw = sessionStorage.getItem('equipoParaReporte');
+    if (raw) {
+      this.equipo = JSON.parse(raw);
+    } else {
+      this.router.navigate([this.origenRuta]);
+      return;
     }
+    this.initForm();
+    this.loadLookupData();
   }
 
-  private emptyForm(): SysReporte {
+  private emptyForm(): SysReporteEntrega {
     const hoy = new Date().toISOString().split('T')[0];
     const ahora = new Date().toTimeString().slice(0, 5);
     return {
@@ -51,10 +71,10 @@ export class SysReporteFormComponent implements OnChanges {
     };
   }
 
-  private reset() {
+  private initForm() {
     this.form = this.emptyForm();
     this.savedReporteId = null;
-    this.isSubmitting = false;
+    this.equipoRetirado = '';
 
     if (this.equipo) {
       this.form.servicio_anterior = this.equipo.servicio?.nombres || '';
@@ -67,8 +87,48 @@ export class SysReporteFormComponent implements OnChanges {
     }
   }
 
-  close() {
-    this.closed.emit();
+  async loadLookupData() {
+    try {
+      const data = await this.servicioService.getAllServicios();
+      this.servicios = Array.isArray(data) ? data : [];
+    } catch { this.servicios = []; }
+
+    this.sysequiposService.getEquipos({}).subscribe({
+      next: (res) => { this.equiposList = res.success && Array.isArray(res.data) ? res.data : []; },
+      error: () => { this.equiposList = []; }
+    });
+  }
+
+  volver() {
+    sessionStorage.removeItem('equipoParaReporte');
+    sessionStorage.removeItem('origenReporte');
+    this.router.navigate([this.origenRuta]);
+  }
+
+  nuevoReporte() {
+    this.savedReporteId = null;
+    this.initForm();
+  }
+
+  private limpiarFormulario() {
+    const hoy = new Date().toISOString().split('T')[0];
+    const ahora = new Date().toTimeString().slice(0, 5);
+    const realizadoPor = this.form.realizado_por;
+    this.form = {
+      fecha: hoy,
+      hora_llamado: ahora,
+      hora_inicio: '',
+      hora_terminacion: '',
+      servicio_anterior: this.equipo?.servicio?.nombres || '',
+      ubicacion_anterior: this.equipo?.ubicacion || '',
+      servicio_nuevo: '',
+      ubicacion_nueva: '',
+      ubicacion_especifica: '',
+      realizado_por: realizadoPor,
+      recibido_por: '',
+      observaciones: ''
+    };
+    this.equipoRetirado = '';
   }
 
   async onSubmit() {
@@ -77,25 +137,33 @@ export class SysReporteFormComponent implements OnChanges {
     this.isSubmitting = true;
     this.form.id_sysequipo_fk = this.equipo.id_sysequipo;
 
+    if (this.equipoRetirado) {
+      const prefijo = `[Equipo que se retira: ${this.equipoRetirado}]`;
+      this.form.observaciones = this.form.observaciones
+        ? `${prefijo}\n${this.form.observaciones}`
+        : prefijo;
+    }
+
     this.reporteService.create(this.form).subscribe({
-      next: (res) => {
+      next: (res: any) => {
         if (res.success) {
           this.savedReporteId = res.data?.id_sysreporte ?? null;
+          this.limpiarFormulario();
           Swal.fire({
             icon: 'success',
             title: 'Reporte guardado',
             text: 'El reporte de entrega fue registrado exitosamente.',
-            confirmButtonColor: '#1a5f7a'
+            confirmButtonColor: '#1a5f7a',
+            showConfirmButton: true
           });
-          this.saved.emit();
         } else {
-          Swal.fire('Error', res.message || 'No se pudo guardar el reporte.', 'error');
+          Swal.fire('Error al guardar', res.message || 'No se pudo guardar el reporte de entrega. Verifica que todos los campos estén completos.', 'error');
         }
         this.isSubmitting = false;
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('createReporte:', err);
-        Swal.fire('Error', 'Error al conectar con el servidor.', 'error');
+        Swal.fire('Error', extractError(err, 'guardar el reporte de entrega'), 'error');
         this.isSubmitting = false;
       }
     });
@@ -112,8 +180,8 @@ export class SysReporteFormComponent implements OnChanges {
       a.download = `ReporteEntrega_${this.savedReporteId}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
-    } catch (e) {
-      Swal.fire('Error', 'No se pudo generar el PDF.', 'error');
+    } catch (err) {
+      Swal.fire('Error', extractError(err, 'generar el PDF del reporte de entrega'), 'error');
     } finally {
       this.isDownloadingPdf = false;
     }

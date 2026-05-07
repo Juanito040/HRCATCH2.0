@@ -4,8 +4,10 @@ const sequelize = require('../../config/configDb');
 const SysEquipo = require('../../models/Sistemas/SysEquipo');
 const SysHojaVida = require('../../models/Sistemas/SysHojaVida');
 const SysBaja = require('../../models/Sistemas/SysBaja');
+const SysBodega = require('../../models/Sistemas/SysBodega');
 const SysTrazabilidad = require('../../models/Sistemas/SysTrazabilidad');
 const Servicio = require('../../models/generales/Servicio');
+const Sede = require('../../models/generales/Sede');
 const TipoEquipo = require('../../models/generales/TipoEquipo');
 const Usuario = require('../../models/generales/Usuario');
 
@@ -28,14 +30,29 @@ async function registrarTrazabilidad({ accion, detalles, equipoId, usuarioId, tr
     }
 }
 
-const INCLUDES_BASE = [
-    { model: Servicio, as: 'servicio', attributes: ['id', 'nombres', 'ubicacion'] },
-    { model: TipoEquipo, as: 'tipoEquipo', attributes: ['id', 'nombres'] },
+const CAMPOS_TIPO_EQUIPO = [
+    'id', 'nombres',
+    'campo_ip', 'campo_mac', 'campo_procesador', 'campo_ram', 'campo_disco',
+    'campo_tonner', 'campo_so', 'campo_office', 'campo_nombre_usuario',
+    'campo_tipo_uso', 'campo_adquisicion', 'campo_observaciones'
+];
+
+const INCLUDES_BASE_COMMON = [
+    {
+        model: Servicio, as: 'servicio', attributes: ['id', 'nombres', 'ubicacion'],
+        include: [{ model: Sede, as: 'sede', attributes: ['id', 'nombres'] }]
+    },
+    { model: TipoEquipo, as: 'tipoEquipo', attributes: CAMPOS_TIPO_EQUIPO },
     { model: Usuario, as: 'usuario', attributes: ['id', 'nombres', 'apellidos', 'email'] }
 ];
 
+const INCLUDES_BASE = [
+    ...INCLUDES_BASE_COMMON,
+    { model: SysHojaVida, as: 'hojaVida', attributes: ['id_syshoja_vida', 'fecha_inicio_soporte', 'anos_soporte_fabricante'], required: false }
+];
+
 const INCLUDES_FULL = [
-    ...INCLUDES_BASE,
+    ...INCLUDES_BASE_COMMON,
     { model: SysHojaVida, as: 'hojaVida' }
 ];
 
@@ -207,9 +224,16 @@ exports.deleteSysEquipo = async (req, res) => {
             activo: 0,
             ubicacion_anterior: equipo.ubicacion,
             ubicacion: 'Bodega',
-            ubicacion_especifica: motivo || 'Enviado a bodega',
             estado_baja: 0
         }, { where: { id_sysequipo: id } });
+
+        await SysBodega.destroy({ where: { id_sysequipo_fk: id } });
+        await SysBodega.create({
+            motivo: motivo || null,
+            fecha_ingreso: new Date(),
+            id_sysequipo_fk: id,
+            id_sysusuario_fk: req.user?.id || null
+        });
 
         await registrarTrazabilidad({
             accion: 'BODEGA',
@@ -258,6 +282,8 @@ exports.hardDeleteSysEquipo = async (req, res) => {
 
         await SysEquipo.update({ activo: 0, estado_baja: 1 }, { where: { id_sysequipo: id }, transaction: t });
 
+        await SysBodega.destroy({ where: { id_sysequipo_fk: id } });
+
         await SysBaja.create({
             fecha_baja: new Date(),
             justificacion_baja: justificacion_baja || 'No especificada',
@@ -293,6 +319,8 @@ exports.reactivarSysEquipo = async (req, res) => {
         );
         if (affected === 0) return res.status(404).json({ success: false, message: 'Equipo no encontrado' });
 
+        await SysBodega.destroy({ where: { id_sysequipo_fk: id } });
+
         await registrarTrazabilidad({
             accion: 'REACTIVACION',
             detalles: 'Equipo reactivado desde bodega',
@@ -315,7 +343,14 @@ exports.getEquiposEnBodega = async (req, res) => {
                 ubicacion: 'Bodega',
                 [Op.or]: [{ estado_baja: false }, { estado_baja: null }]
             },
-            include: INCLUDES_FULL,
+            include: [
+                ...INCLUDES_FULL,
+                {
+                    model: SysBodega,
+                    as: 'bodega',
+                    include: [{ model: Usuario, as: 'usuarioBodega', attributes: ['id', 'nombres', 'apellidos'] }]
+                }
+            ],
             order: [['updatedAt', 'DESC']]
         });
         res.json({ success: true, data: equipos, count: equipos.length });

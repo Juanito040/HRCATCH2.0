@@ -1,0 +1,227 @@
+.calendario-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+}
+
+/* Criterio 5: cabecera de días de semana con estilo diferenciado */
+.dia-semana-header-cell {
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary, #6c757d);
+    padding: 6px 0;
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Criterio 4: celdas con sombra suave */
+.dia-cell {
+    min-height: 90px;
+    border-radius: 8px;
+    padding: 6px;
+    border: 1px solid #dee2e6;
+    background: #ffffff;
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.05));
+}
+
+/* Criterio 3 (US-31): días con backups tienen mayor prominencia */
+.dia-con-backups {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+    border-color: #adb5bd;
+}
+
+/* Criterio 5: días vacíos permanecen neutros */
+.dia-vacio {
+    min-height: 90px;
+    border-radius: 8px;
+    padding: 6px;
+    border: 1px solid transparent;
+    background: transparent;
+}
+
+.dia-numero {
+    font-weight: 700;
+    font-size: 0.75rem;
+    margin-bottom: 4px;
+    color: var(--text-secondary, #6c757d);
+}
+
+/* Criterio US-32: contenedor chips con separación */
+.chips-container {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+/* Chips de backup con barra lateral izquierda y fondo tonal (US-31) */
+.backup-chip {
+    font-size: 0.7rem;
+    padding: 2px 6px 2px 7px;
+    border-radius: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-left: 3px solid transparent;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.backup-chip-completado {
+    border-left-color: #22c55e;
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.backup-chip-fallido {
+    border-left-color: #ef4444;
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.backup-chip-pendiente {
+    border-left-color: #eab308;
+    background: #fef9c3;
+    color: #854d0e;
+}
+
+.backup-chip-no-realizado {
+    border-left-color: var(--orange-500, #f97316);
+    background: var(--orange-50, #fff7ed);
+    color: var(--orange-700, #c2410c);
+}
+
+/* Leyenda con mismo estilo que chips */
+.leyenda-chip {
+    font-size: 0.75rem;
+    padding: 3px 10px 3px 9px;
+    overflow: visible;
+    white-space: nowrap;
+    cursor: default;
+}
+
+/* Criterio 3: título del mes en cabecera */
+.titulo-mes {
+    font-size: 1.1rem;
+    font-weight: 700;
+    min-width: 170px;
+    text-align: center;
+    color: var(--text-color, #333333);
+}
+
+/* ── Modal detalle ── */
+
+.modal-header-content {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 2px;
+    font-size: 1rem;
+}
+
+.modal-titulo-nombre {
+    font-weight: 700;
+    color: var(--text-color, #333333);
+}
+
+.modal-separador {
+    color: var(--text-secondary, #6c757d);
+    font-weight: 400;
+}
+
+.modal-estado {
+    font-weight: 700;
+}
+
+.estado-completado {
+    color: #16a34a;
+}
+
+.estado-fallido {
+    color: #b91c1c;
+}
+
+.estado-pendiente {
+    color: #854d0e;
+}
+
+.estado-no-realizado {
+    color: var(--orange-700, #c2410c);
+}
+
+.modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.detalle-fila {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 10px 0;
+    border-bottom: 1px solid #f1f3f5;
+    gap: 16px;
+}
+
+.detalle-fila:last-child {
+    border-bottom: none;
+}
+
+.detalle-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-secondary, #6c757d);
+    min-width: 160px;
+    flex-shrink: 0;
+}
+
+.detalle-valor {
+    font-size: 0.9rem;
+    color: var(--text-color, #333333);
+    text-align: right;
+    word-break: break-word;
+}
+
+.detalle-estado.estado-completado    { color: #16a34a; font-weight: 600; }
+.detalle-estado.estado-fallido       { color: #b91c1c; font-weight: 600; }
+.detalle-estado.estado-pendiente     { color: #854d0e; font-weight: 600; }
+.detalle-estado.estado-no-realizado  { color: var(--orange-700, #c2410c); font-weight: 600; }
+
+/* ── Responsividad ── */
+
+/* Criterio 1: tablet (768px – 1024px) */
+@media (max-width: 1024px) {
+    .dia-cell {
+        min-height: 70px;
+    }
+
+    .backup-chip {
+        font-size: 0.65rem;
+    }
+}
+
+/* Criterio 2: pantallas pequeñas (<768px) */
+@media (max-width: 768px) {
+    .calendario-grid {
+        gap: 3px;
+    }
+
+    .dia-cell {
+        padding: 4px;
+        overflow: hidden;
+    }
+
+    .dia-vacio {
+        padding: 4px;
+    }
+}
+
+.calendar-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    text-align: center;
+}

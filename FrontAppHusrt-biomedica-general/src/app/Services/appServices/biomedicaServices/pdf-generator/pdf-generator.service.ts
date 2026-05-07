@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { FirmaService } from '../firma/firma.service';
 import { ImagenesService } from '../../general/imagenes/imagenes.service';

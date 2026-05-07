@@ -5,6 +5,7 @@ const Sede = require('../generales/Sede');
 const Usuario = require('../generales/Usuario');
 const MesaCategoria = require('./MesaCategoria');
 const MesaSubcategoria = require('./MesaSubcategoria');
+const SysEquipo = require('../Sistemas/SysEquipo');
 
 const MesaCaso = sequelize.define('MesaCaso', {
     titulo: {
@@ -81,6 +82,11 @@ const MesaCaso = sequelize.define('MesaCaso', {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: { model: MesaSubcategoria, key: 'id' }
+    },
+    equipoId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        references: { model: SysEquipo, key: 'id_sysequipo' }
     }
 }, {
     tableName: 'MesaCaso',

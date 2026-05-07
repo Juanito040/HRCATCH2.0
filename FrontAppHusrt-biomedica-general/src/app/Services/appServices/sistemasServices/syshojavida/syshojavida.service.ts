@@ -26,6 +26,8 @@ export interface SysHojaVida {
   convenio?: boolean;
   donado?: boolean;
   comodato?: boolean;
+  fecha_inicio_soporte?: string;
+  anos_soporte_fabricante?: number;
   id_sysequipo_fk?: number;
   equipo?: any;
 }
@@ -61,6 +63,12 @@ export class SysHojaVidaService {
 
   delete(id: number): Observable<any> {
     return this.http.delete(`${this.base}/${id}`);
+  }
+
+  uploadFoto(equipoId: number, formData: FormData): Promise<any> {
+    return firstValueFrom(
+      this.http.put<any>(`${this.base}/equipo/${equipoId}/foto`, formData)
+    );
   }
 
   descargarPdf(equipoId: number): Promise<Blob> {

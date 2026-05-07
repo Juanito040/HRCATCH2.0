@@ -8,6 +8,18 @@
   </div>
 
   <div class="cards-grid">
+    <!-- Tipos de Equipo -->
+    <div class="dashboard-card" (click)="irATiposEquipo()">
+      <div class="card-icon-container gradient-blue">
+        <i class="pi pi-desktop" style="font-size:3rem"></i>
+      </div>
+      <div class="card-content">
+        <h3>Tipos de equipos SIS</h3>
+        <p>Crea y gestiona los tipos de equipo del módulo de sistemas.</p>
+        <span class="card-action">Configurar <i class="pi pi-cog"></i></span>
+      </div>
+    </div>
+
     <!-- Protocolos Preventivos -->
     <div class="dashboard-card" (click)="irAProtocolos()">
       <div class="card-icon-container gradient-blue">
@@ -19,6 +31,20 @@
         <span class="card-action">Configurar <i class="pi pi-cog"></i></span>
       </div>
     </div>
+
+    <!-- Trazabilidad — superadmin y admin -->
+    @if (isSuperAdmin || isAdminSistemas) {
+      <div class="dashboard-card" (click)="irATrazabilidad()">
+        <div class="card-icon-container gradient-blue">
+          <i class="pi pi-history" style="font-size:3rem"></i>
+        </div>
+        <div class="card-content">
+          <h3>Trazabilidad</h3>
+          <p>Consulta el historial de intervenciones y movimientos de los equipos.</p>
+          <span class="card-action">Ver trazabilidad <i class="pi pi-arrow-right"></i></span>
+        </div>
+      </div>
+    }
 
     <!-- Usuarios — solo superadmin -->
     @if (isSuperAdmin) {

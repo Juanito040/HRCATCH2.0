@@ -52,6 +52,9 @@ export interface SysMantenimiento {
   valoresMediciones?: any[];
   repuestos?: any[];
 
+  tecnico?: string;
+  adjunto_url?: string;
+
   createdAt?: string;
   updatedAt?: string;
 }
@@ -165,6 +168,12 @@ export class SysmantenimientoService {
   getTiposFalla(): Observable<{ success: boolean; data: CatalogoItem[] }> {
     return this.http.get<{ success: boolean; data: CatalogoItem[] }>(
       `${this.apiUrl}/catalogos/tipos-falla`
+    );
+  }
+
+  descargarPdf(id: number): Promise<Blob> {
+    return firstValueFrom(
+      this.http.get(`${this.apiUrl}/${id}/pdf`, { responseType: 'blob' })
     );
   }
 }

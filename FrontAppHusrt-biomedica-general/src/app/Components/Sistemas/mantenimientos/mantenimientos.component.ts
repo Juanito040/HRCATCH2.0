@@ -15,12 +15,14 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { UserService } from '../../../Services/appServices/userServices/user.service';
 import { getDecodedAccessToken } from '../../../../app/utilidades';
 import Swal from 'sweetalert2';
+import { extractError } from '../../../utils/error-utils';
 
 import {
   SysmantenimientoService,
   SysMantenimiento,
 } from '../../../Services/appServices/sistemasServices/sysmantenimiento/sysmantenimiento.service';
 import { ArchivosService } from '../../../Services/appServices/general/archivos/archivos.service';
+import { SysHistorialEquipoComponent } from '../historial-equipo/historial-equipo.component';
 import { SelectModule } from 'primeng/select';
 
 @Component({
@@ -38,6 +40,7 @@ import { SelectModule } from 'primeng/select';
     IconFieldModule,
     InputIconModule,
     TooltipModule,
+    SysHistorialEquipoComponent,
     ReactiveFormsModule,
     SelectModule,
   ],
@@ -79,6 +82,11 @@ export class SisMantenimientosComponent implements OnInit {
   modalReport = false;
   reportSelected: SysMantenimiento | undefined = undefined;
   selectedFile: File | null = null;
+
+  // ── Modal Historial ───────────────────────────────────────────────────────
+  isHistorialOpen = false;
+  equipoParaHistorial: any = null;
+
 
   // ── Stats ─────────────────────────────────────────────────────────────────
   stats = { total: 0, realizados: 0, programados: 0, pendientes: 0, correctivos: 0 };
@@ -149,16 +157,10 @@ export class SisMantenimientosComponent implements OnInit {
   // ── Stats ──────────────────────────────────────────────────────────────────
 
   calculateStats() {
-    const ahora = new Date();
-    const mesActual = ahora.getMonth() + 1;
-    const anioActual = ahora.getFullYear();
-
     this.stats.total = this.mantenimientos.length;
     this.stats.realizados = this.mantenimientos.filter(m => !!m.fechaRealizado).length;
     this.stats.programados = this.mantenimientos.filter(m => (m as any)._status === 'PROGRAMADO').length;
-    this.stats.pendientes = this.mantenimientos.filter(m =>
-      !m.fechaRealizado && m.añoProgramado === anioActual && (m.mesProgramado ?? 0) < mesActual
-    ).length;
+    this.stats.pendientes = this.mantenimientos.filter(m => (m as any)._status === 'PENDIENTE').length;
     this.stats.correctivos = this.mantenimientos.filter(m => m.tipoMantenimiento === 'Correctivo').length;
   }
 
@@ -204,8 +206,8 @@ export class SisMantenimientosComponent implements OnInit {
       // El backend retorna { success: true, data: {...} } — desempacamos .data
       this.reportSelected = res?.data ?? res;
       this.modalReport = true;
-    } catch {
-      Swal.fire('Error', 'No se pudo cargar la información del reporte.', 'error');
+    } catch (err) {
+      Swal.fire('Error', extractError(err, 'cargar la información del mantenimiento'), 'error');
     } finally {
       this.isModalLoading = false;
     }
@@ -235,9 +237,20 @@ export class SisMantenimientosComponent implements OnInit {
     );
   }
 
-  verHistorialEquipo(idSysEquipo: number | undefined) {
-    if (!idSysEquipo) return;
-    this.router.navigate(['adminsistemas/historial', idSysEquipo]);
+  verHistorialEquipo(equipo: any) {
+    if (!equipo) return;
+    this.equipoParaHistorial = equipo;
+    this.isHistorialOpen = true;
+  }
+
+  closeHistorial() {
+    this.isHistorialOpen = false;
+    this.equipoParaHistorial = null;
+  }
+
+  openHistoricoMantenimientos(equipo: any) {
+    if (!equipo?.id_sysequipo) return;
+    this.router.navigate(['/adminsistemas/historico-mantenimiento', equipo.id_sysequipo]);
   }
 
   private mapTipoToCode(tipo: string | undefined): string {
@@ -255,8 +268,16 @@ export class SisMantenimientosComponent implements OnInit {
       if (blob.type === 'application/pdf') {
         window.open(URL.createObjectURL(blob), '_blank');
       }
-    } catch {
-      Swal.fire('Error', 'No se pudo abrir el PDF', 'error');
+    } catch (err) {
+      Swal.fire('Error', extractError(err, 'abrir el PDF del mantenimiento'), 'error');
+    }
+  }
+
+  async viewPdfMantenimiento(id: number | undefined) {
+    if (!id) return;
+    const m = this.mantenimientos.find(x => x.id === id);
+    if (m?.adjunto_url) {
+      await this.viewPdf(m.adjunto_url);
     }
   }
 
@@ -290,7 +311,7 @@ export class SisMantenimientosComponent implements OnInit {
               this.loadMantenimientos();
             }
           },
-          error: () => Swal.fire({ icon: 'error', title: 'Error', text: 'Error al eliminar el mantenimiento' })
+          error: (err: any) => Swal.fire({ icon: 'error', title: 'Error', text: extractError(err, 'eliminar el mantenimiento') })
         });
       }
     });
@@ -303,6 +324,12 @@ export class SisMantenimientosComponent implements OnInit {
     const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
       'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
     return meses[mes - 1] ?? '—';
+  }
+
+  getFechaProgramada(m: SysMantenimiento): string {
+    const mes = this.getMesProgramado(m.mesProgramado);
+    const anio = (m as any).añoProgramado;
+    return anio ? `${mes} ${anio}` : mes;
   }
 
   getTipoSeverity(tipo: string | undefined): 'success' | 'danger' | 'info' | 'secondary' {
