@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
+import { jwtDecode } from 'jwt-decode';
 
 @Component({
   selector: 'app-homeusersistemas',
@@ -12,12 +13,34 @@ import { ButtonModule } from 'primeng/button';
 })
 export class HomeusersistemasComponent {
   router = inject(Router);
+  getDecodedAccessToken(token: string): any {
+    try {
+      return jwtDecode(token);
+    } catch (Error) {
+      return null;
+    }
+  }
 
-  irAEquipos()            { this.router.navigate(['/adminsistemas/equipos']); }
-  irAEquiposBodega()      { this.router.navigate(['/adminsistemas/equipos'], { queryParams: { vista: 'bodega' } }); }
-  irAEquiposBaja()        { this.router.navigate(['/adminsistemas/equipos'], { queryParams: { vista: 'baja' } }); }
-  irATiposEquipos()       { this.router.navigate(['/adminsistemas/tiposequipo']); }
-  irAMantenimientosEquipos() { this.router.navigate(['/adminsistemas/mantenimientos']); }
-  irACalendarioEquipo() { this.router.navigate(['/adminsistemas/planMantenimiento']); }
+  getRole(): string | null {
+    const token = sessionStorage.getItem('utoken');
+    if (token) {
+      const decoded = this.getDecodedAccessToken(token);
+      return decoded ? decoded.rol : null;
+    }
+    return null;
+  }
+
+  irAEquipos() { this.router.navigate(['/adminsistemas/equipos']); }
+  irAEquiposBodega() { this.router.navigate(['/adminsistemas/equipos'], { queryParams: { vista: 'bodega' } }); }
+  irAEquiposBaja() { this.router.navigate(['/adminsistemas/equipos'], { queryParams: { vista: 'baja' } }); }
+  irATiposEquipos() { this.router.navigate(['/adminsistemas/tiposequipo']); }
+  showViewMantenimientoSistemas() {
+    const rol = this.getRole();
+    if (rol === 'SYSTEMASTECNICO') {
+      this.router.navigate(['adminsistemas/tecnico/mantenimiento']);
+    } else {
+      this.router.navigate(['/adminsistemas/mantenimiento']);
+    }
+  }
   irARepuestos() { this.router.navigate(['/adminsistemas/repuestos']); }
 }

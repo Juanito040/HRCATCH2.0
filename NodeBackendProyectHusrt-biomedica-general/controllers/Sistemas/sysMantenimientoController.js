@@ -171,19 +171,19 @@ exports.getCatalogoTiposFalla = (req, res) => {
 
 // ─── DELETE /sysmovimientosstock/:id ─────────────────────────────────────────
 exports.deleteById = async (req, res) => {
-  try {
-    const { id } = req.params;
+    try {
+        const { id } = req.params;
 
-    const movimiento = await SysMovimientosStockRepuestos.findByPk(id);
-    if (!movimiento) {
-      return res.status(404).json({ success: false, message: 'Movimiento no encontrado' });
+        const movimiento = await SysMovimientosStockRepuestos.findByPk(id);
+        if (!movimiento) {
+            return res.status(404).json({ success: false, message: 'Movimiento no encontrado' });
+        }
+
+        await movimiento.destroy();
+
+        res.json({ success: true, message: `Movimiento ID ${id} eliminado correctamente` });
+    } catch (error) {
+        console.error('Error deleteById movimiento stock:', error);
+        res.status(500).json({ success: false, message: 'Error al eliminar el movimiento', error: error.message });
     }
-
-    await movimiento.destroy();
-
-    res.json({ success: true, message: `Movimiento ID ${id} eliminado correctamente` });
-  } catch (error) {
-    console.error('Error deleteById movimiento stock:', error);
-    res.status(500).json({ success: false, message: 'Error al eliminar el movimiento', error: error.message });
-  }
 };

@@ -125,7 +125,11 @@ export class SysmantenimientoService {
     if (filters?.fecha_fin) params = params.set('fecha_fin', filters.fecha_fin);
     return this.http.get<SysMantenimiento[]>(`${this.apiUrl}/tecnico/${idUsuario}`, { params });
   }
-
+  getReportesUsuario(idUsuario: any) {
+    return firstValueFrom(
+      this.http.get<any>(`${this.apiUrl}/usuario/${idUsuario}`)
+    )
+  }
   getDashboard(filters?: {
     fecha_inicio?: string;
     fecha_fin?: string;

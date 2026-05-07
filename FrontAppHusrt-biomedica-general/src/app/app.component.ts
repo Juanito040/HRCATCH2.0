@@ -120,11 +120,11 @@ import { getDecodedAccessToken } from './utilidades';
 import { filter } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { ThemeService } from './Services/theme/theme.service';
+import { SistemastecniconavbarComponent } from "./Components/navbars/sistemastecniconavbar/sistemastecniconavbar.component";
 
 @Component({
   selector: 'app-root',
   imports: [RouterOutlet,
-
     AvatarModule,
     AvatarGroupModule,
     MessageModule,
@@ -215,7 +215,6 @@ import { ThemeService } from './Services/theme/theme.service';
     AnimateOnScrollModule,
     FocusTrapModule,
     FloatLabelModule,
-
     BiomedicaadminnavbarComponent,
     SuperadminnavbarComponent,
     BiomedicausernavbarComponent,
@@ -224,8 +223,7 @@ import { ThemeService } from './Services/theme/theme.service';
     MesaadminnavbarComponent,
     MesausernavbarComponent,
     SistemasadminnavbarComponent,
-    CommonModule
-  ],
+    CommonModule, SistemastecniconavbarComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })

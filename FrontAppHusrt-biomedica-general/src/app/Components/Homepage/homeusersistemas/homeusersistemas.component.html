@@ -38,26 +38,14 @@
     </div>
 
     <!-- Gestión de mantenimientos -->
-    <div class="dashboard-card mantenimiento-card">
-      <div class="card-icon-container gradient-blue">
-        <i class="pi pi-briefcase" style="font-size: 4rem;"></i>
+    <div class="dashboard-card" (click)="showViewMantenimientoSistemas()">
+      <div class="card-icon-container gradient-indigo">
+        <i class="pi pi-wrench"></i>
       </div>
       <div class="card-content">
         <h3>Mantenimiento</h3>
-        <p>Gestión de mantenimientos de equipos de sistemas.</p>
-        <div class="sub-actions">
-
-          <button class="sub-action-btn" (click)="irACalendarioEquipo()">
-            <i class="pi pi-th-large"></i>
-            <span>Programar Mantenimiento</span>
-            <i class="pi pi-arrow-right sub-arrow"></i>
-          </button>
-          <button class="sub-action-btn" (click)="irAMantenimientosEquipos()">
-            <i class="fas fa-warehouse"></i>
-            <span>Realizar Mantenimiento</span>
-            <i class="pi pi-arrow-right sub-arrow"></i>
-          </button>
-        </div>
+        <p>Programación y ejecución técnica.</p>
+        <span class="card-action">Ingresar <i class="pi pi-arrow-right"></i></span>
       </div>
     </div>
 
