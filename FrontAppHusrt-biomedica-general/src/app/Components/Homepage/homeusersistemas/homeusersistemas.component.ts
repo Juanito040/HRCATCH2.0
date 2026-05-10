@@ -13,16 +13,5 @@ import { ButtonModule } from 'primeng/button';
 export class HomeusersistemasComponent {
   router = inject(Router);
 
-  irAEquipos()            { this.router.navigate(['/adminsistemas/equipos']); }
-  irAEquiposBodega()      { this.router.navigate(['/adminsistemas/equipos'], { queryParams: { vista: 'bodega' } }); }
-  irAEquiposBaja()        { this.router.navigate(['/adminsistemas/equipos'], { queryParams: { vista: 'baja' } }); }
-  irATiposEquipos()          { this.router.navigate(['/adminsistemas/tiposequipo']); }
-  irAMantenimientosEquipos() { this.router.navigate(['/adminsistemas/mantenimientos']); }
-  irAServiciosSis()          { this.router.navigate(['/adminsistemas/servicios']); }
-  irASedesSis()              { this.router.navigate(['/adminsistemas/sedes']); }
-  irACalendarioEquipo()      { this.router.navigate(['/adminsistemas/planMantenimiento']); }
-  irARepuestos()             { this.router.navigate(['/adminsistemas/repuestos']); }
-  irAIndicadores() { this.router.navigate(['/adminsistemas/indicadores']); }
-  irABackups()           { this.router.navigate(['/admin/sistemasinformacion']); }
-  irACalendarioBackups() { this.router.navigate(['/admin/sistemasinformacion/backups']); }
+  irAGestionSistemas() { this.router.navigate(['/adminsistemas']); }
 }
