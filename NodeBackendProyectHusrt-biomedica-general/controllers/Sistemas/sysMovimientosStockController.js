@@ -123,10 +123,10 @@ exports.exportarCSV = async (req, res) => {
 
 // ─── POST /sysmovimientosstock ────────────────────────────────────────────────
 exports.registrarMovimiento = async (req, res) => {
-  const { id_repuesto_fk, tipo, cantidad, motivo, referencia } = req.body;
+  const { id_repuesto_fk, tipo, cantidad, motivo, referencia, garantia_inicio, garantia_fin } = req.body;
 
   if (!id_repuesto_fk || !tipo || !cantidad || !motivo) {
-    return res.status(400).json({ success: false, message: 'Faltan campos obligatorios: repuesto, tipo, cantidad y motivo' });
+    return res.status(400).json({ success: false, message: 'Faltan campos obligatorios' });
   }
   if (!['ingreso', 'egreso'].includes(tipo)) {
     return res.status(400).json({ success: false, message: 'El tipo debe ser "ingreso" o "egreso"' });
@@ -134,6 +134,11 @@ exports.registrarMovimiento = async (req, res) => {
   const cantNum = parseInt(cantidad, 10);
   if (isNaN(cantNum) || cantNum <= 0) {
     return res.status(400).json({ success: false, message: 'La cantidad debe ser un número mayor a 0' });
+  }
+
+  let factura_ruta = null;
+  if (req.file) {
+    factura_ruta = req.file.path;
   }
 
   const t = await sequelize.transaction();
@@ -166,7 +171,7 @@ exports.registrarMovimiento = async (req, res) => {
 
     const nombreUsuario = await getNombreUsuario(req);
 
-    const movimiento = await SysMovimientosStockRepuestos.create({
+    const movimientoData = {
       id_repuesto_fk,
       tipo,
       cantidad: cantNum,
@@ -175,8 +180,16 @@ exports.registrarMovimiento = async (req, res) => {
       motivo: motivo.trim(),
       referencia: referencia?.trim() || null,
       usuario: nombreUsuario,
-      fecha_movimiento: new Date()
-    }, { transaction: t });
+      fecha_movimiento: new Date(),
+      factura_ruta
+    };
+
+    if (tipo === 'ingreso') {
+      if (garantia_inicio) movimientoData.garantia_inicio = garantia_inicio;
+      if (garantia_fin) movimientoData.garantia_fin = garantia_fin;
+    }
+
+    const movimiento = await SysMovimientosStockRepuestos.create(movimientoData, { transaction: t });
 
     await repuesto.update({ cantidad_stock: stockDespues }, { transaction: t });
 
@@ -196,5 +209,25 @@ exports.registrarMovimiento = async (req, res) => {
     await t.rollback();
     console.error('Error registrarMovimiento stock:', error);
     res.status(500).json({ success: false, message: 'Error al registrar el movimiento de stock', error: error.message });
+  }
+};
+
+// ─── GET /sysmovimientosstock/descargar-factura/:id ──────────────────────────
+exports.descargarFactura = async (req, res) => {
+  try {
+    const movimiento = await SysMovimientosStockRepuestos.findByPk(req.params.id);
+    if (!movimiento || !movimiento.factura_ruta) {
+      return res.status(404).json({ error: 'Movimiento no encontrado o sin factura' });
+    }
+
+    const fs = require('fs');
+    if (!fs.existsSync(movimiento.factura_ruta)) {
+      return res.status(404).json({ error: 'El archivo físico no existe en el servidor' });
+    }
+
+    res.download(movimiento.factura_ruta);
+  } catch (error) {
+    console.error('Error al descargar factura de movimiento:', error);
+    res.status(500).json({ error: 'Error al descargar la factura' });
   }
 };

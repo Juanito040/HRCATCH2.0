@@ -29,6 +29,11 @@ const SysRepuesto = sequelize.define('SysRepuesto', {
     allowNull: true,
     references: { model: 'SysTipoRepuesto', key: 'id_sys_tipo_repuesto' }
   },
+  id_tipo_equipo_fk: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: { model: 'TipoEquipo', key: 'id' }
+  },
   modelo_asociado: {
     type: DataTypes.STRING(255),
     allowNull: true
@@ -49,14 +54,6 @@ const SysRepuesto = sequelize.define('SysRepuesto', {
   },
   ubicacion_fisica: {
     type: DataTypes.STRING(255),
-    allowNull: true
-  },
-  garantia_inicio: {
-    type: DataTypes.DATEONLY,
-    allowNull: true
-  },
-  garantia_fin: {
-    type: DataTypes.DATEONLY,
     allowNull: true
   },
   estado: {
@@ -99,6 +96,12 @@ SysRepuesto.belongsTo(SysTipoRepuesto, {
 SysTipoRepuesto.hasMany(SysRepuesto, {
   foreignKey: 'id_sys_tipo_repuesto_fk',
   as: 'repuestos'
+});
+
+const TipoEquipo = require('../generales/TipoEquipo');
+SysRepuesto.belongsTo(TipoEquipo, {
+  foreignKey: 'id_tipo_equipo_fk',
+  as: 'tipoEquipoSistemas'
 });
 
 module.exports = SysRepuesto;
