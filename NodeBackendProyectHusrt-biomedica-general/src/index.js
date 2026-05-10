@@ -64,7 +64,6 @@ app.use(documentoRoutes, checkToken);
 app.use(hojaVida, checkToken);
 app.use(equipo, checkToken);
 app.use(sede, checkToken);
-app.use(servicios, checkToken);
 app.use(tipoEquipo, checkToken);
 app.use(responsable, checkToken);
 app.use(planMantenimiento, checkToken);
@@ -172,7 +171,6 @@ sequelize.query('SET FOREIGN_KEY_CHECKS = 0')
       updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `))
-  .then(() => sequelize.query('SET FOREIGN_KEY_CHECKS = 1'))
   .then(() => fixMovimientosStockFK())
   .then(() => sequelize.query(`
     CREATE TABLE IF NOT EXISTS \`SysBodega\` (
@@ -187,7 +185,7 @@ sequelize.query('SET FOREIGN_KEY_CHECKS = 0')
       CONSTRAINT fk_sysbodega_usuario FOREIGN KEY (id_sysusuario_fk) REFERENCES Usuario(id) ON DELETE SET NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `))
-  .then(() => {})
+  .then(() => sequelize.query('SET FOREIGN_KEY_CHECKS = 1'))
   .then(() => sequelize.sync({ alter: false }))
   .then(() => {
     app.listen(3005, '0.0.0.0', () => {
