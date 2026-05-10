@@ -491,7 +491,7 @@
             <tr *ngFor="let a of pagedAuditoriaRepuestos">
               <td style="white-space:nowrap;font-size:0.82rem;">{{ a.fecha_hora | date:'dd/MM/yyyy HH:mm' }}</td>
               <td><span class="user-badge"><i class="pi pi-user"></i>{{ a.usuario }}</span></td>
-              <td style="font-size:0.9rem;"><strong>{{ a.nombre_item || '—' }}</strong></td>
+              <td style="font-size:0.9rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" [title]="a.nombre_item"><strong>{{ a.nombre_item || '—' }}</strong></td>
               <td><span class="badge" [ngClass]="getAccionClass(a.accion)">{{ getAccionLabel(a.accion) }}</span></td>
               <td>
                 <button class="btn-icon" (click)="verDetalleAuditoria(a)" title="Ver Detalle">
@@ -529,7 +529,7 @@
             <tr *ngFor="let a of pagedAuditoriaTipos">
               <td style="white-space:nowrap;font-size:0.82rem;">{{ a.fecha_hora | date:'dd/MM/yyyy HH:mm' }}</td>
               <td><span class="user-badge"><i class="pi pi-user"></i>{{ a.usuario }}</span></td>
-              <td style="font-size:0.9rem;"><strong>{{ a.nombre_item || '—' }}</strong></td>
+              <td style="font-size:0.9rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" [title]="a.nombre_item"><strong>{{ a.nombre_item || '—' }}</strong></td>
               <td><span class="badge" [ngClass]="getAccionClass(a.accion)">{{ getAccionLabel(a.accion) }}</span></td>
               <td>
                 <button class="btn-icon" (click)="verDetalleAuditoria(a)" title="Ver Detalle">
