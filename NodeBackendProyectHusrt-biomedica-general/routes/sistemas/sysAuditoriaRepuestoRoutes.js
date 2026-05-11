@@ -3,7 +3,7 @@ const router = express.Router();
 const ctrl = require('../../controllers/Sistemas/sysAuditoriaRepuestoController');
 const requireRoles = require('../../utilities/requireRoles');
 
-const ROLES_PERMITIDOS = ['SUPERADMIN', 'ADMINISTRADOR', 'AG', 'SISTEMASADMIN', 'SISTEMASUSER'];
+const ROLES_PERMITIDOS = ['SUPERADMIN', 'ADMINISTRADOR', 'AG', 'SISTEMASADMIN', 'SISTEMASUSER', 'SISTEMASTECNICO'];
 
 router.get('/', requireRoles(...ROLES_PERMITIDOS), ctrl.getAll);
 

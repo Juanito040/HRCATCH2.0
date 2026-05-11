@@ -1,4 +1,5 @@
-import { Component, inject, OnInit, HostListener } from '@angular/core';
+import { Component, inject, OnInit, HostListener, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -19,8 +20,9 @@ export class ClasificacionTipoEquipoSisComponent implements OnInit {
   tiposEquipos: any[] = [];
   cantidadesEquipos: { [id: number]: number } = {};
   searchText: string = '';
-  isLoading: boolean = false;
+  isLoading: boolean = true;
   error: string | null = null;
+  private platformId = inject(PLATFORM_ID);
 
   isModalOpen: boolean = false;
   isExporting: boolean = false;
@@ -31,13 +33,17 @@ export class ClasificacionTipoEquipoSisComponent implements OnInit {
   constructor(private router: Router) {}
 
   async ngOnInit() {
+    if (!isPlatformBrowser(this.platformId)) return;
+    
     this.isLoading = true;
+    this.error = null;
     try {
       this.tiposEquipos = await this.tipoEquipoService.getTiposEquiposSistemas();
       for (const tipo of this.tiposEquipos) {
         this.obtenerCantidad(tipo.id);
       }
-    } catch {
+    } catch (err) {
+      console.error('Error al cargar tipos:', err);
       this.error = 'Error al cargar los tipos de equipo.';
     } finally {
       this.isLoading = false;
@@ -89,15 +95,17 @@ export class ClasificacionTipoEquipoSisComponent implements OnInit {
     this.isExportMenuOpen = false;
   }
 
-  async descargarInventario(tipo: 'todos' | 'bodega' | 'activo' | 'inactivo' | any) {
+  async descargarInventario(tipo: 'todos' | 'bodega' | 'activo' | 'inactivo', obsolescencia: boolean) {
     this.isExportMenuOpen = false;
     this.isExporting = true;
     try {
-      const blob = await this.sysequiposService.exportarInventario(tipo);
+      const blob = await this.sysequiposService.exportarInventario(tipo, obsolescencia);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = tipo === 'bodega' ? 'Inventario_Sistemas_Bodega.xlsx' : tipo === 'activo' ? 'Inventario_Sistemas_Activo.xlsx' : tipo === 'inactivo' ? 'Inventario_Sistemas_Inactivo.xlsx' : 'Inventario_Sistemas_Todos.xlsx' ;
+      const tipoLabel = tipo === 'bodega' ? 'Bodega' : tipo === 'activo' ? 'Activo' : tipo === 'inactivo' ? 'Inactivo' : 'Todos';
+      const sufijo = obsolescencia ? '_Obsolescencia' : '';
+      a.download = `Inventario_Sistemas_${tipoLabel}${sufijo}.xlsx`;
       a.click();
       window.URL.revokeObjectURL(url);
     } catch {

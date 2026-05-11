@@ -78,7 +78,8 @@
                 </p-splitButton>
               </td>
             </tr>
-          } @empty {
+          }
+          @if (!isLoading && pagedEquipos.length === 0 && !error) {
             <tr>
               <td colspan="10" class="empty-state">
                 <div class="empty-icon"><i class="fas fa-boxes"></i></div>
@@ -140,6 +141,7 @@
   [hideBodegaOption]="deleteDialogMode === 'baja'"
   [hideBajaOption]="deleteDialogMode === 'bodega'"
   [isAdmin]="deleteDialogMode === 'baja'"
+  [equipo]="equipoToDeleteWithOptions"
   (confirmed)="handleDeleteOptionsConfirm($event)"
   (closed)="closeDeleteOptionsDialog()"
 ></app-sys-delete-dialog>

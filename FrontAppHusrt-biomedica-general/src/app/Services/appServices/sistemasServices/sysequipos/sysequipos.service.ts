@@ -14,6 +14,7 @@ export interface SysEquipo {
   ubicacion?: string;
   ubicacion_especifica?: string;
   ubicacion_anterior?: string;
+  ubic_bod?: string;
   activo?: number;
   ano_ingreso?: number;
   dias_mantenimiento?: number;
@@ -31,7 +32,7 @@ export interface SysEquipo {
   usuario?: any;
   hojaVida?: any;
   baja?: any;
-  bodega?: any;
+  bodega?: { tipo_bodega?: string; motivo?: string; fecha_ingreso?: string; [key: string]: any };
   createdAt?: string;
   updatedAt?: string;
 }
@@ -74,8 +75,8 @@ export class SysequiposService {
     return this.http.patch<SysEquipoResponse>(`${this.apiUrl}/${id}`, equipo);
   }
 
-  enviarABodega(id: number, motivo?: string): Observable<SysEquipoResponse> {
-    return this.http.delete<SysEquipoResponse>(`${this.apiUrl}/${id}`, { body: { motivo } });
+  enviarABodega(id: number, motivo?: string, tipoBodega?: string): Observable<SysEquipoResponse> {
+    return this.http.post<SysEquipoResponse>(`${this.apiUrl}/${id}/bodega`, { motivo, tipo_bodega: tipoBodega });
   }
 
   darDeBaja(id: number, data: { justificacion_baja: string; accesorios_reutilizables?: string; id_usuario?: number; password: string; }): Observable<SysEquipoResponse> {
@@ -90,18 +91,18 @@ export class SysequiposService {
     return this.http.get<SysEquipoResponse>(`${this.apiUrl}/dados-baja`);
   }
 
-  reactivarEquipo(id: number): Observable<SysEquipoResponse> {
-    return this.http.patch<SysEquipoResponse>(`${this.apiUrl}/${id}/reactivar`, {});
+  reactivarEquipo(id: number, data?: { ubicacion?: string; ubicacion_especifica?: string }): Observable<SysEquipoResponse> {
+    return this.http.patch<SysEquipoResponse>(`${this.apiUrl}/${id}/reactivar`, data || {});
   }
 
   getTiposEquipoSistemas(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/tiposequipo`);
   }
 
-  exportarInventario(tipo: 'todos' | 'bodega' | 'activo' | 'inactivo'): Promise<Blob> {
+  exportarInventario(tipo: 'todos' | 'bodega' | 'activo' | 'inactivo', obsolescencia: boolean = true): Promise<Blob> {
     return firstValueFrom(
       this.http.get(`${this.apiUrl}/exportar`, {
-        params: { tipo },
+        params: { tipo, obsolescencia: String(obsolescencia) },
         responseType: 'blob'
       })
     );

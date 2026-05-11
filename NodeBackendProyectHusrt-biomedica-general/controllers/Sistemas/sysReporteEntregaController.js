@@ -117,6 +117,44 @@ exports.deleteReporte = async (req, res) => {
     }
 };
 
+// ── GET BAJA BY ID (JSON) ─────────────────────────────────────────────────────
+exports.getBajaById = async (req, res) => {
+    try {
+        const { bajaId } = req.params;
+        const baja = await SysBaja.findByPk(bajaId, {
+            include: [
+                {
+                    model: SysEquipo, as: 'equipo',
+                    attributes: ['id_sysequipo', 'nombre_equipo', 'marca', 'modelo',
+                                 'serie', 'placa_inventario', 'ubicacion'],
+                    include: [
+                        { model: Servicio,   as: 'servicio',   attributes: ['id', 'nombres'] },
+                        { model: TipoEquipo, as: 'tipoEquipo', attributes: ['id', 'nombres'] }
+                    ]
+                },
+                { model: Usuario, as: 'usuarioBaja', attributes: ['id', 'nombres', 'apellidos'] }
+            ]
+        });
+        if (!baja) return res.status(404).json({ success: false, message: 'Registro de baja no encontrado' });
+
+        const b = baja.toJSON();
+        const eq = b.equipo || {};
+
+        let ultimoMtto = null;
+        if (eq.id_sysequipo) {
+            ultimoMtto = await SysMantenimiento.findOne({
+                where: { id_sysequipo_fk: eq.id_sysequipo },
+                order: [['fechaRealizado', 'DESC'], ['createdAt', 'DESC']],
+                attributes: ['id', 'fechaRealizado']
+            });
+        }
+
+        res.json({ success: true, data: { ...b, ultimoMtto: ultimoMtto ? ultimoMtto.toJSON() : null } });
+    } catch (err) {
+        res.status(500).json({ success: false, message: 'Error al obtener registro de baja', error: err.message });
+    }
+};
+
 // ── PDF REPORTE DE ENTREGA ────────────────────────────────────────────────────
 // Formato S-F-03 v05 — ENTREGA DE EQUIPOS HRCATCH
 exports.exportarPdfReporte = async (req, res) => {
@@ -507,8 +545,8 @@ exports.exportarPdfBaja = async (req, res) => {
         if (eq.id_sysequipo) {
             ultimoMtto = await SysMantenimiento.findOne({
                 where: { id_sysequipo_fk: eq.id_sysequipo },
-                order: [['fecha', 'DESC'], ['createdAt', 'DESC']],
-                attributes: ['id_sysmtto', 'numero_reporte', 'fecha']
+                order: [['fechaRealizado', 'DESC'], ['createdAt', 'DESC']],
+                attributes: ['id', 'fechaRealizado']
             });
         }
 
@@ -714,10 +752,8 @@ exports.exportarPdfBaja = async (req, res) => {
         // Fila de datos del último mantenimiento
         drawRect(M,        y, hFecha,   DATA_H);
         drawRect(M+hFecha, y, hReporte, DATA_H);
-        const mttoFecha   = ultimoMtto ? fmtF(ultimoMtto.fecha) : '';
-        const mttoReporte = ultimoMtto
-            ? (ultimoMtto.numero_reporte || String(ultimoMtto.id_sysmtto).padStart(5, '0'))
-            : '';
+        const mttoFecha   = ultimoMtto ? fmtF(ultimoMtto.fechaRealizado) : '';
+        const mttoReporte = ultimoMtto ? String(ultimoMtto.id).padStart(5, '0') : '';
         doc.font('Arial').fontSize(8).fillColor('#000')
            .text(mttoFecha,   M + 4,        y + (DATA_H-8)/2, { width: hFecha   - 8, align: 'center', lineBreak: false });
         doc.font('Arial').fontSize(8).fillColor('#000')

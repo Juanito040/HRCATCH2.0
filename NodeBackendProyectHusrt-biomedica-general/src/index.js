@@ -178,6 +178,7 @@ sequelize.query('SET FOREIGN_KEY_CHECKS = 0')
     CREATE TABLE IF NOT EXISTS \`SysBodega\` (
       id_sysbodega INTEGER AUTO_INCREMENT PRIMARY KEY,
       fecha_ingreso DATE NULL,
+      tipo_bodega VARCHAR(255) NULL,
       motivo TEXT NULL,
       id_sysequipo_fk INTEGER NULL,
       id_sysusuario_fk INTEGER NULL,
@@ -187,7 +188,18 @@ sequelize.query('SET FOREIGN_KEY_CHECKS = 0')
       CONSTRAINT fk_sysbodega_usuario FOREIGN KEY (id_sysusuario_fk) REFERENCES Usuario(id) ON DELETE SET NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `))
-  .then(() => {})
+  .then(() => sequelize.query(`
+    ALTER TABLE \`SysBodega\` ADD COLUMN IF NOT EXISTS \`tipo_bodega\` VARCHAR(255) NULL AFTER \`fecha_ingreso\`
+  `).catch(() => {}))
+  .then(() => sequelize.query(`
+    ALTER TABLE \`SysEquipo\` ADD COLUMN IF NOT EXISTS \`ubic_bod\` VARCHAR(255) NULL
+  `).catch(() => {}))
+  .then(() => sequelize.query(`
+    ALTER TABLE \`SysBodega\` ADD COLUMN IF NOT EXISTS \`ubicacion_origen\` VARCHAR(255) NULL
+  `).catch(() => {}))
+  .then(() => sequelize.query(`
+    ALTER TABLE \`SysBodega\` ADD COLUMN IF NOT EXISTS \`ubicacion_esp_origen\` VARCHAR(255) NULL
+  `).catch(() => {}))
   .then(() => sequelize.sync({ alter: false }))
   .then(() => {
     app.listen(3005, '0.0.0.0', () => {

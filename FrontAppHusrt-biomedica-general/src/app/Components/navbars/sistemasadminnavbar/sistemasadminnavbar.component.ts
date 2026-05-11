@@ -26,10 +26,12 @@ export class SistemasadminnavbarComponent implements OnInit, OnDestroy {
   themeService = inject(ThemeService);
   notificacionService = inject(NotificacionBackupService);
   isSystemUser: boolean = false;
+  isTecnico: boolean = false;
 
   constructor(private router: Router) {
     const decoded = getDecodedAccessToken();
     this.isSystemUser = decoded?.rol === 'SYSTEMUSER';
+    this.isTecnico    = decoded?.rol === 'SISTEMASTECNICO';
   }
 
   ngOnInit() {
@@ -82,7 +84,16 @@ export class SistemasadminnavbarComponent implements OnInit, OnDestroy {
       { label: 'Indicadores',     icon: 'pi pi-chart-bar',routerLink: '/adminsistemas/indicadores' },
     ];
 
-    this.items = this.isSystemUser ? itemsUser : itemsAdmin;
+    const itemsTecnico: MenuItem[] = [
+      { label: 'Inicio',         icon: 'pi pi-home',      routerLink: '/adminsistemas' },
+      { label: 'Equipos',        icon: 'pi pi-desktop',   routerLink: '/adminsistemas/equipos' },
+      { label: 'Mantenimientos', icon: 'pi pi-wrench',    routerLink: '/adminsistemas/mantenimientos' },
+      { label: 'Plan Mtto.',     icon: 'pi pi-calendar',  routerLink: '/adminsistemas/planMantenimiento' },
+      { label: 'Repuestos',      icon: 'pi pi-cog',       routerLink: '/adminsistemas/repuestos' },
+      { label: 'Mesa de Servicios', icon: 'pi pi-briefcase', routerLink: '/adminmesaservicios/casos' },
+    ];
+
+    this.items = this.isTecnico ? itemsTecnico : (this.isSystemUser ? itemsUser : itemsAdmin);
   }
 
   ngOnDestroy(): void {

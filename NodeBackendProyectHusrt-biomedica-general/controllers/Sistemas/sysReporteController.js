@@ -7,10 +7,6 @@ const Servicio = require('../../models/generales/Servicio');
 const TipoEquipo = require('../../models/generales/TipoEquipo');
 const Usuario = require('../../models/generales/Usuario');
 const Sede = require('../../models/generales/Sede');
-const Cargo = require('../../models/generales/Cargo');
-const SysMovimientosStockRepuestos = require('../../models/Sistemas/SysMovimientosStockRepuestos');
-const SysRepuesto = require('../../models/Sistemas/SysRepuesto');
-const SysTipoRepuesto = require('../../models/Sistemas/SysTipoRepuesto');
 
 const EQUIPO_INCLUDE = {
     model: SysEquipo, as: 'equipo',
@@ -77,7 +73,7 @@ exports.getAllReportes = async (req, res) => {
             ],
             order: [['fechaRealizado', 'DESC'], ['createdAt', 'DESC']]
         });
-        res.json(reportes);
+        res.json({ success: true, count: reportes.length, data: reportes });
     } catch (error) {
         res.status(500).json({ error: 'Error al obtener los reportes', detalle: error.message });
     }
@@ -158,38 +154,13 @@ exports.getReporteById = async (req, res) => {
             include: [
                 EQUIPO_INCLUDE,
                 { model: Usuario, as: 'usuario', attributes: ['id', 'nombres', 'apellidos'] },
-                { model: Servicio, as: 'servicio', attributes: ['id', 'nombres', 'ubicacion'] },
-                {
-                    model: SysMovimientosStockRepuestos,
-                    as: 'movimientosStock',   // ← define esta asociación (ver abajo)
-                    required: false,
-                    where: { tipo: 'egreso' },
-                    include: [{
-                        model: SysRepuesto,
-                        as: 'repuesto',
-                        attributes: ['id_sysrepuesto', 'nombre', 'id_sys_tipo_repuesto_fk'],
-                        include: [{
-                            model: SysTipoRepuesto,
-                            as: 'tipoRepuesto',
-                            attributes: ['id_sys_tipo_repuesto', 'nombre']
-                        }]
-                    }]
-                }
+                { model: Servicio, as: 'servicio', attributes: ['id', 'nombres', 'ubicacion'] }
             ]
         });
         if (!reporte) return res.status(404).json({ success: false, message: 'Reporte no encontrado' });
 
-        // Mapear movimientosStock → repuestos (formato que espera el front)
         const data = reporte.toJSON();
-        data.repuestos = (data.movimientosStock || []).map(m => ({
-            id: m.id,
-            sysRepuestoIdFk: m.id_repuesto_fk,
-            cantidad: m.cantidad,
-            tipoRepuestoIdFk: m.repuesto?.id_sys_tipo_repuesto_fk ?? null,
-            nombreInsumo: m.repuesto?.nombre ?? '',
-            tipoNombre: m.repuesto?.tipoRepuesto?.nombre ?? ''
-        }));
-        delete data.movimientosStock;
+        data.repuestos = [];
 
         res.json({ success: true, data });
     } catch (err) {
@@ -211,10 +182,9 @@ exports.createReporte = async (req, res) => {
             const eq = result?.equipo;
             const detalles = [
                 eq ? `Equipo: ${eq.nombre_equipo}` : '',
-                reporte.servicio_anterior ? `De: ${reporte.servicio_anterior}` : '',
-                reporte.servicio_nuevo ? `Hacia: ${reporte.servicio_nuevo}` : '',
-                reporte.realizado_por ? `Por: ${reporte.realizado_por}` : '',
-                reporte.recibido_por ? `Recibido por: ${reporte.recibido_por}` : ''
+                reporte.tipoMantenimiento ? `Tipo: ${reporte.tipoMantenimiento}` : '',
+                reporte.trabajoRealizado ? `Trabajo: ${reporte.trabajoRealizado}` : '',
+                reporte.nombreRecibio ? `Recibido por: ${reporte.nombreRecibio}` : ''
             ].filter(Boolean).join(' · ');
 
             try {
@@ -222,7 +192,7 @@ exports.createReporte = async (req, res) => {
                     accion: 'REPORTE_ENTREGA',
                     detalles,
                     id_sysequipo_fk: reporte.id_sysequipo_fk,
-                    id_sysusuario_fk: reporte.id_sysusuario_fk || null
+                    id_sysusuario_fk: reporte.usuarioIdFk || null
                 });
             } catch (e) {
                 console.warn('trazabilidad reporte:', e.message);
@@ -268,6 +238,31 @@ exports.getCatalogoTiposFalla = (req, res) => {
     res.json({ success: true, data: getAllTiposFalla() });
 };
 
+
+// ── GET BAJA BY ID (JSON) ─────────────────────────────────────────────────────
+exports.getBajaById = async (req, res) => {
+    try {
+        const { bajaId } = req.params;
+        const baja = await SysBaja.findByPk(bajaId, {
+            include: [
+                {
+                    model: SysEquipo, as: 'equipo',
+                    attributes: ['id_sysequipo', 'nombre_equipo', 'marca', 'modelo',
+                        'serie', 'placa_inventario', 'ubicacion', 'ubicacion_especifica'],
+                    include: [
+                        { model: Servicio,  as: 'servicio',   attributes: ['id', 'nombres'] },
+                        { model: TipoEquipo, as: 'tipoEquipo', attributes: ['id', 'nombres'] }
+                    ]
+                },
+                { model: Usuario, as: 'usuarioBaja', attributes: ['id', 'nombres', 'apellidos'] }
+            ]
+        });
+        if (!baja) return res.status(404).json({ success: false, message: 'Registro de baja no encontrado' });
+        res.json({ success: true, data: baja.toJSON() });
+    } catch (err) {
+        res.status(500).json({ success: false, message: 'Error al obtener registro de baja', error: err.message });
+    }
+};
 
 // ── PDF REPORTE DE ENTREGA ────────────────────────────────────────────────────
 exports.exportarPdfReporte = async (req, res) => {
@@ -322,7 +317,7 @@ exports.exportarPdfReporte = async (req, res) => {
         doc.font('Helvetica-Bold').fontSize(9).fillColor('#1a3a6c')
             .text('E.S.E HOSPITAL UNIVERSITARIO SAN RAFAEL DE TUNJA', M + 6, y + 6, { width: PW - 134, lineBreak: false });
         doc.font('Helvetica').fontSize(7.5).fillColor('#333')
-            .text('II NIVEL DE ATENCIÓN  ·  NIT: 891.800.611-7', M + 6, y + 18, { width: PW - 134, lineBreak: false });
+            .text('III NIVEL DE ATENCIÓN  ·  NIT: 891.800.611-7', M + 6, y + 18, { width: PW - 134, lineBreak: false });
         doc.font('Helvetica-Bold').fontSize(9).fillColor('#2c5282')
             .text('REPORTE DE ENTREGA DE EQUIPO DE SISTEMAS', M + 6, y + 32, { width: PW - 134, lineBreak: false });
 
@@ -484,7 +479,7 @@ exports.exportarPdfBaja = async (req, res) => {
         doc.font('Helvetica-Bold').fontSize(9).fillColor('#7b1f1f')
             .text('E.S.E HOSPITAL UNIVERSITARIO SAN RAFAEL DE TUNJA', M + 6, y + 6, { width: PW - 134, lineBreak: false });
         doc.font('Helvetica').fontSize(7.5).fillColor('#333')
-            .text('II NIVEL DE ATENCIÓN  ·  NIT: 891.800.611-7', M + 6, y + 18, { width: PW - 134, lineBreak: false });
+            .text('III NIVEL DE ATENCIÓN  ·  NIT: 891.800.611-7', M + 6, y + 18, { width: PW - 134, lineBreak: false });
         doc.font('Helvetica-Bold').fontSize(8.5).fillColor('#7b1f1f')
             .text('CONCEPTO TÉCNICO PARA EVIDENCIA DE', M + 6, y + 32, { width: PW - 134, lineBreak: false })
             .text('BAJA DE TECNOLOGÍA (CTEBT)', M + 6, y + 43, { width: PW - 134, lineBreak: false });

@@ -16,12 +16,15 @@ import { getDecodedAccessToken } from '../../../utilidades';
 export class HomeadminsistemasComponent implements OnInit {
   router = inject(Router);
   isSystemUser: boolean = true; // true por defecto: SSR no renderiza la tarjeta
+  isTecnico: boolean = false;
 
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {}
 
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
-      this.isSystemUser = getDecodedAccessToken()?.rol === 'SYSTEMUSER';
+      const rol = getDecodedAccessToken()?.rol;
+      this.isSystemUser = rol === 'SYSTEMUSER';
+      this.isTecnico    = rol === 'SISTEMASTECNICO';
     }
   }
 

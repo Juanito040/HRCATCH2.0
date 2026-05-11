@@ -35,7 +35,7 @@ export class EquiposTipoSisComponent implements OnInit {
   tipoNombre: string = '';
   idTipo: number = 0;
 
-  isLoading: boolean = false;
+  isLoading: boolean = true;
   error: string | null = null;
 
   pageSize = 8;
@@ -219,7 +219,7 @@ export class EquiposTipoSisComponent implements OnInit {
     const nombreEquipo = this.equipoToDeleteWithOptions.nombre_equipo || 'Equipo desconocido';
 
     if (deleteAction.action === 'bodega') {
-      this.sysequiposService.enviarABodega(id, deleteAction.data.motivo).subscribe({
+      this.sysequiposService.enviarABodega(id, deleteAction.data.motivo, deleteAction.data.tipo_bodega || 'Bodega Sistemas').subscribe({
         next: (response) => {
           if (this.deleteDialog) this.deleteDialog.resetSubmitting();
           if (response.success) {
@@ -421,7 +421,7 @@ export class EquiposTipoSisComponent implements OnInit {
       let calcMonth = this.mesInicio + i * interval;
       const calcYear = this.anioInicio + Math.floor((calcMonth - 1) / 12);
       calcMonth = ((calcMonth - 1) % 12) + 1;
-      nuevos.push({ mes: Math.floor(calcMonth), ano: calcYear });
+      nuevos.push({ mes: Math.round(calcMonth), ano: calcYear });
     }
     this.selectedPlanes = nuevos;
     this.updateCalculatedText();

@@ -46,6 +46,10 @@ const SysEquipo = sequelize.define('SysEquipo', {
     type: DataTypes.STRING(255),
     allowNull: true
   },
+  ubic_bod: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
   activo: {
     type: DataTypes.BOOLEAN,
     allowNull: true,

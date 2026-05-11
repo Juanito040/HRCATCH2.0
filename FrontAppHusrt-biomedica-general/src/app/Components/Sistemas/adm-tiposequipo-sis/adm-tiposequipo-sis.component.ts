@@ -39,7 +39,7 @@ export class AdmTiposEquipoSisComponent implements OnInit {
   protocoloService = inject(SysprotocoloService);
 
   tiposEquipos: any[] = [];
-  loading: boolean = false;
+  loading: boolean = true;
   viewAddTipoEquipo: boolean = false;
   tipoEquipoSelected: any;
   isEditing: boolean = false;

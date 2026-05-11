@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const ctrl = require('../../controllers/Sistemas/sysMovimientosStockController');
 const requireRoles = require('../../utilities/requireRoles');
-const ROLES = ['SUPERADMIN', 'ADMINISTRADOR', 'AG', 'SISTEMASADMIN', 'SISTEMASUSER'];
+const ROLES = ['SUPERADMIN', 'ADMINISTRADOR', 'AG', 'SISTEMASADMIN', 'SISTEMASUSER', 'SISTEMASTECNICO'];
 
 // Rutas de consulta (accesibles para todos los roles autenticados)
 router.get('/', ctrl.getAll);

@@ -5,7 +5,7 @@ import Swal from 'sweetalert2';
 
 export interface DeleteAction {
   action: 'bodega' | 'baja';
-  data: { motivo?: string; justificacion_baja?: string; accesorios_reutilizables?: string; id_usuario?: number; password?: string; };
+  data: { motivo?: string; tipo_bodega?: string; justificacion_baja?: string; accesorios_reutilizables?: string; id_usuario?: number; password?: string; };
 }
 
 @Component({
@@ -23,6 +23,7 @@ export class SysDeleteConfirmationDialogComponent implements OnChanges, OnDestro
   @Input() hideBodegaOption = false;
   @Input() hideBajaOption = false;
   @Input() initialAction: 'bodega' | 'baja' | null = null;
+  @Input() equipo: any = null;
   @Output() closed = new EventEmitter<void>();
   @Output() confirmed = new EventEmitter<DeleteAction>();
 
@@ -31,6 +32,7 @@ export class SysDeleteConfirmationDialogComponent implements OnChanges, OnDestro
   passwordError = '';
   isSubmitting = false;
   motivo = '';
+  tipoBodega = 'Bodega Sistemas';
   justificacion_baja = '';
   accesorios_reutilizables = '';
 
@@ -47,6 +49,7 @@ export class SysDeleteConfirmationDialogComponent implements OnChanges, OnDestro
       this.password = '';
       this.passwordError = '';
       this.motivo = '';
+      this.tipoBodega = 'Bodega Sistemas';
       this.justificacion_baja = '';
       this.accesorios_reutilizables = '';
       this.isSubmitting = false;
@@ -78,6 +81,7 @@ export class SysDeleteConfirmationDialogComponent implements OnChanges, OnDestro
       action: this.selectedAction,
       data: {
         motivo: this.selectedAction === 'bodega' ? this.motivo : undefined,
+        tipo_bodega: this.selectedAction === 'bodega' ? this.tipoBodega : undefined,
         justificacion_baja: this.selectedAction === 'baja' ? this.justificacion_baja : undefined,
         accesorios_reutilizables: this.selectedAction === 'baja' ? this.accesorios_reutilizables : undefined,
         password: this.selectedAction === 'baja' ? this.password : undefined
@@ -85,9 +89,9 @@ export class SysDeleteConfirmationDialogComponent implements OnChanges, OnDestro
     });
   }
 
-  onActionChange() { this.password = ''; this.passwordError = ''; this.motivo = ''; this.justificacion_baja = ''; this.accesorios_reutilizables = ''; }
+  onActionChange() { this.password = ''; this.passwordError = ''; this.motivo = ''; this.tipoBodega = 'Bodega Sistemas'; this.justificacion_baja = ''; this.accesorios_reutilizables = ''; }
   onPasswordInput() { this.passwordError = ''; }
-  resetForm() { this.selectedAction = this.initialAction ?? (this.hideBodegaOption ? 'baja' : 'bodega'); this.password = ''; this.passwordError = ''; this.isSubmitting = false; this.motivo = ''; this.justificacion_baja = ''; this.accesorios_reutilizables = ''; }
+  resetForm() { this.selectedAction = this.initialAction ?? (this.hideBodegaOption ? 'baja' : 'bodega'); this.password = ''; this.passwordError = ''; this.isSubmitting = false; this.motivo = ''; this.tipoBodega = 'Bodega Sistemas'; this.justificacion_baja = ''; this.accesorios_reutilizables = ''; }
   resetSubmitting() { this.isSubmitting = false; }
   showError(message: string) { this.passwordError = message; this.isSubmitting = false; }
 

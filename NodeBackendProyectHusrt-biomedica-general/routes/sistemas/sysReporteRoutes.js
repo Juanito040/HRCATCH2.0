@@ -5,6 +5,9 @@ const ctrl    = require('../../controllers/Sistemas/sysReporteController');
 // PDF de baja (por id del registro SysBaja)
 router.get('/baja/:bajaId/pdf', ctrl.exportarPdfBaja);
 
+// JSON de baja (para generación de PDF en el frontend)
+router.get('/baja/:bajaId', ctrl.getBajaById);
+
 // PDF de reporte de entrega
 router.get('/:id/pdf', ctrl.exportarPdfReporte);
 

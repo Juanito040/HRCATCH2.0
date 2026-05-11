@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter, OnChanges, OnDestroy, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SysReporteEntregaService, SysReporteEntrega } from '../../../Services/appServices/sistemasServices/sysreporteentrega/sysreporteentrega.service';
+import { SysReportePdfService } from '../../../Services/appServices/sistemasServices/sys-reporte-pdf/sys-reporte-pdf.service';
 import Swal from 'sweetalert2';
 import { extractError } from '../../../utils/error-utils';
 
@@ -22,6 +23,7 @@ export class SysReportesEquipoComponent implements OnChanges, OnDestroy {
   downloadingId: number | null = null;
 
   private reporteService = inject(SysReporteEntregaService);
+  private pdfService = inject(SysReportePdfService);
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['isOpen'] && typeof document !== 'undefined') {
@@ -61,13 +63,7 @@ export class SysReportesEquipoComponent implements OnChanges, OnDestroy {
     if (!reporte.id_sysreporte) return;
     this.downloadingId = reporte.id_sysreporte;
     try {
-      const blob = await this.reporteService.descargarPdfReporte(reporte.id_sysreporte);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `ReporteEntrega_${reporte.id_sysreporte}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
+      await this.pdfService.generarReporteEntrega(reporte.id_sysreporte);
     } catch (err) {
       Swal.fire('Error', extractError(err, 'generar el PDF del reporte de equipo'), 'error');
     } finally {

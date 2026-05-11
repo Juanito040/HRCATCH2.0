@@ -12,6 +12,7 @@ import { SysHistorialEquipoComponent } from '../historial-equipo/historial-equip
 import { SysDeleteConfirmationDialogComponent, DeleteAction } from '../delete-confirmation-dialog/delete-confirmation-dialog.component';
 import { SysReportesEquipoComponent } from '../sys-reportes-equipo/sys-reportes-equipo.component';
 import { SysReporteEntregaService } from '../../../Services/appServices/sistemasServices/sysreporteentrega/sysreporteentrega.service';
+import { SysReportePdfService } from '../../../Services/appServices/sistemasServices/sys-reporte-pdf/sys-reporte-pdf.service';
 import { getDecodedAccessToken } from '../../../utilidades';
 import { MenuItem } from 'primeng/api';
 import Swal from 'sweetalert2';
@@ -40,7 +41,7 @@ export class EquiposServicioSisComponent implements OnInit, OnDestroy {
   servicio: any = null;
   idServicio: number = 0;
 
-  isLoading: boolean = false;
+  isLoading: boolean = true;
   error: string | null = null;
 
   pageSize = 8;
@@ -100,6 +101,7 @@ export class EquiposServicioSisComponent implements OnInit, OnDestroy {
   private servicioService = inject(ServicioService);
   private planService = inject(SysplanmantenimientoService);
   private reporteService = inject(SysReporteEntregaService);
+  private pdfService = inject(SysReportePdfService);
 
   getEstadoSoporte = getEstadoSoporte;
   labelsSoporte = LABELS_SOPORTE;
@@ -121,9 +123,11 @@ export class EquiposServicioSisComponent implements OnInit, OnDestroy {
     this.loadEquipos();
   }
 
-  ngOnDestroy() {
-    sessionStorage.removeItem('idServicioSis');
-  }
+   ngOnDestroy() {
+     if (typeof sessionStorage !== 'undefined') {
+       sessionStorage.removeItem('idServicioSis');
+     }
+   }
 
   async loadServicio() {
     try {
@@ -275,7 +279,7 @@ export class EquiposServicioSisComponent implements OnInit, OnDestroy {
     const nombreEquipo = this.equipoToDeleteWithOptions.nombre_equipo || 'Equipo desconocido';
 
     if (deleteAction.action === 'bodega') {
-      this.sysequiposService.enviarABodega(id, deleteAction.data.motivo).subscribe({
+      this.sysequiposService.enviarABodega(id, deleteAction.data.motivo, deleteAction.data.tipo_bodega || 'Bodega Sistemas').subscribe({
         next: (response) => {
           if (this.deleteDialog) this.deleteDialog.resetSubmitting();
           if (response.success) {
@@ -353,7 +357,7 @@ export class EquiposServicioSisComponent implements OnInit, OnDestroy {
       let calcMonth = this.mesInicio + i * interval;
       const calcYear = this.anioInicio + Math.floor((calcMonth - 1) / 12);
       calcMonth = ((calcMonth - 1) % 12) + 1;
-      nuevos.push({ mes: Math.floor(calcMonth), ano: calcYear });
+      nuevos.push({ mes: Math.round(calcMonth), ano: calcYear });
     }
     this.selectedPlanes = nuevos;
     this.updateCalculatedText();
@@ -382,11 +386,7 @@ export class EquiposServicioSisComponent implements OnInit, OnDestroy {
     const bajaId = equipo.baja?.id_sysbaja;
     if (!bajaId) { Swal.fire('Sin datos', 'No se encontró el registro de baja.', 'warning'); return; }
     try {
-      const blob = await this.reporteService.descargarPdfBaja(bajaId);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = `Baja_${equipo.nombre_equipo || bajaId}.pdf`; a.click();
-      URL.revokeObjectURL(url);
+      await this.pdfService.generarBajaEntrega(bajaId);
     } catch (err) { Swal.fire('Error', extractError(err, 'generar el PDF de baja del equipo'), 'error'); }
   }
 

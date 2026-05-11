@@ -16,18 +16,16 @@
         </button>
         @if (isExportMenuOpen) {
           <div class="export-dropdown-menu">
-            <button class="export-dropdown-item" (click)="descargarInventario('todos')">
-              <i class=""></i> Todos los equipos
-            </button>
-            <button class="export-dropdown-item" (click)="descargarInventario('activo')">
-              <i class=""></i> Equipos activos
-            </button>
-            <button class="export-dropdown-item" (click)="descargarInventario('bodega')">
-              <i class=""></i> Equipos en bodega
-            </button>
-            <button class="export-dropdown-item" (click)="descargarInventario('inactivo')">
-              <i class=""></i> Equipos inactivos
-            </button>
+            <span class="export-dropdown-header">SIN OBSOLESCENCIA</span>
+            <button class="export-dropdown-item" (click)="descargarInventario('todos', false)">Todos los equipos</button>
+            <button class="export-dropdown-item" (click)="descargarInventario('activo', false)">Equipos activos</button>
+            <button class="export-dropdown-item" (click)="descargarInventario('bodega', false)">Equipos en bodega</button>
+            <button class="export-dropdown-item" (click)="descargarInventario('inactivo', false)">Equipos inactivos</button>
+            <span class="export-dropdown-header">CON OBSOLESCENCIA</span>
+            <button class="export-dropdown-item" (click)="descargarInventario('todos', true)">Todos los equipos</button>
+            <button class="export-dropdown-item" (click)="descargarInventario('activo', true)">Equipos activos</button>
+            <button class="export-dropdown-item" (click)="descargarInventario('bodega', true)">Equipos en bodega</button>
+            <button class="export-dropdown-item" (click)="descargarInventario('inactivo', true)">Equipos inactivos</button>
           </div>
         }
       </div>

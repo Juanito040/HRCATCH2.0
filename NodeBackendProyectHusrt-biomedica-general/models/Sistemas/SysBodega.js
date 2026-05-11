@@ -10,6 +10,7 @@ const SysBodega = sequelize.define('SysBodega', {
     autoIncrement: true
   },
   fecha_ingreso: { type: DataTypes.DATEONLY, allowNull: true },
+  tipo_bodega: { type: DataTypes.STRING(255), allowNull: true },
   motivo: { type: DataTypes.TEXT, allowNull: true },
   id_sysequipo_fk: {
     type: DataTypes.INTEGER,
@@ -20,14 +21,16 @@ const SysBodega = sequelize.define('SysBodega', {
     type: DataTypes.INTEGER,
     allowNull: true,
     references: { model: Usuario, key: 'id' }
-  }
+  },
+  ubicacion_origen: { type: DataTypes.STRING(255), allowNull: true },
+  ubicacion_esp_origen: { type: DataTypes.STRING(255), allowNull: true }
 }, {
   tableName: 'SysBodega',
   timestamps: true
 });
 
-SysBodega.belongsTo(SysEquipo, { foreignKey: 'id_sysequipo_fk', as: 'equipo' });
-SysEquipo.hasOne(SysBodega, { foreignKey: 'id_sysequipo_fk', as: 'bodega' });
-SysBodega.belongsTo(Usuario, { foreignKey: 'id_sysusuario_fk', as: 'usuarioBodega' });
+SysBodega.belongsTo(SysEquipo, { foreignKey: 'id_sysequipo_fk', as: 'equipo', constraints: false });
+SysEquipo.hasOne(SysBodega, { foreignKey: 'id_sysequipo_fk', as: 'bodega', constraints: false });
+SysBodega.belongsTo(Usuario, { foreignKey: 'id_sysusuario_fk', as: 'usuarioBodega', constraints: false });
 
 module.exports = SysBodega;

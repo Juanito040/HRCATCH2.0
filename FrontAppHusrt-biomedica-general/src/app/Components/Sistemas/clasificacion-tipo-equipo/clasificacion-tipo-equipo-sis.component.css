@@ -25,6 +25,14 @@
   font-size: 0.875rem; color: #374151; cursor: pointer; text-align: left; transition: background 0.15s;
 }
 .export-dropdown-item:hover { background: #f0fdf4; color: #16a34a; }
+.export-dropdown-header {
+  display: block; padding: 6px 1rem 3px;
+  font-size: 0.7rem; font-weight: 700; color: #6b7280;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  cursor: default; pointer-events: none;
+  border-top: 1px solid #e5e7eb; margin-top: 2px;
+}
+.export-dropdown-header:first-child { border-top: none; margin-top: 0; }
 
 .btn-spinner-sm {
   display: inline-block; width: 0.8rem; height: 0.8rem;

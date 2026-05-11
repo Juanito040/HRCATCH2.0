@@ -13,6 +13,7 @@ import { Table } from 'primeng/table';
 import { SysmantenimientoService, SysMantenimiento } from '../../../Services/appServices/sistemasServices/sysmantenimiento/sysmantenimiento.service';
 import { SysequiposService } from '../../../Services/appServices/sistemasServices/sysequipos/sysequipos.service';
 import { ArchivosService } from '../../../Services/appServices/general/archivos/archivos.service';
+import { SysReportePdfService } from '../../../Services/appServices/sistemasServices/sys-reporte-pdf/sys-reporte-pdf.service';
 import Swal from 'sweetalert2';
 import { extractError } from '../../../utils/error-utils';
 
@@ -34,6 +35,7 @@ export class HistoricoMantenimientosEquipoComponent implements OnInit {
   private mantenimientoService = inject(SysmantenimientoService);
   private equiposService = inject(SysequiposService);
   private archivosService = inject(ArchivosService);
+  private pdfService = inject(SysReportePdfService);
 
   equipo: any = null;
   mantenimientos: SysMantenimiento[] = [];
@@ -96,13 +98,7 @@ export class HistoricoMantenimientosEquipoComponent implements OnInit {
   async generarPdf(m: SysMantenimiento) {
     if (!m.id) return;
     try {
-      const blob = await this.mantenimientoService.descargarPdf(m.id);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Mantenimiento_${String(m.id).padStart(4, '0')}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
+      await this.pdfService.generarReporteMantenimiento(m.id);
     } catch (err) {
       Swal.fire('Error', extractError(err, 'generar el PDF del historial de mantenimiento'), 'error');
     }

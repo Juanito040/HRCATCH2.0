@@ -119,8 +119,8 @@
       </div>
     </div>
 
-    <!-- Parametrización — solo admin -->
-    @if (!isSystemUser) {
+    <!-- Parametrización — solo admin (no técnico ni user) -->
+    @if (!isSystemUser && !isTecnico) {
       <div class="dashboard-card" (click)="irAParametrizacion()">
         <div class="card-icon-container gradient-blue">
           <i class="pi pi-sliders-h" style="font-size: 4rem;"></i>

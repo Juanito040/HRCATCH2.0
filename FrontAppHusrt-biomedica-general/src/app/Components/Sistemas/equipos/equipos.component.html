@@ -5,9 +5,12 @@
       @if (selectedView === 'bodega') {
         <h1>Equipos en bodega</h1>
         <p class="subtitle">Equipos de sistemas actualmente en bodega.</p>
-      } @else {
+      } @else if (selectedView === 'baja') {
         <h1>Equipos dados de baja</h1>
         <p class="subtitle">Equipos de sistemas que han sido dados de baja.</p>
+      } @else {
+        <h1>Inventario de Equipos</h1>
+        <p class="subtitle">Listado general de equipos de sistemas.</p>
       }
     </div>
     <div class="header-actions">
@@ -48,7 +51,7 @@
         <div class="spinner"></div>
         <p>Cargando equipos...</p>
       </div>
-    } @else if (error) {
+    } @else if (error && pagedEquipos.length === 0) {
       <div class="error-state">
         <div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
         <p>{{ error }}</p>
@@ -66,6 +69,7 @@
             <th>Sede</th>
             <th>Servicio</th>
             @if (selectedView === 'bodega') {
+              <th>Tipo Bodega</th>
               <th>Ubic. Anterior</th>
               <th>Motivo Bodega</th>
             } @else if (selectedView === 'baja') {
@@ -88,6 +92,13 @@
               <td>{{ equipo.servicio?.sede?.nombres || 'N/A' }}</td>
               <td>{{ equipo.servicio?.nombres || 'N/A' }}</td>
               @if (selectedView === 'bodega') {
+                <td>
+                  @if (equipo.ubic_bod) {
+                    <span class="badge-bodega">{{ equipo.ubic_bod }}</span>
+                  } @else {
+                    <span class="text-muted">Sin especificar</span>
+                  }
+                </td>
                 <td>{{ equipo.ubicacion_anterior || 'N/A' }}</td>
                 <td>{{ equipo.bodega?.motivo || 'Sin motivo registrado' }}</td>
               } @else if (selectedView === 'baja') {
@@ -103,9 +114,10 @@
                 </p-splitButton>
               </td>
             </tr>
-          } @empty {
+          }
+          @if (!isLoading && pagedEquipos.length === 0 && !error) {
             <tr>
-              <td [attr.colspan]="selectedView === 'all' ? 9 : 10" class="empty-state">
+              <td [attr.colspan]="selectedView === 'all' ? 9 : selectedView === 'bodega' ? 11 : 10" class="empty-state">
                 <div class="empty-icon"><i class="fas fa-boxes"></i></div>
                 <p>No se encontraron equipos</p>
               </td>
@@ -159,6 +171,7 @@
   [itemType]="'equipo'"
   [isAdmin]="isAdmin"
   [hideBodegaOption]="selectedView === 'bodega'"
+  [equipo]="equipoToDeleteWithOptions"
   (closed)="closeDeleteOptionsDialog()"
   (confirmed)="handleDeleteOptionsConfirm($event)"
 ></app-sys-delete-dialog>
@@ -175,7 +188,7 @@
 <app-sys-reactivar-equipo-modal
   [isOpen]="isReactivarModalOpen"
   [equipoNombre]="equipoToReactivar?.nombre_equipo || ''"
-  [ubicacionAnterior]="equipoToReactivar?.ubicacion_anterior || ''"
+  [equipo]="equipoToReactivar"
   (closed)="closeReactivarModal()"
   (confirmed)="handleReactivarConfirm($event)"
 ></app-sys-reactivar-equipo-modal>

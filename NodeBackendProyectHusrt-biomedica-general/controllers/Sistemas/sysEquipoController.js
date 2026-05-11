@@ -184,9 +184,11 @@ exports.updateSysEquipo = async (req, res) => {
         await t.commit();
 
         // Detectar y registrar campos cambiados
+        const CAMPOS_BOOL = new Set(['activo', 'estado_baja', 'administrable', 'preventivo_s']);
+        const normAudit = (campo, val) => CAMPOS_BOOL.has(campo) ? (val ? 1 : 0) : (val ?? '');
         const cambios = CAMPOS_AUDITADOS
             .filter(campo => equipoData[campo] !== undefined &&
-                String(equipoData[campo]) !== String(equipoAnterior.dataValues[campo] ?? ''))
+                String(normAudit(campo, equipoData[campo])) !== String(normAudit(campo, equipoAnterior.dataValues[campo])))
             .map(campo => ({
                 campo,
                 anterior: equipoAnterior.dataValues[campo],
@@ -213,31 +215,51 @@ exports.updateSysEquipo = async (req, res) => {
 
 // Enviar a bodega (soft delete)
 exports.deleteSysEquipo = async (req, res) => {
+    return exports.enviarABodegaPost(req, res);
+};
+
+// Enviar a bodega via POST (body parsing garantizado)
+exports.enviarABodegaPost = async (req, res) => {
+    const t = await sequelize.transaction();
     try {
         const { id } = req.params;
-        const { motivo } = req.body || {};
+        const { motivo, tipo_bodega } = req.body || {};
 
-        const equipo = await SysEquipo.findByPk(id);
-        if (!equipo) return res.status(404).json({ success: false, message: 'Equipo no encontrado' });
+        const equipo = await SysEquipo.findByPk(id, { transaction: t });
+        if (!equipo) {
+            await t.rollback();
+            return res.status(404).json({ success: false, message: 'Equipo no encontrado' });
+        }
 
         await SysEquipo.update({
             activo: 0,
             ubicacion_anterior: equipo.ubicacion,
             ubicacion: 'Bodega',
-            estado_baja: 0
-        }, { where: { id_sysequipo: id } });
+            ubicacion_especifica: null,
+            estado_baja: 0,
+            ubic_bod: tipo_bodega || null
+        }, { where: { id_sysequipo: id }, transaction: t });
 
-        await SysBodega.destroy({ where: { id_sysequipo_fk: id } });
+        await SysBodega.destroy({ where: { id_sysequipo_fk: id }, transaction: t });
         await SysBodega.create({
+            tipo_bodega: tipo_bodega || null,
             motivo: motivo || null,
             fecha_ingreso: new Date(),
             id_sysequipo_fk: id,
-            id_sysusuario_fk: req.user?.id || null
-        });
+            id_sysusuario_fk: req.user?.id || null,
+            ubicacion_origen: equipo.ubicacion || null,
+            ubicacion_esp_origen: equipo.ubicacion_especifica || null
+        }, { transaction: t });
 
+        await t.commit();
+
+        const tipoBodegaLabel = tipo_bodega || 'Bodega';
+        const detallesBodega = motivo
+            ? `${tipoBodegaLabel} — ${motivo}`
+            : `Enviado a ${tipoBodegaLabel}`;
         await registrarTrazabilidad({
             accion: 'BODEGA',
-            detalles: motivo || 'Enviado a bodega',
+            detalles: detallesBodega,
             equipoId: id,
             usuarioId: req.user?.id
         });
@@ -245,7 +267,8 @@ exports.deleteSysEquipo = async (req, res) => {
         const actualizado = await SysEquipo.findByPk(id);
         res.json({ success: true, message: 'Equipo enviado a bodega exitosamente', data: actualizado });
     } catch (error) {
-        console.error('Error deleteSysEquipo:', error);
+        await t.rollback();
+        console.error('Error enviarABodegaPost:', error);
         res.status(500).json({ success: false, message: 'Error al enviar equipo a bodega' });
     }
 };
@@ -280,9 +303,17 @@ exports.hardDeleteSysEquipo = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Equipo no encontrado' });
         }
 
-        await SysEquipo.update({ activo: 0, estado_baja: 1 }, { where: { id_sysequipo: id }, transaction: t });
+        const ultimaUbicacion = equipo.ubicacion_anterior
+            || (equipo.ubicacion !== 'Bodega' ? equipo.ubicacion : null)
+            || null;
 
-        await SysBodega.destroy({ where: { id_sysequipo_fk: id } });
+        await SysEquipo.update({
+            activo: 0,
+            estado_baja: 1,
+            ubicacion_anterior: ultimaUbicacion
+        }, { where: { id_sysequipo: id }, transaction: t });
+
+        await SysBodega.destroy({ where: { id_sysequipo_fk: id }, transaction: t });
 
         await SysBaja.create({
             fecha_baja: new Date(),
@@ -311,19 +342,43 @@ exports.hardDeleteSysEquipo = async (req, res) => {
 
 // Reactivar equipo
 exports.reactivarSysEquipo = async (req, res) => {
+    const t = await sequelize.transaction();
     try {
         const { id } = req.params;
-        const [affected] = await SysEquipo.update(
-            { activo: true, estado_baja: 0, ubicacion_anterior: null },
-            { where: { id_sysequipo: id } }
-        );
-        if (affected === 0) return res.status(404).json({ success: false, message: 'Equipo no encontrado' });
+        const { ubicacion, ubicacion_especifica } = req.body || {};
 
-        await SysBodega.destroy({ where: { id_sysequipo_fk: id } });
+        const equipoActual = await SysEquipo.findByPk(id, { transaction: t });
+        if (!equipoActual) {
+            await t.rollback();
+            return res.status(404).json({ success: false, message: 'Equipo no encontrado' });
+        }
+
+        const tipoBodega = equipoActual.ubic_bod || 'Bodega';
+        const nuevaUbicacion = ubicacion || equipoActual.ubicacion_anterior || null;
+
+        const [affected] = await SysEquipo.update(
+            {
+                activo: true,
+                estado_baja: 0,
+                ubicacion_anterior: null,
+                ubicacion: nuevaUbicacion,
+                ubicacion_especifica: ubicacion_especifica || null,
+                ubic_bod: null
+            },
+            { where: { id_sysequipo: id }, transaction: t }
+        );
+        if (affected === 0) {
+            await t.rollback();
+            return res.status(404).json({ success: false, message: 'Equipo no encontrado' });
+        }
+
+        await SysBodega.destroy({ where: { id_sysequipo_fk: id }, transaction: t });
+
+        await t.commit();
 
         await registrarTrazabilidad({
             accion: 'REACTIVACION',
-            detalles: 'Equipo reactivado desde bodega',
+            detalles: `Equipo reactivado desde ${tipoBodega}`,
             equipoId: id,
             usuarioId: req.user?.id
         });
@@ -331,6 +386,7 @@ exports.reactivarSysEquipo = async (req, res) => {
         const equipo = await SysEquipo.findByPk(id);
         res.json({ success: true, message: 'Equipo reactivado exitosamente', data: equipo });
     } catch (error) {
+        await t.rollback();
         res.status(500).json({ success: false, message: 'Error al reactivar el equipo' });
     }
 };
@@ -385,12 +441,18 @@ exports.getEquiposDadosDeBaja = async (req, res) => {
 // Estadísticas
 exports.getEstadisticasSysEquipos = async (req, res) => {
     try {
-        const [total, activos, inactivos] = await Promise.all([
+        const [total, activos, enBodega, dadosDeBaja] = await Promise.all([
             SysEquipo.count(),
             SysEquipo.count({ where: { activo: true } }),
-            SysEquipo.count({ where: { activo: false } })
+            SysEquipo.count({
+                where: {
+                    ubicacion: 'Bodega',
+                    [Op.or]: [{ estado_baja: false }, { estado_baja: null }]
+                }
+            }),
+            SysEquipo.count({ where: { estado_baja: true } })
         ]);
-        res.json({ success: true, data: { total, activos, inactivos } });
+        res.json({ success: true, data: { total, activos, enBodega, dadosDeBaja } });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Error al obtener estadísticas' });
     }

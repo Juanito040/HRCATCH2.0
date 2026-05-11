@@ -329,8 +329,7 @@ exports.exportarPdfByEquipo = async (req, res) => {
 
         let y = M;
 
-        // Ruta del logo del hospital
-        const logoHospitalPath = path.join(__dirname, '..', '..', '..', 'FrontAppHusrt-biomedica-general', 'public', 'SanRafa.png');
+        const logoHospitalPath = path.join(__dirname, '..', '..', 'utilities', 'LogoSanRafael.png');
 
         // ===== CABECERA =====
 const codeColW = 100;

@@ -46,7 +46,7 @@
             <th>Placa</th>
             <th>Sede</th>
             <th>Servicio</th>
-            <th>Ubicación Específica</th>
+            <th>Ubicación</th>
             <th>Soporte</th>
             <th class="col-opciones">Opciones</th>
           </tr>
@@ -61,7 +61,7 @@
               <td>{{ equipo.placa_inventario || 'N/A' }}</td>
               <td>{{ equipo.servicio?.sede?.nombres || 'N/A' }}</td>
               <td>{{ equipo.servicio?.nombres || 'N/A' }}</td>
-              <td>{{ equipo.ubicacion_especifica || 'N/A' }}</td>
+              <td>{{ equipo.ubicacion || equipo.ubicacion_especifica || 'N/A' }}</td>
               <td>
                 @let estadoSoporte = getEstadoSoporte(equipo.hojaVida?.fecha_inicio_soporte, equipo.hojaVida?.anos_soporte_fabricante);
                 <span class="badge"
@@ -78,7 +78,8 @@
                 </p-splitButton>
               </td>
             </tr>
-          } @empty {
+          }
+          @if (!isLoading && pagedEquipos.length === 0 && !error) {
             <tr>
               <td colspan="10" class="empty-state">
                 <div class="empty-icon"><i class="fas fa-boxes"></i></div>
@@ -145,6 +146,7 @@
   [hideBodegaOption]="deleteDialogMode === 'baja'"
   [hideBajaOption]="deleteDialogMode === 'bodega'"
   [isAdmin]="deleteDialogMode === 'baja'"
+  [equipo]="equipoToDeleteWithOptions"
   (confirmed)="handleDeleteOptionsConfirm($event)"
   (closed)="closeDeleteOptionsDialog()"
 ></app-sys-delete-dialog>

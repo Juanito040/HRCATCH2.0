@@ -5,18 +5,108 @@
       <button class="btn-close" (click)="close()"><i class="fas fa-times"></i></button>
     </div>
     <div class="modal-body">
-      <div class="info-section"><p>El equipo será marcado como activo. Ingresa la nueva ubicación o déjalo en bodega.</p></div>
+
+      <!-- Contexto de ubicación -->
+      <div class="ubicacion-context">
+        <div class="context-row">
+          <span class="context-label">En bodega:</span>
+          <span class="badge-bodega">{{ ubic_bod }}</span>
+        </div>
+        <div class="context-row" *ngIf="sede || servicio || ubicAnterior || ubicEspOrigen">
+          <span class="context-label">Venía de:</span>
+          <span class="location-path">
+            <span class="location-chip" *ngIf="sede">{{ sede }}</span>
+            <i class="fas fa-chevron-right location-sep" *ngIf="sede && servicio"></i>
+            <span class="location-chip" *ngIf="servicio">{{ servicio }}</span>
+            <i class="fas fa-chevron-right location-sep" *ngIf="(sede || servicio) && ubicAnterior"></i>
+            <span class="location-chip" *ngIf="ubicAnterior">{{ ubicAnterior }}</span>
+            <i class="fas fa-chevron-right location-sep" *ngIf="ubicAnterior && ubicEspOrigen"></i>
+            <span class="location-chip location-chip--especifica" *ngIf="ubicEspOrigen">{{ ubicEspOrigen }}</span>
+            <span class="text-muted" *ngIf="!sede && !servicio && !ubicAnterior && !ubicEspOrigen">Sin registro</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Modo de ubicación -->
       <div class="form-group">
-        <label for="ubicacion">Nueva Ubicación</label>
-        <input type="text" id="ubicacion" class="form-control" [(ngModel)]="ubicacion" placeholder="Ej: Datacenter Piso 2" (keyup.enter)="confirm()" autofocus />
-        <small class="form-hint" *ngIf="ubicacionAnterior">Ubicación anterior: <strong>{{ ubicacionAnterior }}</strong></small>
-        <small class="form-hint" *ngIf="!ubicacion || ubicacion === 'Bodega'">Si dejas "Bodega", el equipo quedará activo pero en bodega</small>
+        <label>Ubicación al reactivar</label>
+        <div class="modo-toggle">
+          <button type="button" class="modo-btn"
+            [class.modo-btn--active]="modoUbicacion === 'restaurar'"
+            [disabled]="!ubicAnterior"
+            (click)="modoUbicacion = 'restaurar'; onModoChange()">
+            <i class="fas fa-undo"></i> Restaurar anterior
+          </button>
+          <button type="button" class="modo-btn"
+            [class.modo-btn--active]="modoUbicacion === 'nueva'"
+            (click)="modoUbicacion = 'nueva'; onModoChange()">
+            <i class="fas fa-map-marker-alt"></i> Nueva ubicación
+          </button>
+        </div>
+        <input type="text" class="form-control mt-sm"
+          [(ngModel)]="ubicacion"
+          placeholder="Ej: Radiología, Datacenter Piso 2..."
+          [attr.disabled]="modoUbicacion === 'restaurar' ? true : null" />
+        <small class="form-hint" *ngIf="modoUbicacion === 'restaurar' && ubicAnterior">
+          Se restaurará a: <strong>{{ ubicAnterior }}</strong>
+        </small>
+        <small class="form-hint" *ngIf="modoUbicacion === 'nueva'">
+          Deja vacío si la ubicación aún no se definió
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label>Ubicación específica <span class="opcional">(opcional)</span></label>
+        <input type="text" class="form-control"
+          [(ngModel)]="ubicacion_especifica"
+          placeholder="Ej: Consultorio 3, Escritorio izquierdo..."
+          [attr.disabled]="modoUbicacion === 'restaurar' ? true : null" />
+        <small class="form-hint" *ngIf="modoUbicacion === 'restaurar' && ubicEspOrigen">
+          Se restaurará a: <strong>{{ ubicEspOrigen }}</strong>
+        </small>
+        <small class="form-hint" *ngIf="modoUbicacion === 'restaurar' && !ubicEspOrigen">
+          No había ubicación específica registrada
+        </small>
+      </div>
+
+      <!-- Formato de entrega -->
+      <div class="seccion-reporte">
+        <div class="seccion-reporte-titulo">
+          <i class="fas fa-file-alt"></i>
+          Formato de Entrega
+        </div>
+
+        <div class="form-group">
+          <label for="recibidoPor">Recibido por <span class="requerido">*</span></label>
+          <input type="text" id="recibidoPor" class="form-control"
+            [(ngModel)]="recibidoPor" (input)="errorRecibido = false"
+            placeholder="Nombre de quien recibe el equipo"
+            [class.input-error]="errorRecibido" />
+          <small class="error-hint" *ngIf="errorRecibido">Este campo es requerido</small>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="horaInicio">Hora inicio</label>
+            <input type="time" id="horaInicio" class="form-control" [(ngModel)]="horaInicio" />
+          </div>
+          <div class="form-group">
+            <label for="horaTerminacion">Hora terminación</label>
+            <input type="time" id="horaTerminacion" class="form-control" [(ngModel)]="horaTerminacion" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="observaciones">Observaciones <span class="opcional">(opcional)</span></label>
+          <textarea id="observaciones" class="form-control" [(ngModel)]="observaciones"
+            placeholder="Notas adicionales sobre la entrega..." rows="2"></textarea>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" (click)="close()" [disabled]="isSubmitting">Cancelar</button>
       <button class="btn btn-success" (click)="confirm()" [disabled]="isSubmitting">
-        Reactivar Equipo
+        <i class="fas fa-check"></i> Reactivar y generar formato
       </button>
     </div>
   </div>

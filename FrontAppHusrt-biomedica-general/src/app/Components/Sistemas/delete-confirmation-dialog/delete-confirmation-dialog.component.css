@@ -46,3 +46,12 @@
 .btn-warning:hover:not(:disabled) { background:#d97706; }
 .btn-danger { background:var(--danger-color);color:white; }
 .btn-danger:hover:not(:disabled) { background:#dc2626; }
+.current-location-info { display:flex;flex-direction:column;gap:.375rem;background:#f0f9ff;border:1px solid #bae6fd;border-radius:var(--border-radius);padding:.75rem 1rem;margin-bottom:1rem; }
+.location-label { font-size:.75rem;font-weight:600;color:#0369a1;text-transform:uppercase;letter-spacing:.03em; }
+.location-path { display:flex;flex-wrap:wrap;align-items:center;gap:.375rem; }
+.location-chip { background:white;border:1px solid #bae6fd;border-radius:9999px;padding:.2rem .65rem;font-size:.8125rem;color:#0c4a6e;font-weight:500; }
+.location-sep { font-size:.625rem;color:#94a3b8; }
+.ubic-bod-toggle { display:flex;gap:.5rem; }
+.ubic-bod-btn { flex:1;padding:.625rem 1rem;border:2px solid var(--gray-300);border-radius:var(--border-radius);background:white;color:var(--gray-700);font-size:.875rem;font-weight:500;cursor:pointer;transition:all .2s; }
+.ubic-bod-btn:hover { border-color:var(--primary-color);color:var(--primary-color); }
+.ubic-bod-btn--active { border-color:var(--primary-color);background:#eff6ff;color:var(--primary-color);font-weight:600; }

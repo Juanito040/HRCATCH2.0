@@ -1,5 +1,5 @@
-import { Component, OnInit, ViewChild, ElementRef, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, ViewChild, ElementRef, inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SplitButtonModule } from 'primeng/splitbutton';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -12,10 +12,12 @@ import { SysReactivarEquipoModalComponent, ReactivarEquipoData } from '../reacti
 import { SysHistorialEquipoComponent } from '../historial-equipo/historial-equipo.component';
 import { SysReportesEquipoComponent } from '../sys-reportes-equipo/sys-reportes-equipo.component';
 import { SysReporteEntregaService } from '../../../Services/appServices/sistemasServices/sysreporteentrega/sysreporteentrega.service';
+import { SysReportePdfService } from '../../../Services/appServices/sistemasServices/sys-reporte-pdf/sys-reporte-pdf.service';
 import { getDecodedAccessToken } from '../../../utilidades';
 import { MenuItem } from 'primeng/api';
 import Swal from 'sweetalert2';
 import { extractError } from '../../../utils/error-utils';
+import { forkJoin, Observable } from 'rxjs';
 
 @Component({
   selector: 'app-sis-equipos',
@@ -55,7 +57,7 @@ export class SisEquiposComponent implements OnInit {
   totalBodega: number = 0;
   totalBaja: number = 0;
 
-  isLoading: boolean = false;
+  isLoading: boolean = true;
   error: string | null = null;
 
   isModalOpen: boolean = false;
@@ -113,21 +115,129 @@ export class SisEquiposComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private planService = inject(SysplanmantenimientoService);
   private reporteService = inject(SysReporteEntregaService);
+  private pdfService = inject(SysReportePdfService);
+  private platformId = inject(PLATFORM_ID);
 
   constructor(private sysequiposService: SysequiposService) {}
 
-  ngOnInit() {
-    this.loadCounters();
-    const params = this.route.snapshot.queryParams;
-    if (params['vista'] === 'bodega') {
-      this.changeView('bodega');
-    } else if (params['vista'] === 'baja') {
-      this.changeView('baja');
-    } else {
-      this.changeView('bodega');
-      if (params['action'] === 'crear') {
-        this.openCreateModal();
+  private loadBodegaData() {
+    this.isLoading = true;
+    this.error = null;
+    this.pagedEquipos = [];
+    this.sysequiposService.getEquiposEnBodega().subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.error = null;
+          this.equipos = Array.isArray(response.data) ? response.data : [response.data];
+          this.totalBodega = this.equipos.length;
+          this.applyFilters();
+        } else {
+          this.error = response.message || 'Error al cargar equipos en bodega';
+          this.equipos = []; this.filteredEquipos = []; this.pagedEquipos = [];
+        }
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Error al cargar equipos en bodega:', err);
+        this.error = extractError(err, 'cargar equipos en bodega');
+        this.equipos = []; this.filteredEquipos = []; this.pagedEquipos = [];
+        this.isLoading = false;
       }
+    });
+  }
+
+  private loadBajaData() {
+    this.isLoading = true;
+    this.error = null;
+    this.pagedEquipos = [];
+    this.sysequiposService.getEquiposDadosDeBaja().subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.error = null;
+          this.equipos = Array.isArray(response.data) ? response.data : [response.data];
+          this.totalBaja = this.equipos.length;
+          this.applyFilters();
+        } else {
+          this.error = response.message || 'Error al cargar equipos dados de baja';
+          this.equipos = []; this.filteredEquipos = []; this.pagedEquipos = [];
+        }
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Error al cargar equipos dados de baja:', err);
+        this.error = extractError(err, 'cargar equipos dados de baja');
+        this.equipos = []; this.filteredEquipos = []; this.pagedEquipos = [];
+        this.isLoading = false;
+      }
+    });
+  }
+
+  private loadAllData() {
+    this.isLoading = true;
+    this.error = null;
+    this.pagedEquipos = [];
+    
+    forkJoin([
+      this.sysequiposService.getEquipos(),
+      this.sysequiposService.getEquiposEnBodega(),
+      this.sysequiposService.getEquiposDadosDeBaja()
+    ]).subscribe({
+      next: ([equiposRes, bodegaRes, bajaRes]) => {
+        if (equiposRes?.success) {
+          this.error = null;
+          this.equipos = Array.isArray(equiposRes.data) ? equiposRes.data : [equiposRes.data];
+          this.totalEquipos = this.equipos.length;
+        } else {
+          this.error = equiposRes?.message || 'Error al cargar los equipos';
+          this.equipos = []; this.pagedEquipos = [];
+        }
+        
+        if (bodegaRes?.success) {
+          const bodegaData = Array.isArray(bodegaRes.data) ? bodegaRes.data : [bodegaRes.data];
+          this.totalBodega = bodegaData.length;
+        }
+        
+        if (bajaRes?.success) {
+          const bajaData = Array.isArray(bajaRes.data) ? bajaRes.data : [bajaRes.data];
+          this.totalBaja = bajaData.length;
+        }
+        
+        this.applyFilters();
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Error al cargar datos iniciales:', err);
+        this.error = extractError(err, 'cargar datos iniciales');
+        this.isLoading = false;
+      }
+    });
+  }
+
+  ngOnInit() {
+    // 1. Cálculo de vista inicial (Ejecutar en Servidor y Cliente para Hidratación correcta)
+    const params = this.route.snapshot.queryParams;
+    let initialView: 'all' | 'bodega' | 'baja' = 'all';
+    if (params['vista'] === 'bodega') initialView = 'bodega';
+    else if (params['vista'] === 'baja') initialView = 'baja';
+    const actionCreate = params['action'] === 'crear';
+
+    this.selectedView = initialView;
+    this.searchTerm = '';
+    this.selectedActivo = undefined;
+
+    // 2. Carga de datos (Solo en Cliente para evitar parpadeos si el SSR no tiene acceso a la API)
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    if (initialView === 'bodega') {
+      this.loadBodegaData();
+    } else if (initialView === 'baja') {
+      this.loadBajaData();
+    } else {
+      this.loadAllData();
+    }
+
+    if (actionCreate) {
+      setTimeout(() => this.openCreateModal(), 0);
     }
   }
 
@@ -161,6 +271,7 @@ export class SisEquiposComponent implements OnInit {
   loadEquipos(filters?: { activo?: boolean }) {
     this.isLoading = true;
     this.error = null;
+    this.pagedEquipos = [];
 
     this.sysequiposService.getEquipos(filters).subscribe({
       next: (response) => {
@@ -170,14 +281,14 @@ export class SisEquiposComponent implements OnInit {
           this.applyFilters();
         } else {
           this.error = response.message || 'Error al cargar los equipos';
-          this.equipos = []; this.filteredEquipos = [];
+          this.equipos = []; this.filteredEquipos = []; this.pagedEquipos = [];
         }
         this.isLoading = false;
       },
       error: (err) => {
         console.error('Error al cargar equipos:', err);
         this.error = extractError(err, 'cargar los equipos');
-        this.equipos = []; this.filteredEquipos = [];
+        this.equipos = []; this.filteredEquipos = []; this.pagedEquipos = [];
         this.isLoading = false;
       }
     });
@@ -208,53 +319,15 @@ export class SisEquiposComponent implements OnInit {
 
   changeView(view: 'all' | 'bodega' | 'baja') {
     this.selectedView = view;
-    this.isLoading = true;
-    this.error = null;
     this.searchTerm = '';
     this.selectedActivo = undefined;
     this.resetSearchInput();
     this.resetEstadoSelect();
 
     if (view === 'bodega') {
-      this.sysequiposService.getEquiposEnBodega().subscribe({
-        next: (response) => {
-          if (response.success) {
-            this.equipos = Array.isArray(response.data) ? response.data : [response.data];
-            this.totalBodega = this.equipos.length;
-            this.applyFilters();
-          } else {
-            this.error = response.message || 'Error al cargar equipos en bodega';
-            this.equipos = []; this.filteredEquipos = [];
-          }
-          this.isLoading = false;
-        },
-        error: (err) => {
-          console.error('Error al cargar equipos en bodega:', err);
-          this.error = extractError(err, 'cargar equipos en bodega');
-          this.equipos = []; this.filteredEquipos = [];
-          this.isLoading = false;
-        }
-      });
+      this.loadBodegaData();
     } else if (view === 'baja') {
-      this.sysequiposService.getEquiposDadosDeBaja().subscribe({
-        next: (response) => {
-          if (response.success) {
-            this.equipos = Array.isArray(response.data) ? response.data : [response.data];
-            this.totalBaja = this.equipos.length;
-            this.applyFilters();
-          } else {
-            this.error = response.message || 'Error al cargar equipos dados de baja';
-            this.equipos = []; this.filteredEquipos = [];
-          }
-          this.isLoading = false;
-        },
-        error: (err) => {
-          console.error('Error al cargar equipos dados de baja:', err);
-          this.error = extractError(err, 'cargar equipos dados de baja');
-          this.equipos = []; this.filteredEquipos = [];
-          this.isLoading = false;
-        }
-      });
+      this.loadBajaData();
     } else {
       this.loadEquipos();
     }
@@ -350,7 +423,7 @@ export class SisEquiposComponent implements OnInit {
   }
 
   onEquipoSaved() {
-    this.loadEquipos();
+    this.changeView(this.selectedView);
     this.loadCounters();
   }
 
@@ -359,7 +432,6 @@ export class SisEquiposComponent implements OnInit {
       this.router.navigate(['/adminsistemas/hojavida', equipo.id_sysequipo]);
     }
   }
-
 
   private buildOpciones(equipo: SysEquipo): MenuItem[] {
     const opcionHistorial  = { label: 'Ver Historial',     icon: 'fas fa-history',       command: () => this.openHistorialModal(equipo) };
@@ -389,7 +461,7 @@ export class SisEquiposComponent implements OnInit {
         { label: 'Ver Detalles',       icon: 'pi pi-eye',         command: () => this.openDetailModal(equipo) },
         opcionReporte,
         opcionVerReportes,
-        { label: 'Descargar PDF Baja', icon: 'fas fa-file-pdf',   command: () => this.descargarPdfBaja(equipo) },
+        { label: 'Descargar PDF Baja', icon: 'fas fa-file-contract', command: () => this.descargarPdfBaja(equipo) },
         opcionHistorial
       ];
     }
@@ -438,13 +510,7 @@ export class SisEquiposComponent implements OnInit {
       return;
     }
     try {
-      const blob = await this.reporteService.descargarPdfBaja(bajaId);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Baja_${equipo.nombre_equipo || bajaId}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
+      await this.pdfService.generarBajaEntrega(bajaId);
     } catch (e) {
       Swal.fire('Error', extractError(e, 'generar el PDF de baja del equipo'), 'error');
     }
@@ -481,14 +547,15 @@ export class SisEquiposComponent implements OnInit {
     const nombreEquipo = this.equipoToDeleteWithOptions.nombre_equipo || 'Equipo desconocido';
 
     if (deleteAction.action === 'bodega') {
-      this.sysequiposService.enviarABodega(id, deleteAction.data.motivo).subscribe({
+      const tipoBodega = deleteAction.data.tipo_bodega || 'Bodega Sistemas';
+      this.sysequiposService.enviarABodega(id, deleteAction.data.motivo, tipoBodega).subscribe({
         next: (response) => {
           if (this.deleteDialog) this.deleteDialog.resetSubmitting();
           if (response.success) {
             this.closeDeleteOptionsDialog();
             this.loadEquipos();
             this.loadCounters();
-            Swal.fire({ icon: 'success', title: 'Enviado a Bodega', text: `Equipo "${nombreEquipo}" enviado a bodega exitosamente`, timer: 2000, showConfirmButton: false });
+            Swal.fire({ icon: 'success', title: 'Enviado a Bodega', text: `Equipo "${nombreEquipo}" enviado a ${tipoBodega || 'bodega'} exitosamente`, timer: 2000, showConfirmButton: false });
           } else {
             const msg = response.message || 'Error al enviar el equipo a bodega';
             if (this.deleteDialog) this.deleteDialog.showError(msg);
@@ -550,8 +617,6 @@ export class SisEquiposComponent implements OnInit {
     this.isReactivarModalOpen = false;
     this.equipoToReactivar = null;
   }
-
-  // ── Métodos de Plan de Mantenimiento ──
 
   async openPlanDialog(equipo: any) {
     this.currentEquipoPlan = equipo;
@@ -625,43 +690,80 @@ export class SisEquiposComponent implements OnInit {
   handleReactivarConfirm(data: ReactivarEquipoData) {
     if (!this.equipoToReactivar?.id_sysequipo) return;
 
-    const equipoId = this.equipoToReactivar.id_sysequipo;
-    const equipoNombre = this.equipoToReactivar.nombre_equipo;
+    const equipo = this.equipoToReactivar;
+    const equipoId = equipo.id_sysequipo!;
+    const equipoNombre = equipo.nombre_equipo;
     const ubicacionFinal = data.ubicacion;
 
-    this.sysequiposService.reactivarEquipo(equipoId).subscribe({
+    this.sysequiposService.reactivarEquipo(equipoId, {
+      ubicacion: data.ubicacion || undefined,
+      ubicacion_especifica: data.ubicacion_especifica || undefined
+    }).subscribe({
       next: (response) => {
-        if (response.success) {
-          if (ubicacionFinal && ubicacionFinal !== 'Bodega') {
-            this.sysequiposService.updateEquipo(equipoId, { ubicacion: ubicacionFinal }).subscribe({
-              next: () => {
-                Swal.fire({ icon: 'success', title: 'Reactivado', text: `Equipo "${equipoNombre}" reactivado. Nueva ubicación: ${ubicacionFinal}`, timer: 2500, showConfirmButton: false });
-                this.closeReactivarModal();
-                this.changeView('bodega');
-                this.loadCounters();
-              },
-              error: () => {
-                Swal.fire({ icon: 'warning', title: 'Parcialmente reactivado', text: 'Equipo reactivado, pero hubo un error al cambiar la ubicación' });
-                this.closeReactivarModal();
-                this.changeView('bodega');
-                this.loadCounters();
-              }
-            });
-          } else {
-            Swal.fire({ icon: 'success', title: 'Reactivado', text: `Equipo "${equipoNombre}" reactivado exitosamente`, timer: 2000, showConfirmButton: false });
-            this.closeReactivarModal();
-            this.changeView('bodega');
-            this.loadCounters();
-          }
-        } else {
+        if (!response.success) {
           Swal.fire({ icon: 'error', title: 'Error', text: response.message || 'Error al reactivar el equipo' });
           this.closeReactivarModal();
+          return;
         }
+        this.crearReporteReactivacion(equipo, ubicacionFinal, data);
       },
       error: (err) => {
-        console.error('Error al reactivar equipo:', err);
         Swal.fire({ icon: 'error', title: 'Error', text: extractError(err, 'reactivar el equipo') });
         this.closeReactivarModal();
+      }
+    });
+  }
+
+  private crearReporteReactivacion(equipo: any, ubicacionNueva: string, data: ReactivarEquipoData) {
+    const decoded = getDecodedAccessToken();
+    const hoy = new Date().toISOString().split('T')[0];
+    const ahora = new Date().toTimeString().slice(0, 5);
+    const ubicacionAnterior = equipo.bodega?.ubicacion_origen || equipo.ubicacion_anterior || equipo.ubic_bod || 'Bodega';
+
+    const reporte = {
+      fecha: hoy,
+      hora_llamado: ahora,
+      hora_inicio: data.horaInicio || '',
+      hora_terminacion: data.horaTerminacion || '',
+      servicio_anterior: equipo.servicio?.nombres || '',
+      ubicacion_anterior: ubicacionAnterior,
+      servicio_nuevo: equipo.servicio?.nombres || '',
+      ubicacion_nueva: ubicacionNueva || '',
+      realizado_por: decoded ? `${decoded.nombres || ''} ${decoded.apellidos || ''}`.trim() : '',
+      recibido_por: data.recibidoPor || '',
+      observaciones: data.observaciones || '',
+      id_sysequipo_fk: equipo.id_sysequipo,
+      id_sysusuario_fk: decoded?.id
+    };
+
+    this.reporteService.create(reporte).subscribe({
+      next: (res: any) => {
+        const reporteId = res?.data?.id_sysreporte ?? null;
+        this.closeReactivarModal();
+        this.changeView('bodega');
+        this.loadCounters();
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Reactivado',
+          text: `Equipo "${equipo.nombre_equipo}" reactivado y formato de entrega generado.`,
+          confirmButtonText: reporteId ? 'Descargar PDF' : 'Cerrar',
+          showCancelButton: !!reporteId,
+          cancelButtonText: 'Cerrar',
+          confirmButtonColor: '#1a5f7a'
+        }).then(result => {
+          if (result.isConfirmed && reporteId) {
+            this.pdfService.generarReporteEntrega(reporteId).catch(e =>
+              Swal.fire('Error', extractError(e, 'generar el PDF del reporte'), 'error')
+            );
+          }
+        });
+      },
+      error: (err: any) => {
+        this.closeReactivarModal();
+        this.changeView('bodega');
+        this.loadCounters();
+        Swal.fire({ icon: 'warning', title: 'Reactivado', text: `Equipo "${equipo.nombre_equipo}" reactivado, pero no se pudo generar el formato de entrega: ${extractError(err, 'crear el reporte')}` });
       }
     });
   }

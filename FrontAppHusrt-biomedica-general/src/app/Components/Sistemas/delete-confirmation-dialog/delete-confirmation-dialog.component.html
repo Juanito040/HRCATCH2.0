@@ -29,7 +29,34 @@
         </label>
       </div>
       <div class="password-section" *ngIf="selectedAction === 'bodega'">
+        <div class="current-location-info" *ngIf="equipo">
+          <span class="location-label"><i class="fas fa-map-marker-alt"></i> Ubicación actual:</span>
+          <span class="location-path">
+            <span class="location-chip">{{ equipo.servicio?.sede?.nombres || 'Sin sede' }}</span>
+            <i class="fas fa-chevron-right location-sep"></i>
+            <span class="location-chip">{{ equipo.servicio?.nombres || 'Sin servicio' }}</span>
+            <ng-container *ngIf="equipo.ubicacion_especifica">
+              <i class="fas fa-chevron-right location-sep"></i>
+              <span class="location-chip">{{ equipo.ubicacion_especifica }}</span>
+            </ng-container>
+          </span>
+        </div>
         <div class="alert alert-warning"><strong>Motivo requerido:</strong> Indica el motivo por el cual se envía el equipo a bodega.</div>
+        <div class="form-group">
+          <label>Destino en bodega</label>
+          <div class="ubic-bod-toggle">
+            <button type="button" class="ubic-bod-btn"
+              [class.ubic-bod-btn--active]="tipoBodega === 'Bodega Sistemas'"
+              (click)="tipoBodega = 'Bodega Sistemas'">
+              Bodega Sistemas
+            </button>
+            <button type="button" class="ubic-bod-btn"
+              [class.ubic-bod-btn--active]="tipoBodega === 'Bodega Almacén'"
+              (click)="tipoBodega = 'Bodega Almacén'">
+              Bodega Almacén
+            </button>
+          </div>
+        </div>
         <div class="form-group">
           <label for="motivo">Motivo</label>
           <textarea id="motivo" class="form-control" [(ngModel)]="motivo" (input)="onPasswordInput()" placeholder="Ej: Equipo obsoleto, requiere reparación..." rows="3" [class.error]="passwordError"></textarea>

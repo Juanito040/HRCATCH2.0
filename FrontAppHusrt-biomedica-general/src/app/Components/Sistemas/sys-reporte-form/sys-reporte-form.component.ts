@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { SysReporteEntregaService, SysReporteEntrega } from '../../../Services/appServices/sistemasServices/sysreporteentrega/sysreporteentrega.service';
 import { ServicioService } from '../../../Services/appServices/general/servicio/servicio.service';
 import { SysequiposService } from '../../../Services/appServices/sistemasServices/sysequipos/sysequipos.service';
+import { SysReportePdfService } from '../../../Services/appServices/sistemasServices/sys-reporte-pdf/sys-reporte-pdf.service';
 import { getDecodedAccessToken } from '../../../utilidades';
 import Swal from 'sweetalert2';
 import { extractError } from '../../../utils/error-utils';
@@ -35,7 +36,8 @@ export class SysReporteFormComponent implements OnInit {
     private router: Router,
     private reporteService: SysReporteEntregaService,
     private servicioService: ServicioService,
-    private sysequiposService: SysequiposService
+    private sysequiposService: SysequiposService,
+    private pdfService: SysReportePdfService
   ) {}
 
   ngOnInit() {
@@ -173,13 +175,7 @@ export class SysReporteFormComponent implements OnInit {
     if (!this.savedReporteId) return;
     this.isDownloadingPdf = true;
     try {
-      const blob = await this.reporteService.descargarPdfReporte(this.savedReporteId);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `ReporteEntrega_${this.savedReporteId}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
+      await this.pdfService.generarReporteEntrega(this.savedReporteId);
     } catch (err) {
       Swal.fire('Error', extractError(err, 'generar el PDF del reporte de entrega'), 'error');
     } finally {
