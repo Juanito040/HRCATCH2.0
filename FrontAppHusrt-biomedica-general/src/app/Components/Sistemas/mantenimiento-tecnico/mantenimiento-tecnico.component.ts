@@ -13,7 +13,7 @@ import { DialogModule } from 'primeng/dialog';
 import { SysReporteService } from '../../../Services/appServices/sistemasServices/sysreporte/sysreporte.service';
 /* import { ArchivosService } from '../../../Services/appServices/general/archivos/archivos.service';
  */import { SysprotocoloService } from '../../../Services/appServices/sistemasServices/sysprotocolo/sysprotocolo.service';
- import { SysmantenimientoService } from '../../../Services/appServices/sistemasServices/sysmantenimiento/sysmantenimiento.service';
+import { SysmantenimientoService } from '../../../Services/appServices/sistemasServices/sysmantenimiento/sysmantenimiento.service';
 import { Router } from '@angular/router';
 import { jwtDecode } from 'jwt-decode';
 import Swal from 'sweetalert2';
@@ -195,20 +195,20 @@ export class SisMantenimientoTecnicoComponent implements OnInit {
         }
     }
 
-/*     async viewPdf(ruta: string) {
-        try {
-            const blob = await this.archivosServices.getArchivo(ruta);
-            if (blob.type === 'application/pdf') {
-                const objectUrl = URL.createObjectURL(blob);
-                window.open(objectUrl, '_blank');
-            } else {
-                const errorText = await blob.text();
-                console.error('No se recibió un PDF:', errorText);
+    /*     async viewPdf(ruta: string) {
+            try {
+                const blob = await this.archivosServices.getArchivo(ruta);
+                if (blob.type === 'application/pdf') {
+                    const objectUrl = URL.createObjectURL(blob);
+                    window.open(objectUrl, '_blank');
+                } else {
+                    const errorText = await blob.text();
+                    console.error('No se recibió un PDF:', errorText);
+                }
+            } catch (error) {
+                console.error('Error al obtener el PDF:', error);
             }
-        } catch (error) {
-            console.error('Error al obtener el PDF:', error);
-        }
-    } */
+        } */
 
     onGlobalFilter(event: Event, table: Table): void {
         const target = event.target as HTMLInputElement | null;
@@ -218,30 +218,30 @@ export class SisMantenimientoTecnicoComponent implements OnInit {
     }
 
     realizarReporte(idEquipo: number, idReporte: number) {
-        sessionStorage.setItem('TipoMantenimiento', 'P'); // Assuming Preventive for assigned tasks? Or could be Corrective
+        sessionStorage.setItem('TipoMantenimiento', 'P');
         sessionStorage.setItem('idReporte', idReporte.toString());
-        this.router.navigate(['biomedica/nuevoreporte/', idEquipo]);
+        this.router.navigate(['adminsistemas/reporteMantenimiento', idEquipo]);
     }
 
     onFileSelected(event: any) {
         this.selectedFile = event.target.files[0];
     }
 
- /*    async subirPdf() {
-        if (!this.selectedFile || !this.reportSelected) return;
-
-        try {
-            const res = await this.reportesService.uploadReportePdf(this.reportSelected.id, this.selectedFile);
-            Swal.fire('Éxito', 'Reporte PDF subido correctamente', 'success');
-            this.reportSelected.rutaPdf = res.rutaPdf;
-            this.selectedFile = null;
-            await this.cargarReportes(); // Actualizar la tabla para que cambie el botón
-        } catch (error) {
-            console.error('Error al subir PDF:', error);
-            Swal.fire('Error', 'No se pudo subir el archivo PDF', 'error');
-        }
-    }
- */
+    /*    async subirPdf() {
+           if (!this.selectedFile || !this.reportSelected) return;
+   
+           try {
+               const res = await this.reportesService.uploadReportePdf(this.reportSelected.id, this.selectedFile);
+               Swal.fire('Éxito', 'Reporte PDF subido correctamente', 'success');
+               this.reportSelected.rutaPdf = res.rutaPdf;
+               this.selectedFile = null;
+               await this.cargarReportes(); // Actualizar la tabla para que cambie el botón
+           } catch (error) {
+               console.error('Error al subir PDF:', error);
+               Swal.fire('Error', 'No se pudo subir el archivo PDF', 'error');
+           }
+       }
+    */
     descargarFormato() {
         if (this.reportSelected) {
             if (this.reportSelected.tipoMantenimiento === 'Preventivo') {
@@ -264,6 +264,6 @@ export class SisMantenimientoTecnicoComponent implements OnInit {
         sessionStorage.setItem('idReporte', this.reportSelected.id.toString());
 
         this.modalReport = false;
-        this.router.navigate(['biomedica/nuevoreporte/', this.reportSelected.equipo.id]);
+        this.router.navigate(['adminsistemas/reporteMantenimiento/', this.reportSelected.equipo.id]);
     }
 }

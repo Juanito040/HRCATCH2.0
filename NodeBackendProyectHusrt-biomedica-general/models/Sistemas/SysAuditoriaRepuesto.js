@@ -28,7 +28,7 @@ const SysAuditoriaRepuesto = sequelize.define('SysAuditoriaRepuesto', {
     allowNull: true
   },
   accion: {
-    type: DataTypes.ENUM('creacion', 'edicion', 'activacion', 'inactivacion', 'descuento_stock','descuento_stock'),
+    type: DataTypes.ENUM('creacion', 'edicion', 'activacion', 'inactivacion', 'descuento_stock','devolucion_stock'),
     allowNull: false
   },
   observacion: {

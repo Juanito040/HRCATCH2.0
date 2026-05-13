@@ -53,7 +53,7 @@ const Reporte = sequelize.define('Reporte', {
         allowNull: true,
     },
     trabajoRealizado: {
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT,
         allowNull: true,
     },
     calificacion: {

@@ -87,8 +87,8 @@
                                 field="equipo.placa_inventario"></p-sortIcon></th>
                         <th style="min-width:150px" pSortableColumn="servicio.nombres">Servicio <p-sortIcon
                                 field="servicio.nombres"></p-sortIcon></th>
-                        <th style="min-width:200px" pSortableColumn="equipo.ubicacionEspecifica">Ubicaci&oacute;n <p-sortIcon
-                                field="equipo.ubicacionEspecifica"></p-sortIcon></th>
+                        <th style="min-width:200px" pSortableColumn="equipo.ubicacionEspecifica">Ubicaci&oacute;n
+                            <p-sortIcon field="equipo.ubicacionEspecifica"></p-sortIcon></th>
                         <th style="min-width:150px" pSortableColumn="mesProgramado">Fecha Programada <p-sortIcon
                                 field="mesProgramado"></p-sortIcon></th>
                         <th style="min-width:100px" class="text-center">Acci&oacute;n</th>
@@ -105,9 +105,12 @@
                         <td>{{ report.equipo?.ubicacionEspecifica || 'N/A' }}</td>
                         <td>{{ report.mesProgramado }}/{{ report['añoProgramado'] }}</td>
                         <td class="text-center">
+                            <!-- Solo visible si el equipo tiene id_sysequipo -->
                             <button pButton icon="pi pi-play" class="p-button-success p-button-rounded p-button-sm"
                                 pTooltip="Realizar Mantenimiento" tooltipPosition="left"
-                                (click)="realizarReporte(report.equipo.id, report.id)"></button>
+                                *ngIf="report.equipo?.id_sysequipo"
+                                (click)="realizarReporte(report.equipo.id_sysequipo, report.id)">
+                            </button>
                         </td>
                     </tr>
                 </ng-template>
@@ -158,8 +161,8 @@
                                 field="equipo.placa_inventario"></p-sortIcon></th>
                         <th style="min-width:150px" pSortableColumn="servicio.nombres">Servicio <p-sortIcon
                                 field="servicio.nombres"></p-sortIcon></th>
-                        <th style="min-width:200px" pSortableColumn="equipo.ubicacionEspecifica">Ubicaci&oacute;n <p-sortIcon
-                                field="equipo.ubicacionEspecifica"></p-sortIcon></th>
+                        <th style="min-width:200px" pSortableColumn="equipo.ubicacionEspecifica">Ubicaci&oacute;n
+                            <p-sortIcon field="equipo.ubicacionEspecifica"></p-sortIcon></th>
                         <th style="min-width:150px" pSortableColumn="mesProgramado">Fecha Programada <p-sortIcon
                                 field="mesProgramado"></p-sortIcon></th>
                         <th style="min-width:120px" class="text-center">Opciones</th>
@@ -248,8 +251,8 @@
                                 field="equipo.placa_inventario"></p-sortIcon></th>
                         <th style="min-width:150px" pSortableColumn="servicio.nombres">Servicio <p-sortIcon
                                 field="servicio.nombres"></p-sortIcon></th>
-                        <th style="min-width:200px" pSortableColumn="equipo.ubicacionEspecifica">Ubicaci&oacute;n <p-sortIcon
-                                field="equipo.ubicacionEspecifica"></p-sortIcon></th>
+                        <th style="min-width:200px" pSortableColumn="equipo.ubicacionEspecifica">Ubicaci&oacute;n
+                            <p-sortIcon field="equipo.ubicacionEspecifica"></p-sortIcon></th>
                         <th style="min-width:150px" pSortableColumn="fechaRealizado">Fecha Realización <p-sortIcon
                                 field="fechaRealizado"></p-sortIcon></th>
                         <th style="min-width:120px" class="text-center">Opciones</th>
@@ -272,7 +275,7 @@
 
                             <button *ngIf="!(report.rutaPdf || report.urlReporte)" pButton label="Realizado"
                                 class="p-button-secondary p-button-sm mr-2" (click)="viewModalReport(report)"></button>
-<!-- 
+                            <!-- 
                             <button *ngIf="report.rutaPdf || report.urlReporte" pButton icon="pi pi-file-pdf"
                                 class="p-button-danger p-button-rounded p-button-text p-button-sm" pTooltip="Ver PDF"
                                 (click)="viewPdf(report.rutaPdf || report.urlReporte)"></button> -->
@@ -319,7 +322,8 @@
                         <div class="col-12 md:col-4">
                             <p><strong>Servicio:</strong> {{ reportSelected?.servicio.nombres }}</p>
                             <p><strong>Ubicaci&oacute;n:</strong> {{ reportSelected?.equipo.ubicacion }}</p>
-                            <p><strong>Ubicaci&oacute;n Específica:</strong> {{ reportSelected?.equipo.ubicacionEspecifica }}
+                            <p><strong>Ubicaci&oacute;n Específica:</strong> {{
+                                reportSelected?.equipo.ubicacionEspecifica }}
                             </p>
                         </div>
                     </div>
@@ -349,7 +353,8 @@
                         <div class="col-12 md:col-4">
                             <p><strong>Motivo:</strong> {{ reportSelected?.motivo }}</p>
                             <p><strong>Calificaci&oacute;n:</strong> {{ reportSelected?.calificacion }}</p>
-                            <p><strong>Mantenimiento Propio:</strong> {{ reportSelected?.mantenimientoPropio ? 'S&iacute;' :
+                            <p><strong>Mantenimiento Propio:</strong> {{ reportSelected?.mantenimientoPropio ?
+                                'S&iacute;' :
                                 'No' }}</p>
                             <p><strong>Realizado:</strong> {{ reportSelected?.realizado ? 'S&iacute;' : 'No' }}</p>
 
@@ -451,7 +456,7 @@
                             <p><strong>Registro Invima:</strong> {{ reportSelected?.usuario.registroInvima }}</p>
                         </div>
                         <div class="col-12 md:col-4 flex flex-column gap-2">
-                     <!--        <button type="button" class="btn btn-dark w-full" (click)="viewPdf(reportSelected?.rutaPdf)"
+                            <!--        <button type="button" class="btn btn-dark w-full" (click)="viewPdf(reportSelected?.rutaPdf)"
                                 *ngIf="reportSelected?.rutaPdf">
                                 <i class="pi pi-file-pdf mr-2"></i>Ver Reporte
                             </button> -->
@@ -470,7 +475,7 @@
                                 <label class="font-bold">Cargar Reporte Firmado (PDF):</label>
                                 <input type="file" (change)="onFileSelected($event)" accept=".pdf"
                                     class="form-control mb-2">
-                               <!--  <button type="button" class="btn btn-primary" [disabled]="!selectedFile"
+                                <!--  <button type="button" class="btn btn-primary" [disabled]="!selectedFile"
                                     (click)="subirPdf()">
                                     <i class="pi pi-upload mr-1"></i> Guardar PDF
                                 </button> -->

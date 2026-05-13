@@ -3,11 +3,6 @@ const sequelize = require('../../config/configDb');
 const TipoEquipo = require('../generales/TipoEquipo');
 
 const SysProtocoloPreventivo = sequelize.define('SysProtocoloPreventivo', {
-  id_sysprotocolo: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true
-  },
   paso: {
     type: DataTypes.TEXT,
     allowNull: false
