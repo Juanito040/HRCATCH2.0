@@ -56,6 +56,18 @@ const SysMovimientosStockRepuestos = sequelize.define('SysMovimientosStockRepues
     type: DataTypes.DATE,
     allowNull: false,
     defaultValue: DataTypes.NOW
+  },
+  factura_ruta: {
+    type: DataTypes.STRING(500),
+    allowNull: true
+  },
+  garantia_inicio: {
+    type: DataTypes.DATEONLY,
+    allowNull: true
+  },
+  garantia_fin: {
+    type: DataTypes.DATEONLY,
+    allowNull: true
   }
 }, {
   tableName: 'SysMovimientosStockRepuestos',

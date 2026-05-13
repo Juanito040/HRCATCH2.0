@@ -14,6 +14,9 @@ export interface SysMovimientoStock {
   referencia?: string;
   usuario?: string;
   fecha_movimiento?: string;
+  factura_ruta?: string;
+  garantia_inicio?: string;
+  garantia_fin?: string;
   repuesto?: {
     id_sysrepuesto: number;
     nombre: string;
@@ -51,8 +54,12 @@ export class SysMovimientosStockService {
     return this.http.get<{ success: boolean; data: any[] }>(`${this.apiUrl}/alertas`);
   }
 
-  registrarMovimiento(data: Partial<SysMovimientoStock>): Observable<{ success: boolean; message: string; data: SysMovimientoStock }> {
+  registrarMovimiento(data: FormData | Partial<SysMovimientoStock>): Observable<{ success: boolean; message: string; data: SysMovimientoStock }> {
     return this.http.post<{ success: boolean; message: string; data: SysMovimientoStock }>(this.apiUrl, data);
+  }
+
+  descargarFactura(id: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/descargar-factura/${id}`, { responseType: 'blob' });
   }
 
   exportarCSV(filtros?: MovimientoFiltros): Observable<Blob> {

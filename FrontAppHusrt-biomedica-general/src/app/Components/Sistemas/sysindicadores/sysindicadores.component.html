@@ -1,16 +1,42 @@
 <div class="dashboard-container bg-white min-h-screen p-3">
 
-  <!-- Header / Filtros -->
+  <!-- ══ Header / Filtros ══════════════════════════════════════════ -->
   <div class="card border-0 shadow-sm border-round-xl surface-card p-3 mb-3">
-    <div class="flex flex-column lg:flex-row justify-content-between align-items-center gap-3">
+    <div class="flex flex-column gap-3">
 
-      <!-- Título y Filtros -->
-      <div class="flex flex-column md:flex-row gap-3 align-items-center w-full lg:w-auto">
-        <label class="text-lg font-bold text-700">INDICADORES SISTEMAS</label>
+      <!-- Fila superior: título + botones rápidos + refresh -->
+      <div class="flex flex-column lg:flex-row justify-content-between align-items-center gap-2">
+        <label class="text-xl font-bold text-700 flex align-items-center gap-2">
+          <i class="pi pi-chart-bar text-primary"></i> INDICADORES SISTEMAS
+        </label>
 
+        <!-- Filtros rápidos -->
+        <div class="flex align-items-center gap-2 flex-wrap">
+          <span class="text-xs text-500 font-semibold">Período rápido:</span>
+          <button pButton label="Este mes" icon="pi pi-calendar"
+            class="p-button-outlined p-button-sm p-button-secondary"
+            (click)="filtrarEsteMes()"></button>
+          <button pButton label="Trimestre" icon="pi pi-calendar"
+            class="p-button-outlined p-button-sm p-button-info"
+            (click)="filtrarEsteTrimsestre()"></button>
+          <button pButton label="Semestre" icon="pi pi-calendar"
+            class="p-button-outlined p-button-sm p-button-warning"
+            (click)="filtrarEsteSemestre()"></button>
+          <button pButton label="Este año" icon="pi pi-calendar"
+            class="p-button-outlined p-button-sm p-button-success"
+            (click)="filtrarEsteAnio()"></button>
+        </div>
+
+        <button pButton icon="pi pi-sync" (click)="refrescar()"
+          class="p-button-rounded p-button-text p-button-secondary"
+          [loading]="loading()"></button>
+      </div>
+
+      <!-- Fila inferior: filtros manuales -->
+      <div class="flex align-items-center gap-2 flex-wrap">
         <div class="flex align-items-center gap-2 bg-white border-1 border-100 p-2 border-round-lg">
           <div class="flex flex-column">
-            <span class="text-xs text-500 font-semibold ml-1">A&ntilde;o</span>
+            <span class="text-xs text-500 font-semibold ml-1">Año</span>
             <input pInputText type="number" [(ngModel)]="anio"
               class="p-inputtext-sm w-5rem border-0 bg-transparent font-bold" (change)="refrescar()">
           </div>
@@ -28,164 +54,250 @@
           </div>
         </div>
 
-        <button pButton icon="pi pi-sync" (click)="refrescar()"
-          class="p-button-rounded p-button-text p-button-secondary"></button>
-      </div>
-
-      <!-- Totales -->
-      <div class="flex align-items-center gap-3">
         <span *ngIf="loading()" class="text-primary text-sm font-medium flex align-items-center gap-2">
           <i class="pi pi-spin pi-spinner"></i> Actualizando...
         </span>
-        <div class="bg-white border-1 border-100 px-4 py-2 border-round-2xl">
-          <span class="text-500 text-sm font-semibold mr-2">Total Reportes</span>
-          <span class="text-xl font-bold text-900">{{ reportes().length }}</span>
-        </div>
       </div>
     </div>
   </div>
 
-  <div class="grid" *ngIf="!loading()">
+  <div *ngIf="!loading()">
 
-    <!-- Fila 1: KPIs Principales (Preventivo/Correctivo/Tiempos) -->
-    <div class="col-12 lg:col-4">
-      <div class="card border-0 shadow-sm border-round-xl surface-card p-3 h-full flex flex-column">
-        <div class="flex align-items-center justify-content-between mb-3">
-          <span class="text-lg font-bold text-700 flex align-items-center gap-2">
-            <i class="pi pi-shield text-green-500"></i> Preventivo
-          </span>
-          <span class="text-xs font-medium bg-green-50 text-green-600 px-2 py-1 border-round">Cumplimiento: {{
-            preventivoInfo().cumplimiento }}%</span>
-        </div>
+    <!-- ══ Fila 0: KPIs Globales ══════════════════════════════════ -->
+    <div class="grid mb-1">
 
-        <div class="flex align-items-center gap-3 mb-3">
-          <div class="flex-1 bg-white border-1 border-100 p-2 border-round text-center">
-            <div class="text-xs text-500 font-bold mb-1">PROGRAMADOS</div>
-            <div class="text-xl font-bold text-900">{{ preventivoInfo().programados }}</div>
+      <div class="col-6 md:col-3">
+        <div class="card border-0 border-round-xl p-3 h-full"
+          style="background: linear-gradient(135deg,#3b82f6 0%,#1d4ed8 100%);">
+          <div class="flex align-items-center justify-content-between mb-2">
+            <span class="text-white text-sm font-semibold opacity-80">Total Reportes</span>
+            <i class="pi pi-file text-white opacity-70 text-xl"></i>
           </div>
-          <div class="flex-1 bg-white border-1 border-100 p-2 border-round text-center">
-            <div class="text-xs text-500 font-bold mb-1">REALIZADOS</div>
-            <div class="text-xl font-bold text-green-600">{{ preventivoInfo().realizados }}</div>
-          </div>
+          <div class="text-4xl font-black text-white">{{ reportes().length }}</div>
+          <div class="text-white opacity-70 text-xs mt-1">en el período seleccionado</div>
         </div>
-        <p-meterGroup [value]="preventivoMeterData()" labelPosition="start" [max]="100"
-          styleClass="w-full text-xs"></p-meterGroup>
       </div>
-    </div>
 
-    <div class="col-12 lg:col-4">
-      <div class="card border-0 shadow-sm border-round-xl surface-card p-3 h-full flex flex-column">
-        <div class="flex align-items-center justify-content-between mb-3">
-          <span class="text-lg font-bold text-700 flex align-items-center gap-2">
-            <i class="pi pi-wrench text-blue-500"></i> Correctivo
-          </span>
-          <span class="text-xs font-medium bg-blue-50 text-blue-600 px-2 py-1 border-round">Eficiencia</span>
-        </div>
-
-        <div class="flex align-items-center gap-3 mb-3">
-          <div class="flex-1 bg-white border-1 border-100 p-2 border-round text-center">
-            <div class="text-xs text-500 font-bold mb-1">REPORTADOS</div>
-            <div class="text-xl font-bold text-900">{{ correctivoInfo().reportados }}</div>
+      <div class="col-6 md:col-3">
+        <div class="card border-0 border-round-xl p-3 h-full"
+          style="background: linear-gradient(135deg,#10b981 0%,#047857 100%);">
+          <div class="flex align-items-center justify-content-between mb-2">
+            <span class="text-white text-sm font-semibold opacity-80">Preventivos</span>
+            <i class="pi pi-shield text-white opacity-70 text-xl"></i>
           </div>
-          <div class="flex-1 bg-white border-1 border-100 p-2 border-round text-center">
-            <div class="text-xs text-500 font-bold mb-1">ATENDIDOS</div>
-            <div class="text-xl font-bold text-blue-600">{{ correctivoInfo().realizados }}</div>
-          </div>
+          <div class="text-4xl font-black text-white">{{ allPreventivos().length }}</div>
+          <div class="text-white opacity-70 text-xs mt-1">Cumplimiento: {{ preventivoInfo().cumplimiento }}%</div>
         </div>
-        <p-meterGroup [value]="correctivoMeterData()" labelPosition="start" [max]="100"
-          styleClass="w-full text-xs"></p-meterGroup>
       </div>
-    </div>
 
-    <div class="col-12 lg:col-4">
-      <div
-        class="card border-0 shadow-sm border-round-xl surface-card p-3 h-full flex flex-column justify-content-center">
-        <span class="text-lg font-bold text-700 mb-2 block">Duraci&oacute;n Promedio</span>
-        <div class="flex gap-3 h-full">
-          <div
-            class="flex-1 bg-white border-1 border-green-100 border-round-xl p-3 flex flex-column align-items-center justify-content-center">
-            <span class="text-sm text-green-700 font-medium mb-1">Preventivo</span>
-            <span class="text-2xl font-black text-green-700">{{ duracionStats().preventivo }}</span>
-            <span class="text-xs text-green-600 mt-1">hh:mm:ss</span>
+      <div class="col-6 md:col-3">
+        <div class="card border-0 border-round-xl p-3 h-full"
+          style="background: linear-gradient(135deg,#f59e0b 0%,#b45309 100%);">
+          <div class="flex align-items-center justify-content-between mb-2">
+            <span class="text-white text-sm font-semibold opacity-80">Pendientes</span>
+            <i class="pi pi-exclamation-triangle text-white opacity-70 text-xl"></i>
           </div>
-          <div
-            class="flex-1 bg-white border-1 border-blue-100 border-round-xl p-3 flex flex-column align-items-center justify-content-center">
-            <span class="text-sm text-blue-700 font-medium mb-1">Correctivo</span>
-            <span class="text-2xl font-black text-blue-700">{{ duracionStats().correctivo }}</span>
-            <span class="text-xs text-blue-600 mt-1">hh:mm:ss</span>
+          <div class="text-4xl font-black text-white">{{ totalPendientes() }}</div>
+          <div class="text-white opacity-70 text-xs mt-1">sin completar</div>
+        </div>
+      </div>
+
+      <div class="col-6 md:col-3">
+        <div class="card border-0 border-round-xl p-3 h-full"
+          [style]="cumplimientoGlobal() >= 80
+            ? 'background: linear-gradient(135deg,#8b5cf6 0%,#5b21b6 100%)'
+            : 'background: linear-gradient(135deg,#ef4444 0%,#991b1b 100%)'">
+          <div class="flex align-items-center justify-content-between mb-2">
+            <span class="text-white text-sm font-semibold opacity-80">Cumplimiento Global</span>
+            <i [class]="cumplimientoGlobal() >= 80 ? 'pi pi-check-circle' : 'pi pi-times-circle'"
+              class="text-white opacity-70 text-xl"></i>
+          </div>
+          <div class="text-4xl font-black text-white">{{ cumplimientoGlobal() }}%</div>
+          <div class="text-white opacity-70 text-xs mt-1">
+            {{ cumplimientoGlobal() >= 80 ? '✓ Meta cumplida' : '⚠ Bajo meta (80%)' }}
           </div>
         </div>
       </div>
     </div>
 
+    <!-- ══ Fila 1: KPIs Preventivo / Correctivo / Duración ════════ -->
+    <div class="grid">
 
-
-    <!-- Fila 3: Distribuciones (Grid más denso) -->
-
-    <div class="col-12 lg:col-8">
-      <div class="card border-0 shadow-sm border-round-xl surface-card p-3 h-full">
-        <h5 class="text-lg font-bold text-800 mb-3">Actividad por Responsable</h5>
-        <div style="height: 350px;">
-          <p-chart type="bar" [data]="porUsuarioChartData()" [options]="getResponsableOptions()"></p-chart>
+      <div class="col-12 lg:col-4">
+        <div class="card border-0 shadow-sm border-round-xl surface-card p-3 h-full flex flex-column">
+          <div class="flex align-items-center justify-content-between mb-3">
+            <span class="text-lg font-bold text-700 flex align-items-center gap-2">
+              <i class="pi pi-shield text-green-500"></i> Preventivo
+            </span>
+            <div class="flex align-items-center gap-2">
+              <!-- Alerta si cumplimiento < 80% -->
+              <span *ngIf="alertaPreventivo()"
+                class="text-xs font-bold bg-red-100 text-red-600 px-2 py-1 border-round flex align-items-center gap-1">
+                <i class="pi pi-exclamation-triangle"></i> Bajo meta
+              </span>
+              <span class="text-xs font-medium bg-green-50 text-green-600 px-2 py-1 border-round">
+                Cumplimiento: {{ preventivoInfo().cumplimiento }}%
+              </span>
+            </div>
+          </div>
+          <div class="flex align-items-center gap-3 mb-3">
+            <div class="flex-1 bg-white border-1 border-100 p-2 border-round text-center">
+              <div class="text-xs text-500 font-bold mb-1">PROGRAMADOS</div>
+              <div class="text-xl font-bold text-900">{{ preventivoInfo().programados }}</div>
+            </div>
+            <div class="flex-1 bg-white border-1 border-100 p-2 border-round text-center">
+              <div class="text-xs text-500 font-bold mb-1">REALIZADOS</div>
+              <div class="text-xl font-bold text-green-600">{{ preventivoInfo().realizados }}</div>
+            </div>
+          </div>
+          <p-meterGroup [value]="preventivoMeterData()" labelPosition="start" [max]="100"
+            styleClass="w-full text-xs"></p-meterGroup>
         </div>
       </div>
-    </div>
 
-    <div class="col-12 lg:col-4">
-      <div class="card border-0 shadow-sm border-round-xl surface-card p-3 h-full">
-        <h5 class="text-lg font-bold text-800 mb-3">Por Tipo</h5>
-        <div class="flex justify-content-center align-items-center" style="height: 350px;">
-          <p-chart type="doughnut" [data]="porTipoChartData()" [options]="chartOptions()"></p-chart>
+      <div class="col-12 lg:col-4">
+        <div class="card border-0 shadow-sm border-round-xl surface-card p-3 h-full flex flex-column">
+          <div class="flex align-items-center justify-content-between mb-3">
+            <span class="text-lg font-bold text-700 flex align-items-center gap-2">
+              <i class="pi pi-wrench text-blue-500"></i> Correctivo
+            </span>
+            <span class="text-xs font-medium bg-blue-50 text-blue-600 px-2 py-1 border-round">Eficiencia</span>
+          </div>
+          <div class="flex align-items-center gap-3 mb-3">
+            <div class="flex-1 bg-white border-1 border-100 p-2 border-round text-center">
+              <div class="text-xs text-500 font-bold mb-1">REPORTADOS</div>
+              <div class="text-xl font-bold text-900">{{ correctivoInfo().reportados }}</div>
+            </div>
+            <div class="flex-1 bg-white border-1 border-100 p-2 border-round text-center">
+              <div class="text-xs text-500 font-bold mb-1">ATENDIDOS</div>
+              <div class="text-xl font-bold text-blue-600">{{ correctivoInfo().realizados }}</div>
+            </div>
+          </div>
+          <p-meterGroup [value]="correctivoMeterData()" labelPosition="start" [max]="100"
+            styleClass="w-full text-xs"></p-meterGroup>
         </div>
       </div>
-    </div>
 
-    <!-- Fila 4: Detalles -->
-    <div class="col-12 md:col-6">
-      <div class="card border-0 shadow-sm border-round-xl surface-card p-3 h-full">
-        <h5 class="text-lg font-bold text-800 mb-3">Top 5 Servicios con más Mantenimientos</h5>
-        <div style="height: 300px;">
-          <p-chart type="bar" [data]="porServicioChartData()" [options]="barOptions()"></p-chart>
+      <div class="col-12 lg:col-4">
+        <div class="card border-0 shadow-sm border-round-xl surface-card p-3 h-full flex flex-column justify-content-center">
+          <span class="text-lg font-bold text-700 mb-2 block">Duración Promedio</span>
+          <div class="flex gap-3 h-full">
+            <div class="flex-1 bg-white border-1 border-green-100 border-round-xl p-3 flex flex-column align-items-center justify-content-center">
+              <span class="text-sm text-green-700 font-medium mb-1">Preventivo</span>
+              <span class="text-2xl font-black text-green-700">{{ duracionStats().preventivo }}</span>
+              <span class="text-xs text-green-600 mt-1">hh:mm:ss</span>
+            </div>
+            <div class="flex-1 bg-white border-1 border-blue-100 border-round-xl p-3 flex flex-column align-items-center justify-content-center">
+              <span class="text-sm text-blue-700 font-medium mb-1">Correctivo</span>
+              <span class="text-2xl font-black text-blue-700">{{ duracionStats().correctivo }}</span>
+              <span class="text-xs text-blue-600 mt-1">hh:mm:ss</span>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="col-12 md:col-6">
-      <div class="card border-0 shadow-sm border-round-xl surface-card p-3 h-full">
-        <h5 class="text-lg font-bold text-800 mb-3">Reportes por Falla</h5>
-        <div style="height: 300px;">
-          <p-chart type="bar" [data]="porFallaChartData()" [options]="barOptions()"></p-chart>
+      <!-- ══ Fila 2: Tendencia Mensual (NUEVO) + Por Tipo ══════════ -->
+      <div class="col-12 lg:col-8">
+        <div class="card border-0 shadow-sm border-round-xl surface-card p-3 h-full">
+          <h5 class="text-lg font-bold text-800 mb-3 flex align-items-center gap-2">
+            <i class="pi pi-chart-line text-primary"></i> Tendencia Mensual
+          </h5>
+          <div style="height: 300px;">
+            <p-chart type="line" [data]="porMesChartData()" [options]="lineOptions()"></p-chart>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Fila 5: Preventivos vs Correctivos por Equipo (Side by Side) -->
-    <div class="col-12 md:col-6">
-      <div class="card border-0 shadow-sm border-round-xl surface-card p-3 h-full">
-        <h5 class="text-lg font-bold text-800 mb-3">Preventivos por Tipo de Equipo</h5>
-        <div style="height: 250px;">
-          <p-chart type="bar" [data]="preventivoPorTipoEquipoChartData()" [options]="barOptions()"></p-chart>
+      <div class="col-12 lg:col-4">
+        <div class="card border-0 shadow-sm border-round-xl surface-card p-3 h-full">
+          <h5 class="text-lg font-bold text-800 mb-3">Por Tipo</h5>
+          <div class="flex justify-content-center align-items-center" style="height: 300px;">
+            <p-chart type="doughnut" [data]="porTipoChartData()" [options]="chartOptions()"></p-chart>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="col-12 md:col-6">
-      <div class="card border-0 shadow-sm border-round-xl surface-card p-3 h-full">
-        <h5 class="text-lg font-bold text-800 mb-3">Correctivos por Tipo de Equipo</h5>
-        <div style="height: 250px;">
-          <p-chart type="bar" [data]="correctivoPorTipoEquipoChartData()" [options]="barOptions()"></p-chart>
+      <!-- ══ Fila 3: Actividad por Responsable + Pendientes (NUEVO) -->
+      <div class="col-12 lg:col-8">
+        <div class="card border-0 shadow-sm border-round-xl surface-card p-3 h-full">
+          <h5 class="text-lg font-bold text-800 mb-3 flex align-items-center gap-2">
+            <i class="pi pi-users text-indigo-500"></i> Actividad por Responsable
+          </h5>
+          <div style="height: 320px;">
+            <p-chart type="bar" [data]="porUsuarioChartData()" [options]="getResponsableOptions()"></p-chart>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="col-12">
-      <div class="card border-0 shadow-sm border-round-xl surface-card p-3 h-full">
-        <h5 class="text-lg font-bold text-800 mb-3">Top 10 Equipos con más Reportes</h5>
-        <div style="height: 350px;">
-          <p-chart type="bar" [data]="topEquiposChartData()" [options]="barOptions()"></p-chart>
+      <div class="col-12 lg:col-4">
+        <div class="card border-0 shadow-sm border-round-xl surface-card p-3 h-full">
+          <h5 class="text-lg font-bold text-800 mb-1 flex align-items-center gap-2">
+            <i class="pi pi-clock text-orange-500"></i> Pendientes por Responsable
+          </h5>
+          <span class="text-xs text-500 mb-3 block">Preventivos sin completar por técnico</span>
+          <div style="height: 280px;">
+            <p-chart type="bar" [data]="pendientesPorResponsableChartData()" [options]="barOptions()"></p-chart>
+          </div>
         </div>
       </div>
-    </div>
 
+      <!-- ══ Fila 4: Servicios + Fallas ════════════════════════════ -->
+      <div class="col-12 md:col-6">
+        <div class="card border-0 shadow-sm border-round-xl surface-card p-3 h-full">
+          <h5 class="text-lg font-bold text-800 mb-3">Top 5 Servicios con más Mantenimientos</h5>
+          <div style="height: 300px;">
+            <p-chart type="bar" [data]="porServicioChartData()" [options]="barOptions()"></p-chart>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 md:col-6">
+        <div class="card border-0 shadow-sm border-round-xl surface-card p-3 h-full">
+          <h5 class="text-lg font-bold text-800 mb-3">Reportes por Falla</h5>
+          <div style="height: 300px;">
+            <p-chart type="bar" [data]="porFallaChartData()" [options]="barOptions()"></p-chart>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ Fila 5: Por Tipo de Equipo ═════════════════════════════ -->
+      <div class="col-12 md:col-6">
+        <div class="card border-0 shadow-sm border-round-xl surface-card p-3 h-full">
+          <h5 class="text-lg font-bold text-800 mb-3">Preventivos por Tipo de Equipo</h5>
+          <div style="height: 250px;">
+            <p-chart type="bar" [data]="preventivoPorTipoEquipoChartData()" [options]="barOptions()"></p-chart>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 md:col-6">
+        <div class="card border-0 shadow-sm border-round-xl surface-card p-3 h-full">
+          <h5 class="text-lg font-bold text-800 mb-3">Correctivos por Tipo de Equipo</h5>
+          <div style="height: 250px;">
+            <p-chart type="bar" [data]="correctivoPorTipoEquipoChartData()" [options]="barOptions()"></p-chart>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ Fila 6: Top 10 Equipos ═════════════════════════════════ -->
+      <div class="col-12">
+        <div class="card border-0 shadow-sm border-round-xl surface-card p-3 h-full">
+          <h5 class="text-lg font-bold text-800 mb-3">Top 10 Equipos con más Reportes</h5>
+          <div style="height: 350px;">
+            <p-chart type="bar" [data]="topEquiposChartData()" [options]="barOptions()"></p-chart>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </div>
+
+  <!-- Loading skeleton -->
+  <div *ngIf="loading()" class="flex justify-content-center align-items-center" style="min-height: 400px;">
+    <div class="text-center">
+      <i class="pi pi-spin pi-spinner text-primary" style="font-size: 3rem;"></i>
+      <p class="text-600 mt-3 font-medium">Cargando indicadores...</p>
+    </div>
+  </div>
+
 </div>
