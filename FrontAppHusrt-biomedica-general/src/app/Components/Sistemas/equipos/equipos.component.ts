@@ -10,10 +10,11 @@ import { SysEquipoDetailModalComponent } from '../equipo-detail-modal/equipo-det
 import { SysDeleteConfirmationDialogComponent, DeleteAction } from '../delete-confirmation-dialog/delete-confirmation-dialog.component';
 import { SysReactivarEquipoModalComponent, ReactivarEquipoData } from '../reactivar-equipo-modal/reactivar-equipo-modal.component';
 import { SysHistorialEquipoComponent } from '../historial-equipo/historial-equipo.component';
+import { SysTrasladosModalComponent } from '../traslados-modal/traslados-modal.component';
 import { SysReportesEquipoComponent } from '../sys-reportes-equipo/sys-reportes-equipo.component';
 import { SysReporteEntregaService } from '../../../Services/appServices/sistemasServices/sysreporteentrega/sysreporteentrega.service';
 import { SysReportePdfService } from '../../../Services/appServices/sistemasServices/sys-reporte-pdf/sys-reporte-pdf.service';
-import { getDecodedAccessToken } from '../../../utilidades';
+import { getDecodedAccessToken, isSistemasSoloLectura } from '../../../utilidades';
 import { MenuItem } from 'primeng/api';
 import Swal from 'sweetalert2';
 import { extractError } from '../../../utils/error-utils';
@@ -31,7 +32,8 @@ import { forkJoin, Observable } from 'rxjs';
     SysDeleteConfirmationDialogComponent,
     SysReactivarEquipoModalComponent,
     SysHistorialEquipoComponent,
-    SysReportesEquipoComponent
+    SysReportesEquipoComponent,
+    SysTrasladosModalComponent
   ],
   templateUrl: './equipos.component.html',
   styleUrls: ['./equipos.component.css']
@@ -58,6 +60,7 @@ export class SisEquiposComponent implements OnInit {
   totalBaja: number = 0;
 
   isLoading: boolean = true;
+  isDownloading: boolean = false;
   error: string | null = null;
 
   isModalOpen: boolean = false;
@@ -74,6 +77,9 @@ export class SisEquiposComponent implements OnInit {
 
   isHistorialModalOpen: boolean = false;
   equipoToHistorial: SysEquipo | null = null;
+
+  isTrasladosModalOpen: boolean = false;
+  equipoToTraslados: SysEquipo | null = null;
 
   isReporteFormOpen: boolean = false;
   equipoForReporte: any = null;
@@ -131,6 +137,7 @@ export class SisEquiposComponent implements OnInit {
           this.equipos = Array.isArray(response.data) ? response.data : [response.data];
           this.totalBodega = this.equipos.length;
           this.applyFilters();
+          this.restorePageFromUrl();
         } else {
           this.error = response.message || 'Error al cargar equipos en bodega';
           this.equipos = []; this.filteredEquipos = []; this.pagedEquipos = [];
@@ -157,6 +164,7 @@ export class SisEquiposComponent implements OnInit {
           this.equipos = Array.isArray(response.data) ? response.data : [response.data];
           this.totalBaja = this.equipos.length;
           this.applyFilters();
+          this.restorePageFromUrl();
         } else {
           this.error = response.message || 'Error al cargar equipos dados de baja';
           this.equipos = []; this.filteredEquipos = []; this.pagedEquipos = [];
@@ -203,6 +211,7 @@ export class SisEquiposComponent implements OnInit {
         }
         
         this.applyFilters();
+        this.restorePageFromUrl();
         this.isLoading = false;
       },
       error: (err) => {
@@ -244,6 +253,10 @@ export class SisEquiposComponent implements OnInit {
   get isAdmin(): boolean {
     const decoded = getDecodedAccessToken();
     return decoded?.rol === 'ADMINISTRADOR' || decoded?.rol === 'SUPERADMIN';
+  }
+
+  get isReadOnly(): boolean {
+    return isSistemasSoloLectura();
   }
 
   loadCounters() {
@@ -323,6 +336,7 @@ export class SisEquiposComponent implements OnInit {
     this.selectedActivo = undefined;
     this.resetSearchInput();
     this.resetEstadoSelect();
+    this.router.navigate([], { relativeTo: this.route, queryParams: { page: null }, queryParamsHandling: 'merge', replaceUrl: true });
 
     if (view === 'bodega') {
       this.loadBodegaData();
@@ -362,6 +376,20 @@ export class SisEquiposComponent implements OnInit {
     if (page < 1 || page > this.totalPages) return;
     this.currentPage = page;
     this.updatePage();
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { page: page > 1 ? page : null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
+  }
+
+  private restorePageFromUrl() {
+    const saved = Number(this.route.snapshot.queryParams['page']) || 1;
+    if (saved > 1 && saved <= this.totalPages) {
+      this.currentPage = saved;
+      this.updatePage();
+    }
   }
 
   getPagesArray(): number[] {
@@ -427,6 +455,23 @@ export class SisEquiposComponent implements OnInit {
     this.loadCounters();
   }
 
+  async descargarInventario() {
+    this.isDownloading = true;
+    try {
+      const blob = await this.sysequiposService.exportarInventario('todos', false, true);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Inventario_Equipos_Sistemas.xlsx';
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      Swal.fire('Error', 'No se pudo descargar el inventario.', 'error');
+    } finally {
+      this.isDownloading = false;
+    }
+  }
+
   verHojaVida(equipo: SysEquipo) {
     if (equipo.id_sysequipo) {
       this.router.navigate(['/adminsistemas/hojavida', equipo.id_sysequipo]);
@@ -434,9 +479,24 @@ export class SisEquiposComponent implements OnInit {
   }
 
   private buildOpciones(equipo: SysEquipo): MenuItem[] {
-    const opcionHistorial  = { label: 'Ver Historial',     icon: 'fas fa-history',       command: () => this.openHistorialModal(equipo) };
-    const opcionReporte    = { label: 'Reporte de Entrega',icon: 'fas fa-file-export',   command: () => this.openReporteForm(equipo) };
-    const opcionVerReportes= { label: 'Ver Reportes',      icon: 'fas fa-clipboard-list',command: () => this.openReportesList(equipo) };
+    const opcionHistorial   = { label: 'Ver Historial',        icon: 'fas fa-history',       command: () => this.openHistorialModal(equipo) };
+    const opcionTraslados   = { label: 'Registro de Traslados',icon: 'fas fa-exchange-alt',  command: () => this.openTrasladosModal(equipo) };
+    const opcionReporte     = { label: 'Reporte de Entrega',   icon: 'fas fa-file-export',   command: () => this.openReporteForm(equipo) };
+    const opcionVerReportes = { label: 'Ver Reportes',         icon: 'fas fa-clipboard-list',command: () => this.openReportesList(equipo) };
+
+    if (this.isReadOnly) {
+      const opcionesLectura = [
+        { label: 'Ver Detalles', icon: 'pi pi-eye', command: () => this.openDetailModal(equipo) },
+        opcionVerReportes,
+        opcionHistorial,
+        opcionTraslados,
+      ];
+      if (this.selectedView === 'baja') {
+        opcionesLectura.push({ label: 'Descargar PDF Baja', icon: 'fas fa-file-contract', command: () => this.descargarPdfBaja(equipo) });
+      }
+      return opcionesLectura;
+    }
+
     if (this.selectedView === 'all') {
       return [
         { label: 'Ver Detalles',             icon: 'pi pi-eye',      command: () => this.openDetailModal(equipo) },
@@ -445,6 +505,7 @@ export class SisEquiposComponent implements OnInit {
         opcionReporte,
         opcionVerReportes,
         opcionHistorial,
+        opcionTraslados,
         { label: 'Enviar a Bodega / Baja',   icon: 'pi pi-trash',    command: () => this.confirmDelete(equipo) }
       ];
     } else if (this.selectedView === 'bodega') {
@@ -454,13 +515,15 @@ export class SisEquiposComponent implements OnInit {
         opcionReporte,
         opcionVerReportes,
         opcionHistorial,
+        opcionTraslados,
         { label: 'Dar de Baja',  icon: 'pi pi-trash',     command: () => this.confirmDelete(equipo) }
       ];
     } else {
       return [
-        { label: 'Ver Detalles',       icon: 'pi pi-eye',         command: () => this.openDetailModal(equipo) },
+        { label: 'Ver Detalles',       icon: 'pi pi-eye',            command: () => this.openDetailModal(equipo) },
         opcionReporte,
         opcionVerReportes,
+        opcionTraslados,
         { label: 'Descargar PDF Baja', icon: 'fas fa-file-contract', command: () => this.descargarPdfBaja(equipo) },
         opcionHistorial
       ];
@@ -475,6 +538,17 @@ export class SisEquiposComponent implements OnInit {
   closeHistorialModal() {
     this.isHistorialModalOpen = false;
     this.equipoToHistorial = null;
+  }
+
+  openTrasladosModal(equipo: SysEquipo) {
+    if (equipo.id_sysequipo) {
+      this.router.navigate(['/adminsistemas/traslados', equipo.id_sysequipo]);
+    }
+  }
+
+  closeTrasladosModal() {
+    this.isTrasladosModalOpen = false;
+    this.equipoToTraslados = null;
   }
 
   openReporteForm(equipo: any) {
@@ -548,7 +622,7 @@ export class SisEquiposComponent implements OnInit {
 
     if (deleteAction.action === 'bodega') {
       const tipoBodega = deleteAction.data.tipo_bodega || 'Bodega Sistemas';
-      this.sysequiposService.enviarABodega(id, deleteAction.data.motivo, tipoBodega).subscribe({
+      this.sysequiposService.enviarABodega(id, deleteAction.data.motivo, tipoBodega, deleteAction.data.nombre_receptor, deleteAction.data.cargo_receptor, deleteAction.data.observaciones_traslado).subscribe({
         next: (response) => {
           if (this.deleteDialog) this.deleteDialog.resetSubmitting();
           if (response.success) {
@@ -697,7 +771,11 @@ export class SisEquiposComponent implements OnInit {
 
     this.sysequiposService.reactivarEquipo(equipoId, {
       ubicacion: data.ubicacion || undefined,
-      ubicacion_especifica: data.ubicacion_especifica || undefined
+      ubicacion_especifica: data.ubicacion_especifica || undefined,
+      nombre_receptor: data.recibidoPor || undefined,
+      cargo_receptor: data.cargo_receptor || undefined,
+      observaciones: data.observaciones || undefined,
+      servicioDestinoId: data.servicioDestinoId || undefined
     }).subscribe({
       next: (response) => {
         if (!response.success) {

@@ -107,6 +107,14 @@ const SysEquipo = sequelize.define('SysEquipo', {
       key: 'id'
     }
   },
+  id_servicio_anterior_fk: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: Servicio,
+      key: 'id'
+    }
+  },
   id_tipo_equipo_fk: {
     type: DataTypes.INTEGER,
     allowNull: true,
@@ -131,6 +139,8 @@ const SysEquipo = sequelize.define('SysEquipo', {
 // Asociaciones
 SysEquipo.belongsTo(Servicio, { foreignKey: 'id_servicio_fk', as: 'servicio' });
 Servicio.hasMany(SysEquipo, { foreignKey: 'id_servicio_fk', as: 'sysEquipos' });
+
+SysEquipo.belongsTo(Servicio, { foreignKey: 'id_servicio_anterior_fk', as: 'servicioAnterior', constraints: false });
 
 SysEquipo.belongsTo(TipoEquipo, { foreignKey: 'id_tipo_equipo_fk', as: 'tipoEquipo' });
 TipoEquipo.hasMany(SysEquipo, { foreignKey: 'id_tipo_equipo_fk', as: 'sysEquipos' });

@@ -25,6 +25,7 @@ export interface SysEquipo {
   numero_puertos?: number;
   mtto?: number;
   id_servicio_fk?: number;
+  id_servicio_anterior_fk?: number;
   id_tipo_equipo_fk?: number;
   id_usuario_fk?: number;
   servicio?: any;
@@ -75,8 +76,8 @@ export class SysequiposService {
     return this.http.patch<SysEquipoResponse>(`${this.apiUrl}/${id}`, equipo);
   }
 
-  enviarABodega(id: number, motivo?: string, tipoBodega?: string): Observable<SysEquipoResponse> {
-    return this.http.post<SysEquipoResponse>(`${this.apiUrl}/${id}/bodega`, { motivo, tipo_bodega: tipoBodega });
+  enviarABodega(id: number, motivo?: string, tipoBodega?: string, nombre_receptor?: string, cargo_receptor?: string, observaciones?: string): Observable<SysEquipoResponse> {
+    return this.http.post<SysEquipoResponse>(`${this.apiUrl}/${id}/bodega`, { motivo, tipo_bodega: tipoBodega, nombre_receptor, cargo_receptor, observaciones });
   }
 
   darDeBaja(id: number, data: { justificacion_baja: string; accesorios_reutilizables?: string; id_usuario?: number; password: string; }): Observable<SysEquipoResponse> {
@@ -91,7 +92,7 @@ export class SysequiposService {
     return this.http.get<SysEquipoResponse>(`${this.apiUrl}/dados-baja`);
   }
 
-  reactivarEquipo(id: number, data?: { ubicacion?: string; ubicacion_especifica?: string }): Observable<SysEquipoResponse> {
+  reactivarEquipo(id: number, data?: { ubicacion?: string; ubicacion_especifica?: string; nombre_receptor?: string; cargo_receptor?: string; observaciones?: string; servicioDestinoId?: number }): Observable<SysEquipoResponse> {
     return this.http.patch<SysEquipoResponse>(`${this.apiUrl}/${id}/reactivar`, data || {});
   }
 
@@ -99,10 +100,16 @@ export class SysequiposService {
     return this.http.get<any[]>(`${this.apiUrl}/tiposequipo`);
   }
 
-  exportarInventario(tipo: 'todos' | 'bodega' | 'activo' | 'inactivo', obsolescencia: boolean = true): Promise<Blob> {
+  getTraslados(id: number): Promise<any> {
+    return firstValueFrom(
+      this.http.get<any>(`${this.apiUrl}/${id}/traslados`)
+    );
+  }
+
+  exportarInventario(tipo: 'todos' | 'bodega' | 'activo' | 'inactivo', obsolescencia: boolean = true, completo: boolean = false): Promise<Blob> {
     return firstValueFrom(
       this.http.get(`${this.apiUrl}/exportar`, {
-        params: { tipo, obsolescencia: String(obsolescencia) },
+        params: { tipo, obsolescencia: String(obsolescencia), completo: String(completo) },
         responseType: 'blob'
       })
     );

@@ -100,6 +100,7 @@ import { ProgramarMantenimientoComponent } from './Components/Sistemas/programar
 import { SisRepuestosComponent } from './Components/Sistemas/repuestos/repuestos.component';
 import { HistoricoMantenimientosEquipoComponent } from './Components/Sistemas/historico-mantenimientos-equipo/historico-mantenimientos-equipo.component';
 import { SysindicadoresComponent } from './Components/Sistemas/sysindicadores/sysindicadores.component';
+import { SysTrasladosEquipoComponent } from './Components/Sistemas/sys-traslados-equipo/sys-traslados-equipo.component';
 
 export const routes: Routes = [
 
@@ -226,6 +227,7 @@ export const routes: Routes = [
   { path: 'adminsistemas/repuestos', component: SisRepuestosComponent, canActivate: [authGuard], data: { roles: ['SYSTEMADMIN', 'SYSTEMUSER', 'SISTEMASADMIN', 'SISTEMASUSER', 'SUPERADMIN', 'SISTEMASTECNICO'] } },
   { path: 'adminsistemas/historico-mantenimiento/:equipoId', component: HistoricoMantenimientosEquipoComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER', 'SISTEMASADMIN', 'SISTEMASUSER', 'SISTEMASTECNICO'] } },
   { path: 'adminsistemas/indicadores', component: SysindicadoresComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER', 'SISTEMASADMIN', 'SISTEMASUSER', 'SISTEMASTECNICO'] } },
+  { path: 'adminsistemas/traslados/:equipoId', component: SysTrasladosEquipoComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER', 'SISTEMASADMIN', 'SISTEMASUSER', 'SISTEMASTECNICO'] } },
 
   { path: 'intranet', component: IntranetComponent }
 ];

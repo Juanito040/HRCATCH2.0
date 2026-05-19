@@ -20,7 +20,9 @@
           <button class="btn btn-outline" (click)="descargarPdf()" [disabled]="isDownloading">
             {{ isDownloading ? 'Generando...' : 'Descargar PDF' }}
           </button>
-          <button class="btn btn-primary" (click)="startEditing()">Editar</button>
+          @if (!isReadOnly) {
+            <button class="btn btn-primary" (click)="startEditing()">Editar</button>
+          }
         }
       }
       @if (isEditing && !isLoading) {
@@ -55,10 +57,16 @@
       <div class="new-notice-icon"><i class="fas fa-clipboard-list"></i></div>
       <div class="new-notice-content">
         <strong class="new-notice-title">Este equipo aún no tiene Hoja de Vida registrada</strong>
-        <span class="new-notice-sub">
-          Completa el formulario a continuación y pulsa <strong>Guardar</strong> para crearla.
-          Los campos marcados con <span class="req-star">*</span> son obligatorios.
-        </span>
+        @if (!isReadOnly) {
+          <span class="new-notice-sub">
+            Completa el formulario a continuación y pulsa <strong>Guardar</strong> para crearla.
+            Los campos marcados con <span class="req-star">*</span> son obligatorios.
+          </span>
+        } @else {
+          <span class="new-notice-sub">
+            La hoja de vida de este equipo aún no ha sido registrada por un administrador.
+          </span>
+        }
       </div>
     </div>
   }

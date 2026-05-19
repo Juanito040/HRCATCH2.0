@@ -6,6 +6,7 @@ const SysHojaVida = require('../../models/Sistemas/SysHojaVida');
 const SysBaja = require('../../models/Sistemas/SysBaja');
 const SysBodega = require('../../models/Sistemas/SysBodega');
 const SysTrazabilidad = require('../../models/Sistemas/SysTrazabilidad');
+const SysTraslado = require('../../models/Sistemas/SysTraslado');
 const Servicio = require('../../models/generales/Servicio');
 const Sede = require('../../models/generales/Sede');
 const TipoEquipo = require('../../models/generales/TipoEquipo');
@@ -223,7 +224,12 @@ exports.enviarABodegaPost = async (req, res) => {
     const t = await sequelize.transaction();
     try {
         const { id } = req.params;
-        const { motivo, tipo_bodega } = req.body || {};
+        const { motivo, tipo_bodega, nombre_receptor, cargo_receptor, observaciones } = req.body || {};
+
+        if (!nombre_receptor || !cargo_receptor) {
+            await t.rollback();
+            return res.status(400).json({ success: false, message: 'nombre_receptor y cargo_receptor son obligatorios' });
+        }
 
         const equipo = await SysEquipo.findByPk(id, { transaction: t });
         if (!equipo) {
@@ -231,13 +237,17 @@ exports.enviarABodegaPost = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Equipo no encontrado' });
         }
 
+        const servicioAnteriorId = equipo.id_servicio_fk;
+
         await SysEquipo.update({
             activo: 0,
             ubicacion_anterior: equipo.ubicacion,
             ubicacion: 'Bodega',
             ubicacion_especifica: null,
             estado_baja: 0,
-            ubic_bod: tipo_bodega || null
+            ubic_bod: tipo_bodega || null,
+            id_servicio_anterior_fk: servicioAnteriorId,
+            id_servicio_fk: null
         }, { where: { id_sysequipo: id }, transaction: t });
 
         await SysBodega.destroy({ where: { id_sysequipo_fk: id }, transaction: t });
@@ -252,6 +262,21 @@ exports.enviarABodegaPost = async (req, res) => {
         }, { transaction: t });
 
         await t.commit();
+
+        // Registro de traslado fuera de la transacción principal para no bloquear la operación de bodega
+        SysTraslado.create({
+            tipo: 'BODEGA',
+            ubicacion_origen: equipo.ubicacion || null,
+            ubicacion_destino: tipo_bodega || 'Bodega',
+            nombre_receptor,
+            cargo_receptor,
+            observaciones: observaciones || null,
+            fecha: new Date(),
+            id_sysequipo_fk: id,
+            id_servicio_origen_fk: servicioAnteriorId,
+            id_servicio_destino_fk: null,
+            id_sysusuario_fk: req.user?.id || null
+        }).catch(e => console.error('[SysTraslado BODEGA] No se pudo registrar el traslado:', e.message));
 
         const tipoBodegaLabel = tipo_bodega || 'Bodega';
         const detallesBodega = motivo
@@ -345,7 +370,12 @@ exports.reactivarSysEquipo = async (req, res) => {
     const t = await sequelize.transaction();
     try {
         const { id } = req.params;
-        const { ubicacion, ubicacion_especifica } = req.body || {};
+        const { ubicacion, ubicacion_especifica, nombre_receptor, cargo_receptor, observaciones, servicioDestinoId } = req.body || {};
+
+        if (!nombre_receptor || !cargo_receptor) {
+            await t.rollback();
+            return res.status(400).json({ success: false, message: 'nombre_receptor y cargo_receptor son obligatorios' });
+        }
 
         const equipoActual = await SysEquipo.findByPk(id, { transaction: t });
         if (!equipoActual) {
@@ -355,6 +385,7 @@ exports.reactivarSysEquipo = async (req, res) => {
 
         const tipoBodega = equipoActual.ubic_bod || 'Bodega';
         const nuevaUbicacion = ubicacion || equipoActual.ubicacion_anterior || null;
+        const servicioDestino = servicioDestinoId ?? equipoActual.id_servicio_anterior_fk ?? null;
 
         const [affected] = await SysEquipo.update(
             {
@@ -363,7 +394,9 @@ exports.reactivarSysEquipo = async (req, res) => {
                 ubicacion_anterior: null,
                 ubicacion: nuevaUbicacion,
                 ubicacion_especifica: ubicacion_especifica || null,
-                ubic_bod: null
+                ubic_bod: null,
+                id_servicio_fk: servicioDestino,
+                id_servicio_anterior_fk: null
             },
             { where: { id_sysequipo: id }, transaction: t }
         );
@@ -375,6 +408,21 @@ exports.reactivarSysEquipo = async (req, res) => {
         await SysBodega.destroy({ where: { id_sysequipo_fk: id }, transaction: t });
 
         await t.commit();
+
+        // Registro de traslado fuera de la transacción principal
+        SysTraslado.create({
+            tipo: 'REACTIVACION',
+            ubicacion_origen: tipoBodega,
+            ubicacion_destino: nuevaUbicacion || null,
+            nombre_receptor,
+            cargo_receptor,
+            observaciones: observaciones || null,
+            fecha: new Date(),
+            id_sysequipo_fk: id,
+            id_servicio_origen_fk: null,
+            id_servicio_destino_fk: servicioDestino,
+            id_sysusuario_fk: req.user?.id || null
+        }).catch(e => console.error('[SysTraslado REACTIVACION] No se pudo registrar el traslado:', e.message));
 
         await registrarTrazabilidad({
             accion: 'REACTIVACION',

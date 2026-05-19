@@ -4,6 +4,8 @@ const { Op } = require('sequelize');
 const SysTrazabilidad = require('../../models/Sistemas/SysTrazabilidad');
 const SysEquipo = require('../../models/Sistemas/SysEquipo');
 const SysBaja = require('../../models/Sistemas/SysBaja');
+const SysTraslado = require('../../models/Sistemas/SysTraslado');
+const Servicio = require('../../models/generales/Servicio');
 const Usuario = require('../../models/generales/Usuario');
 
 const INCLUDE_USUARIO = [
@@ -13,12 +15,12 @@ const INCLUDE_EQUIPO = [
     { model: SysEquipo, as: 'equipo', attributes: ['id_sysequipo', 'nombre_equipo', 'marca', 'modelo', 'serie'] }
 ];
 
-// Historial completo de un equipo específico (trazabilidad + bajas históricas)
+// Historial completo de un equipo específico (trazabilidad + bajas + traslados)
 router.get('/equipo/:id', async (req, res) => {
     try {
         const equipoId = req.params.id;
 
-        const [trazabilidad, bajas] = await Promise.all([
+        const [trazabilidad, bajas, traslados] = await Promise.all([
             SysTrazabilidad.findAll({
                 where: { id_sysequipo_fk: equipoId },
                 include: INCLUDE_USUARIO,
@@ -27,6 +29,15 @@ router.get('/equipo/:id', async (req, res) => {
             SysBaja.findAll({
                 where: { id_sysequipo_fk: equipoId },
                 include: [{ model: Usuario, as: 'usuarioBaja', attributes: ['id', 'nombres', 'apellidos'] }]
+            }),
+            SysTraslado.findAll({
+                where: { id_sysequipo_fk: equipoId },
+                include: [
+                    { model: Usuario, as: 'usuario', attributes: ['id', 'nombres', 'apellidos'] },
+                    { model: Servicio, as: 'servicioOrigen', attributes: ['id', 'nombres'] },
+                    { model: Servicio, as: 'servicioDestino', attributes: ['id', 'nombres'] }
+                ],
+                order: [['fecha', 'DESC']]
             })
         ]);
 
@@ -50,7 +61,27 @@ router.get('/equipo/:id', async (req, res) => {
             extra: b.accesorios_reutilizables
         }));
 
-        const eventos = [...eventosTraz, ...eventosBaja]
+        // Normalizar eventos de traslado
+        const eventosTraslado = traslados.map(tr => ({
+            accion: 'TRASLADO',
+            detalles: `${tr.tipo} — Receptor: ${tr.nombre_receptor} (${tr.cargo_receptor})` +
+                      (tr.observaciones ? ` — ${tr.observaciones}` : ''),
+            fecha: tr.fecha || tr.createdAt,
+            usuario: tr.usuario,
+            fuente: 'traslado',
+            extra: {
+                tipo: tr.tipo,
+                ubicacion_origen: tr.ubicacion_origen,
+                ubicacion_destino: tr.ubicacion_destino,
+                nombre_receptor: tr.nombre_receptor,
+                cargo_receptor: tr.cargo_receptor,
+                observaciones: tr.observaciones,
+                servicioOrigen: tr.servicioOrigen,
+                servicioDestino: tr.servicioDestino
+            }
+        }));
+
+        const eventos = [...eventosTraz, ...eventosBaja, ...eventosTraslado]
             .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
 
         res.json({ success: true, data: eventos });

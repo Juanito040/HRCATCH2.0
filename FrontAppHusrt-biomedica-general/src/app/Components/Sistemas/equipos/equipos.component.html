@@ -14,9 +14,20 @@
       }
     </div>
     <div class="header-actions">
-      <button class="btn btn-primary" (click)="openCreateModal()">
-        <span>+ Nuevo Equipo</span>
-      </button>
+      @if (selectedView === 'all') {
+        <button class="btn btn-success" (click)="descargarInventario()" [disabled]="isDownloading">
+          @if (isDownloading) {
+            <span class="btn-spinner-sm"></span> Descargando...
+          } @else {
+            <i class="pi pi-file-excel"></i> Descargar Inventario
+          }
+        </button>
+      }
+      @if (!isReadOnly) {
+        <button class="btn btn-primary" (click)="openCreateModal()">
+          <span>+ Nuevo Equipo</span>
+        </button>
+      }
     </div>
   </div>
 
@@ -200,6 +211,13 @@
   (closed)="closeHistorialModal()"
 ></app-sys-historial-equipo>
 
+
+<!-- Modal Registro de Traslados -->
+<app-sys-traslados-modal
+  [isOpen]="isTrasladosModalOpen"
+  [equipo]="equipoToTraslados"
+  (closed)="closeTrasladosModal()"
+></app-sys-traslados-modal>
 
 <!-- Modal Ver Reportes del Equipo -->
 <app-sys-reportes-equipo

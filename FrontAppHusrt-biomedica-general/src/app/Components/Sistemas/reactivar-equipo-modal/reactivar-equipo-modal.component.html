@@ -27,6 +27,33 @@
         </div>
       </div>
 
+      <!-- Servicio destino -->
+      <div class="form-group">
+        <label>Servicio destino</label>
+        <div class="modo-toggle">
+          <button type="button" class="modo-btn"
+            [class.modo-btn--active]="modoServicio === 'restaurar'"
+            [disabled]="!servicioAnteriorId"
+            (click)="modoServicio = 'restaurar'; onModoServicioChange()">
+            <i class="fas fa-undo"></i> Restaurar anterior
+          </button>
+          <button type="button" class="modo-btn"
+            [class.modo-btn--active]="modoServicio === 'nuevo'"
+            (click)="modoServicio = 'nuevo'; onModoServicioChange()">
+            <i class="fas fa-exchange-alt"></i> Nuevo servicio
+          </button>
+        </div>
+        <select class="form-control mt-sm"
+          [(ngModel)]="servicioDestinoId"
+          [attr.disabled]="modoServicio === 'restaurar' ? true : null">
+          <option [ngValue]="null">-- Sin servicio --</option>
+          <option *ngFor="let s of serviciosList" [ngValue]="s.id">{{ s.nombres }}</option>
+        </select>
+        <small class="form-hint" *ngIf="modoServicio === 'restaurar' && servicioAnteriorNombre">
+          Se restaurará a: <strong>{{ servicioAnteriorNombre }}</strong>
+        </small>
+      </div>
+
       <!-- Modo de ubicación -->
       <div class="form-group">
         <label>Ubicación al reactivar</label>
@@ -83,6 +110,15 @@
             placeholder="Nombre de quien recibe el equipo"
             [class.input-error]="errorRecibido" />
           <small class="error-hint" *ngIf="errorRecibido">Este campo es requerido</small>
+        </div>
+
+        <div class="form-group">
+          <label for="cargo_receptor">Cargo del receptor <span class="requerido">*</span></label>
+          <input type="text" id="cargo_receptor" class="form-control"
+            [(ngModel)]="cargo_receptor" (input)="errorCargo = false"
+            placeholder="Ej: Jefe de Enfermería, Técnico de Sistemas..."
+            [class.input-error]="errorCargo" />
+          <small class="error-hint" *ngIf="errorCargo">Este campo es requerido</small>
         </div>
 
         <div class="form-row">

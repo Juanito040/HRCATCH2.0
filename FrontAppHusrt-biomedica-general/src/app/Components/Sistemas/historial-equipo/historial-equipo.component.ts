@@ -102,6 +102,7 @@ export class SysHistorialEquipoComponent implements OnChanges, OnDestroy {
       BODEGA:            'fas fa-warehouse',
       BAJA:              'fas fa-ban',
       REACTIVACION:      'fas fa-power-off',
+      TRASLADO:          'fas fa-arrows-alt-h',
       PLAN_MANTENIMIENTO:'fas fa-calendar-check',
       REPORTE_ENTREGA:   'fas fa-file-export'
     };
@@ -116,6 +117,7 @@ export class SysHistorialEquipoComponent implements OnChanges, OnDestroy {
       BODEGA:            'evento-bodega',
       BAJA:              'evento-baja',
       REACTIVACION:      'evento-reactivacion',
+      TRASLADO:          'evento-traslado',
       PLAN_MANTENIMIENTO:'evento-plan',
       REPORTE_ENTREGA:   'evento-reporte'
     };
@@ -130,6 +132,7 @@ export class SysHistorialEquipoComponent implements OnChanges, OnDestroy {
       BODEGA:            'Enviado a Bodega',
       BAJA:              'Dado de Baja',
       REACTIVACION:      'Reactivado',
+      TRASLADO:          'Registro de Traslado',
       PLAN_MANTENIMIENTO:'Plan de Mantenimiento',
       REPORTE_ENTREGA:   'Reporte de Entrega'
     };

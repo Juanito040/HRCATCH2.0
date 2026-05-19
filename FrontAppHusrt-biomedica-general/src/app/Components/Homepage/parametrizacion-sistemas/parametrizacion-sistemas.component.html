@@ -46,6 +46,18 @@
       </div>
     }
 
+    <!-- Listado General de Equipos -->
+    <div class="dashboard-card" (click)="irAEquipos()">
+      <div class="card-icon-container gradient-green">
+        <i class="pi pi-list" style="font-size:3rem"></i>
+      </div>
+      <div class="card-content">
+        <h3>Listado General de Equipos</h3>
+        <p>Consulta y gestiona todos los equipos de sistemas registrados.</p>
+        <span class="card-action">Ver listado <i class="pi pi-arrow-right"></i></span>
+      </div>
+    </div>
+
     <!-- Usuarios — solo superadmin -->
     @if (isSuperAdmin) {
       <div class="dashboard-card" (click)="irAUsuarios()">

@@ -107,6 +107,7 @@ require('../models/Sistemas/Sysprogramacionpreventivomes');
 require('../models/Sistemas/SysCumplimientoProtocoloPreventivo');
 require('../models/Sistemas/SysAuditoriaRepuesto');
 require('../models/Sistemas/SysMovimientosStockRepuestos');
+require('../models/Sistemas/SysTraslado');
 const sysEquipoRoutes = require('./../routes/sistemas/sysEquipoRoutes');
 const sysHojaVidaRoutes = require('./../routes/sistemas/sysHojaVidaRoutes');
 const sysTrazabilidadRoutes = require('./../routes/sistemas/sysTrazabilidadRoutes');
@@ -193,6 +194,28 @@ sequelize.query('SET FOREIGN_KEY_CHECKS = 0')
   `).catch(() => {}))
   .then(() => sequelize.query(`
     ALTER TABLE \`SysEquipo\` ADD COLUMN IF NOT EXISTS \`ubic_bod\` VARCHAR(255) NULL
+  `).catch(() => {}))
+  .then(() => sequelize.query(`
+    ALTER TABLE \`SysEquipo\` ADD COLUMN IF NOT EXISTS \`id_servicio_anterior_fk\` INTEGER NULL
+  `).catch(() => {}))
+  .then(() => sequelize.query(`
+    CREATE TABLE IF NOT EXISTS \`SysTraslado\` (
+      id_systraslado INTEGER AUTO_INCREMENT PRIMARY KEY,
+      tipo ENUM('BODEGA', 'REACTIVACION') NOT NULL,
+      ubicacion_origen VARCHAR(255) NULL,
+      ubicacion_destino VARCHAR(255) NULL,
+      nombre_receptor VARCHAR(255) NOT NULL,
+      cargo_receptor VARCHAR(255) NOT NULL,
+      observaciones TEXT NULL,
+      fecha DATETIME NULL,
+      id_sysequipo_fk INTEGER NOT NULL,
+      id_servicio_origen_fk INTEGER NULL,
+      id_servicio_destino_fk INTEGER NULL,
+      id_sysusuario_fk INTEGER NULL,
+      createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      CONSTRAINT fk_systraslado_equipo FOREIGN KEY (id_sysequipo_fk) REFERENCES SysEquipo(id_sysequipo) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `).catch(() => {}))
   .then(() => sequelize.query(`
     ALTER TABLE \`SysBodega\` ADD COLUMN IF NOT EXISTS \`ubicacion_origen\` VARCHAR(255) NULL

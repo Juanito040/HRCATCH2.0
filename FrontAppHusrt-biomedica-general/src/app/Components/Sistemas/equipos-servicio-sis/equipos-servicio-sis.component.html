@@ -139,6 +139,12 @@
   (closed)="closeHistorialModal()"
 ></app-sys-historial-equipo>
 
+<app-sys-traslados-modal
+  [isOpen]="isTrasladosModalOpen"
+  [equipo]="equipoToTraslados"
+  (closed)="closeTrasladosModal()"
+></app-sys-traslados-modal>
+
 <app-sys-delete-dialog
   [isOpen]="isDeleteOptionsDialogOpen"
   [itemName]="equipoToDeleteWithOptions?.nombre_equipo || ''"

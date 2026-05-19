@@ -6,6 +6,7 @@ import { CommonModule } from '@angular/common';
 import { TipoEquipoService } from '../../../Services/appServices/general/tipoEquipo/tipo-equipo.service';
 import { SysEquipoModalComponent } from '../equipo-modal/equipo-modal.component';
 import { SysequiposService } from '../../../Services/appServices/sistemasServices/sysequipos/sysequipos.service';
+import { isSistemasSoloLectura } from '../../../utilidades';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -27,6 +28,10 @@ export class ClasificacionTipoEquipoSisComponent implements OnInit {
   isModalOpen: boolean = false;
   isExporting: boolean = false;
   isExportMenuOpen: boolean = false;
+
+  get isReadOnly(): boolean {
+    return isSistemasSoloLectura();
+  }
 
   private tipoEquipoService = inject(TipoEquipoService);
   private sysequiposService = inject(SysequiposService);

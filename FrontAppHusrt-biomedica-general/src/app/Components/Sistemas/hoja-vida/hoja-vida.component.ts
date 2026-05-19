@@ -12,7 +12,7 @@ import { DocumentosService } from '../../../Services/appServices/general/documen
 import { TipoDocumentoService } from '../../../Services/appServices/general/tipoDocumento/tipo-documento.service';
 import { ImagenesService } from '../../../Services/appServices/general/imagenes/imagenes.service';
 import { API_URL } from '../../../constantes';
-import { getDecodedAccessToken } from '../../../utilidades';
+import { getDecodedAccessToken, isSistemasSoloLectura } from '../../../utilidades';
 import Swal from 'sweetalert2';
 import { extractError } from '../../../utils/error-utils';
 import { getEstadoSoporte, calcularFechaFinSoporte, EstadoSoporte, LABELS_SOPORTE } from '../../../utils/soporte-utils';
@@ -75,6 +75,10 @@ export class SysHojaVidaComponent implements OnInit {
   get isAdmin(): boolean {
     const decoded = getDecodedAccessToken();
     return decoded?.rol === 'ADMINISTRADOR' || decoded?.rol === 'SUPERADMIN' || decoded?.rol === 'SYSTEMADMIN';
+  }
+
+  get isReadOnly(): boolean {
+    return isSistemasSoloLectura();
   }
 
   get campos() {
@@ -160,7 +164,7 @@ export class SysHojaVidaComponent implements OnInit {
       if (err) {
         if (err === 404) {
           this.isNew     = true;
-          this.isEditing = true;
+          this.isEditing = !this.isReadOnly;
           this.formData  = this.emptyForm();
         } else {
           this.error = 'Error al cargar la hoja de vida. Verifica que el servidor esté activo.';

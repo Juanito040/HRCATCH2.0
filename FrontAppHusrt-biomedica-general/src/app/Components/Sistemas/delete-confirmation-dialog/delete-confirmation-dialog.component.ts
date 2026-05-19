@@ -5,7 +5,7 @@ import Swal from 'sweetalert2';
 
 export interface DeleteAction {
   action: 'bodega' | 'baja';
-  data: { motivo?: string; tipo_bodega?: string; justificacion_baja?: string; accesorios_reutilizables?: string; id_usuario?: number; password?: string; };
+  data: { motivo?: string; tipo_bodega?: string; nombre_receptor?: string; cargo_receptor?: string; observaciones_traslado?: string; justificacion_baja?: string; accesorios_reutilizables?: string; id_usuario?: number; password?: string; };
 }
 
 @Component({
@@ -33,6 +33,9 @@ export class SysDeleteConfirmationDialogComponent implements OnChanges, OnDestro
   isSubmitting = false;
   motivo = '';
   tipoBodega = 'Bodega Sistemas';
+  nombre_receptor = '';
+  cargo_receptor = '';
+  observaciones_traslado = '';
   justificacion_baja = '';
   accesorios_reutilizables = '';
 
@@ -50,6 +53,9 @@ export class SysDeleteConfirmationDialogComponent implements OnChanges, OnDestro
       this.passwordError = '';
       this.motivo = '';
       this.tipoBodega = 'Bodega Sistemas';
+      this.nombre_receptor = '';
+      this.cargo_receptor = '';
+      this.observaciones_traslado = '';
       this.justificacion_baja = '';
       this.accesorios_reutilizables = '';
       this.isSubmitting = false;
@@ -76,12 +82,25 @@ export class SysDeleteConfirmationDialogComponent implements OnChanges, OnDestro
       Swal.fire({ icon: 'warning', title: 'Campo requerido', text: 'Debes indicar el motivo por el cual se envía el equipo a bodega', confirmButtonText: 'Entendido' });
       return;
     }
+    if (this.selectedAction === 'bodega' && !this.nombre_receptor) {
+      this.passwordError = 'El nombre del receptor es requerido';
+      Swal.fire({ icon: 'warning', title: 'Campo requerido', text: 'Ingresa el nombre de quien recibe el equipo en bodega', confirmButtonText: 'Entendido' });
+      return;
+    }
+    if (this.selectedAction === 'bodega' && !this.cargo_receptor) {
+      this.passwordError = 'El cargo del receptor es requerido';
+      Swal.fire({ icon: 'warning', title: 'Campo requerido', text: 'Ingresa el cargo de quien recibe el equipo en bodega', confirmButtonText: 'Entendido' });
+      return;
+    }
     this.isSubmitting = true;
     this.confirmed.emit({
       action: this.selectedAction,
       data: {
         motivo: this.selectedAction === 'bodega' ? this.motivo : undefined,
         tipo_bodega: this.selectedAction === 'bodega' ? this.tipoBodega : undefined,
+        nombre_receptor: this.selectedAction === 'bodega' ? this.nombre_receptor : undefined,
+        cargo_receptor: this.selectedAction === 'bodega' ? this.cargo_receptor : undefined,
+        observaciones_traslado: this.selectedAction === 'bodega' ? this.observaciones_traslado : undefined,
         justificacion_baja: this.selectedAction === 'baja' ? this.justificacion_baja : undefined,
         accesorios_reutilizables: this.selectedAction === 'baja' ? this.accesorios_reutilizables : undefined,
         password: this.selectedAction === 'baja' ? this.password : undefined
@@ -89,9 +108,9 @@ export class SysDeleteConfirmationDialogComponent implements OnChanges, OnDestro
     });
   }
 
-  onActionChange() { this.password = ''; this.passwordError = ''; this.motivo = ''; this.tipoBodega = 'Bodega Sistemas'; this.justificacion_baja = ''; this.accesorios_reutilizables = ''; }
+  onActionChange() { this.password = ''; this.passwordError = ''; this.motivo = ''; this.tipoBodega = 'Bodega Sistemas'; this.nombre_receptor = ''; this.cargo_receptor = ''; this.observaciones_traslado = ''; this.justificacion_baja = ''; this.accesorios_reutilizables = ''; }
   onPasswordInput() { this.passwordError = ''; }
-  resetForm() { this.selectedAction = this.initialAction ?? (this.hideBodegaOption ? 'baja' : 'bodega'); this.password = ''; this.passwordError = ''; this.isSubmitting = false; this.motivo = ''; this.tipoBodega = 'Bodega Sistemas'; this.justificacion_baja = ''; this.accesorios_reutilizables = ''; }
+  resetForm() { this.selectedAction = this.initialAction ?? (this.hideBodegaOption ? 'baja' : 'bodega'); this.password = ''; this.passwordError = ''; this.isSubmitting = false; this.motivo = ''; this.tipoBodega = 'Bodega Sistemas'; this.nombre_receptor = ''; this.cargo_receptor = ''; this.observaciones_traslado = ''; this.justificacion_baja = ''; this.accesorios_reutilizables = ''; }
   resetSubmitting() { this.isSubmitting = false; }
   showError(message: string) { this.passwordError = message; this.isSubmitting = false; }
 

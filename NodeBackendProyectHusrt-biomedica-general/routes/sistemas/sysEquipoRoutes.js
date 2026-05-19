@@ -2,11 +2,13 @@ const express = require('express');
 const router = express.Router();
 const ctrl = require('../../controllers/Sistemas/sysEquipoController');
 const SysEquipo = require('../../models/Sistemas/SysEquipo');
+const SysTraslado = require('../../models/Sistemas/SysTraslado');
 const TipoEquipo = require('../../models/generales/TipoEquipo');
 const Servicio = require('../../models/generales/Servicio');
 const SysProtocoloPreventivo = require('../../models/Sistemas/SysProtocoloPreventivo');
 const SysReporte = require('../../models/Sistemas/SysReporte');
 const SysHojaVida = require('../../models/Sistemas/SysHojaVida');
+const Usuario = require('../../models/generales/Usuario');
 const { Op } = require('sequelize');
 
 // GET /sysequipo/tiposequipo → tipos de equipo que tienen equipos de sistemas
@@ -39,6 +41,7 @@ router.get('/exportar', async (req, res) => {
     const Sede = require('../../models/generales/Sede');
     const tipo = req.query.tipo;
     const incluirObsolescencia = req.query.obsolescencia !== 'false';
+    const completo = req.query.completo === 'true';
     const hoy = new Date();
     const anioActual = hoy.getFullYear();
 
@@ -71,6 +74,7 @@ router.get('/exportar', async (req, res) => {
     }
 
     if (incluirObsolescencia) nombreArchivo += '_Obsolescencia';
+    else if (completo) nombreArchivo += '_Completo';
 
     const equipos = await SysEquipo.findAll({
       where,
@@ -377,6 +381,142 @@ router.get('/exportar', async (req, res) => {
       notaCell.font      = { italic: true, color: { argb: 'FF6B7280' }, size: 9 };
       notaCell.alignment = { horizontal: 'left', vertical: 'middle' };
 
+    } else if (completo) {
+      // ============================================================
+      // VERSIÓN COMPLETA — todos los campos equipo + hoja de vida
+      // ============================================================
+      ws.columns = [
+        { key: 'nombre_equipo',        width: 30 },
+        { key: 'tipo_equipo',          width: 22 },
+        { key: 'marca',                width: 18 },
+        { key: 'modelo',               width: 18 },
+        { key: 'serie',                width: 20 },
+        { key: 'placa',                width: 18 },
+        { key: 'estado',               width: 14 },
+        { key: 'sede',                 width: 20 },
+        { key: 'proceso_area',         width: 22 },
+        { key: 'ubicacion',            width: 22 },
+        { key: 'nombre_usuario',       width: 24 },
+        { key: 'tipo_uso',             width: 16 },
+        { key: 'ip',                   width: 18 },
+        { key: 'mac',                  width: 20 },
+        { key: 'procesador',           width: 28 },
+        { key: 'ram',                  width: 14 },
+        { key: 'disco_duro',           width: 18 },
+        { key: 'sistema_operativo',    width: 24 },
+        { key: 'office',               width: 16 },
+        { key: 'tonner',               width: 14 },
+        { key: 'vendedor',             width: 22 },
+        { key: 'fecha_compra',         width: 16 },
+        { key: 'fecha_instalacion',    width: 16 },
+        { key: 'costo_compra',         width: 16 },
+        { key: 'contrato',             width: 20 },
+        { key: 'fecha_inicio_soporte', width: 18 },
+        { key: 'anos_soporte',         width: 18 },
+        { key: 'compra_directa',       width: 14 },
+        { key: 'convenio',             width: 12 },
+        { key: 'donado',               width: 12 },
+        { key: 'comodato',             width: 12 },
+        { key: 'observaciones_hv',     width: 35 },
+      ];
+
+      const NUM_COLS = 32;
+      ws.addRow(new Array(NUM_COLS).fill(''));
+      ws.getRow(3).height = 26;
+
+      ws.mergeCells('A3:J3');
+      const seccEquipo = ws.getCell('A3');
+      seccEquipo.value     = 'INFORMACIÓN DEL EQUIPO';
+      seccEquipo.font      = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+      seccEquipo.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E3A5F' } };
+      seccEquipo.alignment = { horizontal: 'center', vertical: 'middle' };
+      seccEquipo.border    = borderThin;
+
+      ws.mergeCells('K3:AF3');
+      const seccHV = ws.getCell('K3');
+      seccHV.value     = 'HOJA DE VIDA';
+      seccHV.font      = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+      seccHV.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF065F46' } };
+      seccHV.alignment = { horizontal: 'center', vertical: 'middle' };
+      seccHV.border    = borderThin;
+
+      const colNamesCompleto = [
+        'Nombre Equipo', 'Tipo Equipo', 'Marca', 'Modelo', 'Serie', 'Placa',
+        'Estado', 'Sede', 'Servicio / Área', 'Ubicación',
+        'Usuario Dominio', 'Tipo de Uso', 'IP', 'MAC', 'Procesador',
+        'RAM', 'Disco Duro', 'Sistema Operativo', 'Office', 'Toner',
+        'Vendedor', 'Fecha Compra', 'Fecha Instalación', 'Costo Compra', 'Contrato',
+        'Inicio Soporte', 'Años Soporte', 'Compra Directa', 'Convenio', 'Donado', 'Comodato',
+        'Observaciones'
+      ];
+      const colColorCompleto = [
+        ...Array(10).fill('FF1E3A5F'),
+        ...Array(22).fill('FF065F46'),
+      ];
+      ws.addRow(colNamesCompleto);
+      ws.getRow(4).height = 36;
+      ws.getRow(4).eachCell((cell, col) => {
+        cell.font      = { bold: true, color: { argb: 'FFFFFFFF' }, size: 9 };
+        cell.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: colColorCompleto[col - 1] } };
+        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        cell.border    = borderThin;
+      });
+
+      equipos.forEach((eq, idx) => {
+        const hv = eq.hojaVida || {};
+        let estadoTexto = 'Activo';
+        if (eq.estado_baja)                               estadoTexto = 'Dado de baja';
+        else if (!eq.activo || eq.ubicacion === 'Bodega') estadoTexto = 'En Bodega';
+        const rowFill = idx % 2 === 0 ? 'FFFFFFFF' : 'FFF0FDF4';
+        const boolVal = (v) => v ? 'Sí' : 'No';
+        const row = ws.addRow({
+          nombre_equipo:        eq.nombre_equipo                    || '',
+          tipo_equipo:          eq.tipoEquipo?.nombres               || '',
+          marca:                eq.marca                            || '',
+          modelo:               eq.modelo                           || '',
+          serie:                eq.serie                            || '',
+          placa:                eq.placa_inventario                 || '',
+          estado:               estadoTexto,
+          sede:                 eq.servicio?.sede?.nombres          || '',
+          proceso_area:         eq.servicio?.nombres                || '',
+          ubicacion:            eq.ubicacion                        || '',
+          nombre_usuario:       hv.nombre_usuario                   || '',
+          tipo_uso:             hv.tipo_uso                         || '',
+          ip:                   hv.ip                               || '',
+          mac:                  hv.mac                              || '',
+          procesador:           hv.procesador                       || '',
+          ram:                  hv.ram                              || '',
+          disco_duro:           hv.disco_duro                       || '',
+          sistema_operativo:    hv.sistema_operativo                || '',
+          office:               hv.office                           || '',
+          tonner:               hv.tonner                           || '',
+          vendedor:             hv.vendedor                         || '',
+          fecha_compra:         hv.fecha_compra                     || '',
+          fecha_instalacion:    hv.fecha_instalacion                || '',
+          costo_compra:         hv.costo_compra                     || '',
+          contrato:             hv.contrato                         || '',
+          fecha_inicio_soporte: hv.fecha_inicio_soporte             || '',
+          anos_soporte:         hv.anos_soporte_fabricante != null ? `${hv.anos_soporte_fabricante} años` : '',
+          compra_directa:       hv.compraddirecta != null ? boolVal(hv.compraddirecta) : '',
+          convenio:             hv.convenio   != null ? boolVal(hv.convenio)   : '',
+          donado:               hv.donado     != null ? boolVal(hv.donado)     : '',
+          comodato:             hv.comodato   != null ? boolVal(hv.comodato)   : '',
+          observaciones_hv:     hv.observaciones                    || '',
+        });
+        row.eachCell((cell, colNum) => {
+          cell.border = borderThin;
+          if (colNum === 7) {
+            const ef = estadoFills[cell.value] || estadoFills['Activo'];
+            cell.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: ef.bg } };
+            cell.font      = { bold: true, color: { argb: ef.fg }, size: 10 };
+            cell.alignment = { horizontal: 'center', vertical: 'middle' };
+          } else {
+            cell.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowFill } };
+            cell.alignment = { vertical: 'middle', wrapText: colNum === NUM_COLS };
+          }
+        });
+      });
+
     } else {
       // ============================================================
       // VERSIÓN SIMPLE — 12 columnas sin análisis de obsolescencia
@@ -457,6 +597,24 @@ router.get('/exportar', async (req, res) => {
   } catch (error) {
     console.error('Error exportando inventario de sistemas:', error);
     res.status(500).json({ error: 'Error al exportar inventario', detalle: error.message });
+  }
+});
+
+// GET traslados de un equipo específico
+router.get('/:id/traslados', async (req, res) => {
+  try {
+    const traslados = await SysTraslado.findAll({
+      where: { id_sysequipo_fk: req.params.id },
+      include: [
+        { model: Usuario, as: 'usuario', attributes: ['id', 'nombres', 'apellidos'] },
+        { model: Servicio, as: 'servicioOrigen', attributes: ['id', 'nombres'] },
+        { model: Servicio, as: 'servicioDestino', attributes: ['id', 'nombres'] }
+      ],
+      order: [['fecha', 'DESC']]
+    });
+    res.json({ success: true, data: traslados });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error al obtener traslados', detalle: error.message });
   }
 });
 
