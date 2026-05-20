@@ -57,6 +57,12 @@ export class BackupSistemaService {
         );
     }
 
+    getBackupsPorRango(fechaInicio: string, fechaFin: string) {
+        return firstValueFrom(
+            this.httpClient.get<any[]>(`${this.baseUrl}/backups/todos/rango?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`, this.createHeaders())
+        );
+    }
+
     createHeaders() {
         return {
             headers: new HttpHeaders({

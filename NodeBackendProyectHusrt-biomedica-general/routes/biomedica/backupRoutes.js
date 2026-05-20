@@ -180,6 +180,49 @@ router.get('/backups/alertas', checkToken, requireSistemasModuloAccess, async (r
     }
 });
 
+// GET /backups/todos/rango — lista backups en un rango de fechas.
+// Parámetros: ?fechaInicio=YYYY-MM-DD&fechaFin=YYYY-MM-DD
+router.get('/backups/todos/rango', checkToken, requireSistemasModuloAccess, async (req, res) => {
+    try {
+        await autoTransicionarVencidos();
+
+        const { fechaInicio, fechaFin } = req.query;
+        if (!fechaInicio || !fechaFin) {
+            return res.status(400).json({ error: 'fechaInicio y fechaFin son requeridos (YYYY-MM-DD)' });
+        }
+
+        const esAdmin = ROLES_ADMIN.includes(req.user?.rol);
+        const where = { fecha: { [Op.between]: [fechaInicio, fechaFin] } };
+
+        if (!esAdmin) {
+            const sistemaIds = await getSistemaIdsDelUsuario(req.user.id);
+            if (sistemaIds.length === 0) return res.json([]);
+            where.sistemaInformacionId = { [Op.in]: sistemaIds };
+        }
+
+        const backups = await BackupSistema.findAll({
+            where,
+            include: [{ model: SistemaInformacion, as: 'sistema', attributes: ['id', 'nombre'] }],
+            order: [['fecha', 'ASC']]
+        });
+
+        const resultado = backups.map(b => ({
+            id: b.id,
+            fecha: b.fecha,
+            tipo: b.tipo,
+            estado: b.estado,
+            frecuencia_backup: b.frecuencia_backup,
+            observacion: b.observacion,
+            sistemaId: b.sistemaInformacionId,
+            sistemaNombre: b.sistema ? b.sistema.nombre : null
+        }));
+
+        res.json(resultado);
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener backups del rango', detalle: error.message });
+    }
+});
+
 // GET /backups/todos/mes — lista los backups de un mes/año.
 // Admins ven todos los sistemas; usuarios sin rol admin ven solo los de sus sistemas.
 router.get('/backups/todos/mes', checkToken, requireSistemasModuloAccess, async (req, res) => {

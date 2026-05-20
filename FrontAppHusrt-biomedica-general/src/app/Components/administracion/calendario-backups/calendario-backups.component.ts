@@ -33,6 +33,10 @@ export class CalendarioBackupsComponent implements OnInit {
     backupSeleccionado: any = null;
     modalVisible: boolean = false;
 
+    modalExportVisible: boolean = false;
+    rangoFechas: Date[] = [];
+    exportandoRango: boolean = false;
+
     readonly diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
     esAdmin = false;
 
@@ -178,27 +182,79 @@ export class CalendarioBackupsComponent implements OnInit {
         }
     }
 
-    exportarExcel(): void {
-        const meses = ['enero','febrero','marzo','abril','mayo','junio','julio',
-                       'agosto','septiembre','octubre','noviembre','diciembre'];
-        const mes = this.fechaSeleccionada.getMonth();
-        const anio = this.fechaSeleccionada.getFullYear();
-        const mesNombre = meses[mes];
-        const titulo = `CALENDARIO DE BACKUPS — ${mesNombre.toUpperCase()} ${anio}`;
-        const nombreArchivo = `backups-${mesNombre}-${anio}.xlsx`;
+    get rangoValido(): boolean {
+        return Array.isArray(this.rangoFechas)
+            && this.rangoFechas.length === 2
+            && this.rangoFechas[0] instanceof Date
+            && this.rangoFechas[1] instanceof Date;
+    }
+
+    abrirModalExport(): void {
+        this.rangoFechas = [];
+        this.modalExportVisible = true;
+    }
+
+    cerrarModalExport(): void {
+        this.modalExportVisible = false;
+        this.rangoFechas = [];
+    }
+
+    private toFechaStr(d: Date): string {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    }
+
+    async exportarExcelRango(): Promise<void> {
+        if (!this.rangoValido) return;
+
+        this.exportandoRango = true;
+        try {
+            const fechaInicio = this.toFechaStr(this.rangoFechas[0]);
+            const fechaFin = this.toFechaStr(this.rangoFechas[1]);
+            const backups = await this.backupService.getBackupsPorRango(fechaInicio, fechaFin);
+
+            if (backups.length === 0) {
+                await Swal.fire({
+                    icon: 'info',
+                    title: 'Sin datos',
+                    text: 'No hay backups programados en el rango de fechas seleccionado.',
+                    confirmButtonText: 'Entendido'
+                });
+                return;
+            }
+
+            this.generarExcelRango(backups, fechaInicio, fechaFin);
+            this.cerrarModalExport();
+        } catch {
+            await Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se pudo obtener los datos para exportar.',
+                confirmButtonText: 'Cerrar'
+            });
+        } finally {
+            this.exportandoRango = false;
+        }
+    }
+
+    private generarExcelRango(backups: any[], fechaInicio: string, fechaFin: string): void {
+        const titulo = `BACKUPS PROGRAMADOS — ${fechaInicio} al ${fechaFin}`;
+        const nombreArchivo = `backups-${fechaInicio}_${fechaFin}.xlsx`;
         const ahora = new Date().toLocaleString('es-CO');
 
-        const completados   = this.backupsDelMes.filter(b => b.estado === 'Completado').length;
-        const pendientes    = this.backupsDelMes.filter(b => b.estado === 'Pendiente').length;
-        const fallidos      = this.backupsDelMes.filter(b => b.estado === 'Fallido').length;
-        const noRealizados  = this.backupsDelMes.filter(b => b.estado === 'No realizado').length;
+        const completados  = backups.filter(b => b.estado === 'Completado').length;
+        const pendientes   = backups.filter(b => b.estado === 'Pendiente').length;
+        const fallidos     = backups.filter(b => b.estado === 'Fallido').length;
+        const noRealizados = backups.filter(b => b.estado === 'No realizado').length;
 
         const aoa: any[][] = [
             [titulo, '', '', '', '', '', ''],
             [`Generado el: ${ahora}`, '', '', '', '', '', ''],
             [],
             ['#', 'Fecha', 'Sistema de Información', 'Tipo', 'Frecuencia', 'Estado', 'Observación'],
-            ...this.backupsDelMes.map((b, i) => [
+            ...backups.map((b, i) => [
                 i + 1,
                 b.fecha ?? '—',
                 b.sistemaNombre ?? '—',
@@ -222,7 +278,6 @@ export class CalendarioBackupsComponent implements OnInit {
             { s: { r: 1, c: 0 }, e: { r: 1, c: 6 } }
         ];
 
-        // Estilos en celdas (requiere xlsx con soporte de estilos)
         const titleCell = XLSX.utils.encode_cell({ r: 0, c: 0 });
         if (ws[titleCell]) {
             ws[titleCell].s = {
@@ -246,7 +301,7 @@ export class CalendarioBackupsComponent implements OnInit {
             'No realizado': 'ffecd2'
         };
 
-        this.backupsDelMes.forEach((b, i) => {
+        backups.forEach((b, i) => {
             const color = colorMap[b.estado] ?? 'FFFFFF';
             for (let c = 0; c < 7; c++) {
                 const cellRef = XLSX.utils.encode_cell({ r: 4 + i, c });
