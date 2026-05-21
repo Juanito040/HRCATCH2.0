@@ -57,6 +57,12 @@ export class LoginComponent implements OnInit {
           this.router.navigate(['/userbiomedica']);
         } else if (this.getDecodedAccessToken(sessionStorage.getItem('utoken')!).rol === 'MESAUSER') {
           this.router.navigate(['/mesauser/home']);
+        } else if (this.getDecodedAccessToken(sessionStorage.getItem('utoken')!).rol === 'SISTEMASTECNICO') {
+          this.router.navigate(['/adminsistemas']);
+        } else if (this.getDecodedAccessToken(sessionStorage.getItem('utoken')!).rol === 'SISTEMASADMIN') {
+          this.router.navigate(['/adminsistemas']);
+        } else if (this.getDecodedAccessToken(sessionStorage.getItem('utoken')!).rol === 'SISTEMASUSER') {
+          this.router.navigate(['/adminsistemas']);
         }
       }
     } catch {

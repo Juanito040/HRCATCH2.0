@@ -27,7 +27,7 @@ const SysRepuesto = sequelize.define('SysRepuesto', {
   id_sys_tipo_repuesto_fk: {
     type: DataTypes.INTEGER,
     allowNull: true,
-    references: { model: 'SysTipoRepuesto', key: 'id_sys_tipo_repuesto' }
+    references: { model: SysTipoRepuesto, key: 'id_sys_tipo_repuesto' }
   },
   modelo_asociado: {
     type: DataTypes.STRING(255),

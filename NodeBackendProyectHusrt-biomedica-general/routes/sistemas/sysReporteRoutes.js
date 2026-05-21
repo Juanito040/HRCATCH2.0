@@ -1,6 +1,9 @@
 const express = require('express');
 const router  = express.Router();
+const { checkToken } = require('../../utilities/middleware');
 const ctrl    = require('../../controllers/Sistemas/sysReporteController');
+
+router.use(checkToken);
 
 // PDF de baja (por id del registro SysBaja)
 router.get('/baja/:bajaId/pdf', ctrl.exportarPdfBaja);

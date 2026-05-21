@@ -1,11 +1,14 @@
 const express = require('express');
 const router  = express.Router();
+const { checkToken } = require('../../utilities/middleware');
 const SysReporteMantenimiento = require('../../models/Sistemas/SysReporteMantenimiento');
 const SysEquipo               = require('../../models/Sistemas/SysEquipo');
 const Usuario                 = require('../../models/generales/Usuario');
 
 const EQUIPO_ATTRS  = ['id_sysequipo', 'nombre_equipo', 'placa_inventario', 'marca', 'modelo', 'serie'];
 const USUARIO_ATTRS = ['id', 'nombres', 'apellidos'];
+
+router.use(checkToken);
 
 // GET /sysreportesmtto/equipo/:id_sysequipo — lista por equipo (DEBE ir antes de /:id)
 router.get('/equipo/:id_sysequipo', async (req, res) => {

@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
+const { checkToken } = require('../../utilities/middleware');
 const ctrl = require('../../controllers/Sistemas/sysMantenimientoController');
+
+router.use(checkToken);
 
 router.get('/catalogos/tipos-mantenimiento', ctrl.getCatalogoTiposMantenimiento);
 router.get('/catalogos/tipos-falla', ctrl.getCatalogoTiposFalla);

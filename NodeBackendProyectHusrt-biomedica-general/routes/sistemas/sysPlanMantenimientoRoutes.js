@@ -1,9 +1,12 @@
 const express = require('express');
 const router = express.Router();
+const { checkToken } = require('../../utilities/middleware');
 const SysPlanMantenimiento = require('../../models/Sistemas/SysPlanMantenimiento');
 const SysEquipo = require('../../models/Sistemas/SysEquipo');
 const SysTrazabilidad = require('../../models/Sistemas/SysTrazabilidad');
 const Servicio = require('../../models/generales/Servicio');
+
+router.use(checkToken);
 
 // GET /sysplanmantenimiento → todos los planes
 router.get('/', async (req, res) => {

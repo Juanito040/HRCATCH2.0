@@ -106,4 +106,8 @@ export class SistemasadminnavbarComponent implements OnInit, OnDestroy {
     }
     this.router.navigate(['/login']);
   }
+
+  viewUser() {
+    this.router.navigate(['/updateprofil']);
+  }
 }

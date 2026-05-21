@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { checkToken } = require('../../utilities/middleware');
 const ctrl = require('../../controllers/Sistemas/sysHojaVidaController');
 const multer = require('multer');
 const path = require('path');
@@ -17,6 +18,8 @@ const storage = multer.diskStorage({
     }
 });
 const upload = multer({ storage });
+
+router.use(checkToken);
 
 router.get('/equipo/:equipoId/pdf', ctrl.exportarPdfByEquipo);
 router.put('/equipo/:equipoId/foto', upload.single('foto'), ctrl.uploadFotoByEquipo);

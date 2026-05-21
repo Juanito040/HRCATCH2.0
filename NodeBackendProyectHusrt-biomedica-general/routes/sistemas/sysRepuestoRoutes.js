@@ -2,8 +2,11 @@ const express = require('express');
 const router = express.Router();
 const ctrl = require('../../controllers/Sistemas/sysRepuestoController');
 const requireRoles = require('../../utilities/requireRoles');
+const { checkToken } = require('../../utilities/middleware');
 
 const ROLES = ['SUPERADMIN', 'ADMINISTRADOR', 'AG', 'SISTEMASADMIN', 'SISTEMASUSER', 'SISTEMASTECNICO'];
+
+router.use(checkToken);
 
 router.get('/', ctrl.getAll);
 router.get('/tipo/:id_tipo', ctrl.getByTipo);

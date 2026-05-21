@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
+const { checkToken } = require('../../utilities/middleware');
 const SysTipoUso = require('../../models/Sistemas/SysTipoUso');
+
+router.use(checkToken);
 
 // GET todos
 router.get('/', async (req, res) => {

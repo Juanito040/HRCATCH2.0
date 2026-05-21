@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { checkToken } = require('../../utilities/middleware');
 const ctrl = require('../../controllers/Sistemas/sysEquipoController');
 const SysEquipo = require('../../models/Sistemas/SysEquipo');
 const SysTraslado = require('../../models/Sistemas/SysTraslado');
@@ -10,6 +11,8 @@ const SysReporte = require('../../models/Sistemas/SysReporte');
 const SysHojaVida = require('../../models/Sistemas/SysHojaVida');
 const Usuario = require('../../models/generales/Usuario');
 const { Op } = require('sequelize');
+
+router.use(checkToken);
 
 // GET /sysequipo/tiposequipo → tipos de equipo que tienen equipos de sistemas
 router.get('/tiposequipo', async (req, res) => {

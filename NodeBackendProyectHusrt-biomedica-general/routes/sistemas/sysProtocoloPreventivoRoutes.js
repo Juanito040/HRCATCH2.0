@@ -1,7 +1,10 @@
 const express = require('express');
 const router = express.Router();
+const { checkToken } = require('../../utilities/middleware');
 const SysProtocoloPreventivo = require('../../models/Sistemas/SysProtocoloPreventivo');
 const TipoEquipo = require('../../models/generales/TipoEquipo');
+
+router.use(checkToken);
 
 // GET /sysprotocolo → todos los protocolos
 router.get('/', async (req, res) => {

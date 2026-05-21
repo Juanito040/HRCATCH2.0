@@ -1,11 +1,14 @@
 const express = require('express');
 const router = express.Router();
+const { checkToken } = require('../../utilities/middleware');
 const { Op } = require('sequelize');
 const SysReporte = require('../../models/Sistemas/SysReporte');
 const SysEquipo = require('../../models/Sistemas/SysEquipo');
 const SysProgramacionPreventivoMes = require('../../models/Sistemas/Sysprogramacionpreventivomes');
 const SysPlanMantenimiento = require('../../models/Sistemas/SysPlanMantenimiento');
 const Usuario = require('../../models/generales/Usuario');
+
+router.use(checkToken);
 
 /**
  * POST /sysprogramacion/programacion-preventivos

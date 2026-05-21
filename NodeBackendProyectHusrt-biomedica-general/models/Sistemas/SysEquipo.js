@@ -93,7 +93,8 @@ const SysEquipo = sequelize.define('SysEquipo', {
   },
   preventivo_s: {
     type: DataTypes.BOOLEAN,
-    allowNull: true
+    allowNull: true,
+    defaultValue: false
   },
   fecha_modificacion: {
     type: DataTypes.DATEONLY,

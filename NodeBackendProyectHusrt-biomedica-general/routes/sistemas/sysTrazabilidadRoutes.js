@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { checkToken } = require('../../utilities/middleware');
 const { Op } = require('sequelize');
 const SysTrazabilidad = require('../../models/Sistemas/SysTrazabilidad');
 const SysEquipo = require('../../models/Sistemas/SysEquipo');
@@ -14,6 +15,8 @@ const INCLUDE_USUARIO = [
 const INCLUDE_EQUIPO = [
     { model: SysEquipo, as: 'equipo', attributes: ['id_sysequipo', 'nombre_equipo', 'marca', 'modelo', 'serie'] }
 ];
+
+router.use(checkToken);
 
 // Historial completo de un equipo específico (trazabilidad + bajas + traslados)
 router.get('/equipo/:id', async (req, res) => {

@@ -1,9 +1,12 @@
 const express = require('express');
 const router = express.Router();
+const { checkToken } = require('../../utilities/middleware');
 
 const sysCumplimientoProtocoloPreventivo = require('../../models/Sistemas/SysCumplimientoProtocoloPreventivo');
 const SysProtocoloPreventivo = require('../../models/Sistemas/SysProtocoloPreventivo');
 const Reporte = require('../../models/Sistemas/SysReporte');
+
+router.use(checkToken);
 
 router.get('/cumplimientos', async (req, res) => {
     try {
