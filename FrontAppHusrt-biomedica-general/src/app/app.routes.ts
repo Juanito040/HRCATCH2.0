@@ -101,6 +101,8 @@ import { SisRepuestosComponent } from './Components/Sistemas/repuestos/repuestos
 import { HistoricoMantenimientosEquipoComponent } from './Components/Sistemas/historico-mantenimientos-equipo/historico-mantenimientos-equipo.component';
 import { SysindicadoresComponent } from './Components/Sistemas/sysindicadores/sysindicadores.component';
 import { SysTrasladosEquipoComponent } from './Components/Sistemas/sys-traslados-equipo/sys-traslados-equipo.component';
+import { SisPendientesTecnicoComponent } from './Components/Sistemas/pendientes-tecnico/pendientes-tecnico.component';
+import { SisMantenimientoTecnicoComponent } from './Components/Sistemas/mantenimiento-tecnico/mantenimiento-tecnico.component';
 
 export const routes: Routes = [
 
@@ -229,6 +231,8 @@ export const routes: Routes = [
   { path: 'adminsistemas/indicadores', component: SysindicadoresComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER', 'SISTEMASADMIN', 'SISTEMASUSER', 'SISTEMASTECNICO'] } },
   { path: 'adminsistemas/traslados/:equipoId', component: SysTrasladosEquipoComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER', 'SISTEMASADMIN', 'SISTEMASUSER', 'SISTEMASTECNICO'] } },
 
+  { path: 'adminsistemas/tecnico/mantenimiento', component: SisMantenimientoTecnicoComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SISTEMASTECNICO'] } },
+  { path: 'adminsistemas/tecnico/pendientes', component: SisPendientesTecnicoComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SISTEMASTECNICO'] } },
   { path: 'intranet', component: IntranetComponent }
 ];
 

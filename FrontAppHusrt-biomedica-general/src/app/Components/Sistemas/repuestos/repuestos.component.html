@@ -239,10 +239,9 @@
             <th>Cantidad</th>
             <th>Stock Antes</th>
             <th>Stock Después</th>
-            <th>Motivo / Acción</th>
-            <th>Referencia</th>
             <th>Usuario</th>
             <th>Fecha</th>
+            <th>Detalles</th>
           </tr>
         </thead>
         <tbody>
@@ -269,10 +268,13 @@
             </td>
             <td style="text-align:center;">{{ m.stock_antes }}</td>
             <td style="text-align:center; font-weight:bold">{{ m.stock_despues }}</td>
-            <td style="max-width:180px;font-size:0.85rem">{{ m.motivo }}</td>
-            <td style="font-size:0.85rem">{{ m.referencia || '—' }}</td>
             <td><span class="user-badge"><i class="pi pi-user"></i>{{ m.usuario }}</span></td>
             <td style="font-size:0.85rem;white-space:nowrap">{{ m.fecha_movimiento | date:'dd/MM/yy HH:mm' }}</td>
+            <td style="text-align: center;">
+              <button class="btn-icon" (click)="openMovimientoDetallesModal(m)" title="Ver Detalles">
+                <i class="pi pi-eye" style="color: var(--primary-color, #6366f1);"></i>
+              </button>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -480,7 +482,7 @@
               <th>Usuario</th>
               <th>Ítem</th>
               <th>Acción</th>
-              <th>Motivo</th>
+              <th>Detalles</th>
             </tr>
           </thead>
           <tbody>
@@ -489,9 +491,13 @@
             <tr *ngFor="let a of pagedAuditoriaRepuestos">
               <td style="white-space:nowrap;font-size:0.82rem;">{{ a.fecha_hora | date:'dd/MM/yyyy HH:mm' }}</td>
               <td><span class="user-badge"><i class="pi pi-user"></i>{{ a.usuario }}</span></td>
-              <td style="font-size:0.9rem;"><strong>{{ a.nombre_item || '—' }}</strong></td>
+              <td style="font-size:0.9rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" [title]="a.nombre_item"><strong>{{ a.nombre_item || '—' }}</strong></td>
               <td><span class="badge" [ngClass]="getAccionClass(a.accion)">{{ getAccionLabel(a.accion) }}</span></td>
-              <td style="font-size:0.85rem;">{{ a.observacion || '—' }}</td>
+              <td>
+                <button class="btn-icon" (click)="verDetalleAuditoria(a)" title="Ver Detalle">
+                  <i class="pi pi-eye" style="color:var(--primary-color)"></i>
+                </button>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -514,7 +520,7 @@
               <th>Usuario</th>
               <th>Ítem</th>
               <th>Acción</th>
-              <th>Motivo</th>
+              <th>Detalles</th>
             </tr>
           </thead>
           <tbody>
@@ -523,9 +529,13 @@
             <tr *ngFor="let a of pagedAuditoriaTipos">
               <td style="white-space:nowrap;font-size:0.82rem;">{{ a.fecha_hora | date:'dd/MM/yyyy HH:mm' }}</td>
               <td><span class="user-badge"><i class="pi pi-user"></i>{{ a.usuario }}</span></td>
-              <td style="font-size:0.9rem;"><strong>{{ a.nombre_item || '—' }}</strong></td>
+              <td style="font-size:0.9rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" [title]="a.nombre_item"><strong>{{ a.nombre_item || '—' }}</strong></td>
               <td><span class="badge" [ngClass]="getAccionClass(a.accion)">{{ getAccionLabel(a.accion) }}</span></td>
-              <td style="font-size:0.85rem;">{{ a.observacion || '—' }}</td>
+              <td>
+                <button class="btn-icon" (click)="verDetalleAuditoria(a)" title="Ver Detalle">
+                  <i class="pi pi-eye" style="color:var(--primary-color)"></i>
+                </button>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -557,6 +567,13 @@
           </select>
         </div>
         <div class="form-group">
+          <label>Vincular a Tipo de Equipo (Sistemas)</label>
+          <select [(ngModel)]="formRepuesto.id_tipo_equipo_fk">
+            <option [ngValue]="undefined">— Ninguno —</option>
+            <option *ngFor="let eq of tiposEquiposSistemas" [ngValue]="eq.id">{{ eq.nombres }}</option>
+          </select>
+        </div>
+        <div class="form-group">
           <label>N° Parte</label>
           <input type="text" [(ngModel)]="formRepuesto.numero_parte" placeholder="..." />
         </div>
@@ -567,14 +584,6 @@
         <div class="form-group">
           <label>Proveedor</label>
           <input type="text" [(ngModel)]="formRepuesto.proveedor" placeholder="..." />
-        </div>
-        <div class="form-group">
-          <label>Garantía Inicio</label>
-          <input type="date" [(ngModel)]="formRepuesto.garantia_inicio" />
-        </div>
-        <div class="form-group">
-          <label>Garantía Fin</label>
-          <input type="date" [(ngModel)]="formRepuesto.garantia_fin" />
         </div>
         <div class="form-group">
           <label title="El sistema alertará si el stock cae a este valor o menos">Alerta Mínima <i class="pi pi-bell" style="font-size: 0.8rem; color: #ea580c"></i></label>
@@ -651,6 +660,53 @@
           <label>Referencia (opcional)</label>
           <input type="text" [(ngModel)]="formMovimiento.referencia" placeholder="N° de factura, técnico, etc." />
         </div>
+
+        <ng-container *ngIf="formMovimiento.tipo === 'ingreso'">
+          <div class="form-group full-width">
+            <label style="color: var(--primary-color); font-weight: 600;">¿Cuenta con factura de compra? *</label>
+            <div style="display: flex; gap: 1.5rem; margin-top: 0.5rem; margin-bottom: 0.5rem;">
+              <label style="display: flex; align-items: center; gap: 0.3rem; cursor: pointer;">
+                <input type="radio" name="tieneFactura" value="si" [(ngModel)]="formMovimiento.tieneFactura"> Sí
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.3rem; cursor: pointer;">
+                <input type="radio" name="tieneFactura" value="no" [(ngModel)]="formMovimiento.tieneFactura"> No
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group full-width" *ngIf="formMovimiento.tieneFactura === 'si'">
+            <label><i class="pi pi-file-pdf" style="color: #ef4444;"></i> Factura de Compra (PDF) *</label>
+            <input type="file" accept="application/pdf" (change)="onFileMovimientoSelected($event)" style="padding: 0.5rem; border: 1px dashed #cbd5e1; border-radius: 6px;" />
+          </div>
+
+          <div class="form-group full-width" *ngIf="formMovimiento.tieneFactura === 'no'">
+            <label style="color: #ef4444;">Motivo de no factura *</label>
+            <textarea [(ngModel)]="formMovimiento.motivoNoFactura" placeholder="Especifique claramente por qué no se adjunta la factura..." style="min-height: 60px; border-color: #ef4444;"></textarea>
+          </div>
+          
+          <div class="form-group full-width">
+            <label style="color: var(--primary-color); font-weight: 600;">¿El repuesto cuenta con garantía? *</label>
+            <div style="display: flex; gap: 1.5rem; margin-top: 0.5rem; margin-bottom: 0.5rem;">
+              <label style="display: flex; align-items: center; gap: 0.3rem; cursor: pointer;">
+                <input type="radio" name="tieneGarantia" value="si" [(ngModel)]="formMovimiento.tieneGarantia"> Sí
+              </label>
+              <label style="display: flex; align-items: center; gap: 0.3rem; cursor: pointer;">
+                <input type="radio" name="tieneGarantia" value="no" [(ngModel)]="formMovimiento.tieneGarantia"> No
+              </label>
+            </div>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; width: 100%;" *ngIf="formMovimiento.tieneGarantia === 'si'">
+            <div class="form-group">
+              <label><i class="pi pi-shield" style="color: #10b981;"></i> Garantía Inicio *</label>
+              <input type="date" [(ngModel)]="formMovimiento.garantia_inicio" />
+            </div>
+            <div class="form-group">
+              <label><i class="pi pi-shield" style="color: #10b981;"></i> Garantía Fin *</label>
+              <input type="date" [(ngModel)]="formMovimiento.garantia_fin" />
+            </div>
+          </div>
+        </ng-container>
       </div>
     </div>
     <div class="modal-footer">
@@ -724,6 +780,13 @@
             </p>
           </div>
           <div>
+            <p style="margin: 0; font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Equipo Vinculado (Sistemas)</p>
+            <p style="margin: 0.25rem 0 0 0; font-size: 1rem; color: #334155; font-weight: 500;">
+              <i class="pi pi-desktop" style="font-size:0.8rem;color:#94a3b8;margin-right:0.2rem"></i>
+              {{ repuestoDetalle.tipoEquipoSistemas?.nombres || 'Ninguno' }}
+            </p>
+          </div>
+          <div>
             <p style="margin: 0; font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Proveedor</p>
             <p style="margin: 0.25rem 0 0 0; font-size: 1rem; color: #334155; font-weight: 500;">{{ repuestoDetalle.proveedor || 'No registrado' }}</p>
           </div>
@@ -734,20 +797,6 @@
           <div>
             <p style="margin: 0; font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">N° de Serie</p>
             <p style="margin: 0.25rem 0 0 0; font-size: 1rem; color: #334155; font-weight: 500;">{{ repuestoDetalle.numero_serie || 'N/A' }}</p>
-          </div>
-          <div>
-            <p style="margin: 0; font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Inicio de Garantía</p>
-            <p style="margin: 0.25rem 0 0 0; font-size: 1rem; color: #334155; font-weight: 500;">
-              <i class="pi pi-calendar" *ngIf="repuestoDetalle.garantia_inicio" style="color:#94a3b8"></i>
-               {{ repuestoDetalle.garantia_inicio ? (repuestoDetalle.garantia_inicio | date:'dd/MM/yyyy') : 'No registrada' }}
-            </p>
-          </div>
-          <div>
-            <p style="margin: 0; font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Fin de Garantía</p>
-            <p style="margin: 0.25rem 0 0 0; font-size: 1rem; color: #334155; font-weight: 500;">
-              <i class="pi pi-calendar" *ngIf="repuestoDetalle.garantia_fin" style="color:#94a3b8"></i>
-               {{ repuestoDetalle.garantia_fin ? (repuestoDetalle.garantia_fin | date:'dd/MM/yyyy') : 'No registrada' }}
-            </p>
           </div>
           <div>
             <p style="margin: 0; font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Estado</p>
@@ -763,8 +812,100 @@
         </div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     MODAL — DETALLES DEL MOVIMIENTO DE STOCK
+═══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" *ngIf="isMovimientoDetallesModalOpen && movimientoDetalle">
+  <div class="modal-card detalles-card" (click)="$event.stopPropagation()" style="max-width: 600px;">
+    <div class="modal-header">
+      <h3>Detalles del Movimiento <span style="color: #64748b; font-size: 1rem;">#{{ movimientoDetalle.id }}</span></h3>
+      <button class="btn-close" (click)="closeMovimientoDetallesModal()"><i class="pi pi-times"></i></button>
+    </div>
+    <div class="modal-body" style="padding: 1.5rem;">
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.5rem;">
+        
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+          <div style="padding: 0.8rem; border-radius: 12px;" [ngStyle]="{'background': movimientoDetalle.tipo === 'ingreso' ? '#dcfce7' : '#fee2e2'}">
+            <i class="pi" [ngClass]="movimientoDetalle.tipo === 'ingreso' ? 'pi-arrow-up' : 'pi-arrow-down'" [ngStyle]="{'color': movimientoDetalle.tipo === 'ingreso' ? '#16a34a' : '#dc2626', 'font-size': '1.5rem'}"></i>
+          </div>
+          <div>
+            <h4 style="margin: 0; font-size: 1.1rem; color: #1e293b;">
+              {{ movimientoDetalle.tipo === 'ingreso' ? 'Ingreso de Stock' : 'Egreso de Stock' }}
+            </h4>
+            <p style="margin: 0; font-size: 0.9rem; color: #64748b;">{{ movimientoDetalle.fecha_movimiento | date:'dd/MM/yyyy HH:mm' }}</p>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem;">
+          <div>
+            <p style="margin: 0; font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Repuesto</p>
+            <p style="margin: 0.25rem 0 0 0; font-size: 1rem; color: #334155; font-weight: 600;">{{ movimientoDetalle.repuesto?.nombre }}</p>
+          </div>
+          <div>
+            <p style="margin: 0; font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Cantidad</p>
+            <p style="margin: 0.25rem 0 0 0; font-size: 1.1rem; font-weight: 700;" [style.color]="movimientoDetalle.tipo === 'ingreso' ? '#16a34a' : '#dc2626'">
+              {{ movimientoDetalle.tipo === 'ingreso' ? '+' : '-' }}{{ movimientoDetalle.cantidad }}
+            </p>
+          </div>
+          <div>
+            <p style="margin: 0; font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Stock Anterior</p>
+            <p style="margin: 0.25rem 0 0 0; font-size: 1rem; color: #334155;">{{ movimientoDetalle.stock_antes }}</p>
+          </div>
+          <div>
+            <p style="margin: 0; font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Stock Posterior</p>
+            <p style="margin: 0.25rem 0 0 0; font-size: 1rem; color: #334155; font-weight: 600;">{{ movimientoDetalle.stock_despues }}</p>
+          </div>
+          <div>
+            <p style="margin: 0; font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Referencia</p>
+            <p style="margin: 0.25rem 0 0 0; font-size: 1rem; color: #334155;">{{ movimientoDetalle.referencia || 'N/A' }}</p>
+          </div>
+          <div>
+            <p style="margin: 0; font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Realizado por</p>
+            <p style="margin: 0.25rem 0 0 0; font-size: 1rem; color: #334155;">{{ movimientoDetalle.usuario }}</p>
+          </div>
+          
+          <div style="grid-column: 1 / -1; margin-top: 0.5rem;">
+            <p style="margin: 0; font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Motivo del movimiento</p>
+            <div style="margin: 0.5rem 0 0 0; font-size: 0.95rem; color: #334155; line-height: 1.6; white-space: pre-wrap; background: white; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 6px;">{{ movimientoDetalle.motivo }}</div>
+          </div>
+
+          <ng-container *ngIf="movimientoDetalle.tipo === 'ingreso'">
+            <div style="grid-column: 1 / -1; margin-top: 0.5rem;" *ngIf="movimientoDetalle.garantia_inicio || movimientoDetalle.garantia_fin">
+              <p style="margin: 0; font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;"><i class="pi pi-shield" style="color: #10b981;"></i> Garantía del lote</p>
+              <div style="margin: 0.5rem 0 0 0; font-size: 0.95rem; color: #16a34a; background: #dcfce7; padding: 0.8rem 1rem; border-radius: 6px; display: flex; gap: 2rem;">
+                <span><strong>Inicio:</strong> {{ (movimientoDetalle.garantia_inicio | date:'dd/MM/yyyy') || 'N/A' }}</span>
+                <span><strong>Fin:</strong> {{ (movimientoDetalle.garantia_fin | date:'dd/MM/yyyy') || 'N/A' }}</span>
+              </div>
+            </div>
+            
+            <div style="grid-column: 1 / -1; margin-top: 0.5rem;" *ngIf="!(movimientoDetalle.garantia_inicio || movimientoDetalle.garantia_fin)">
+              <p style="margin: 0; font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;"><i class="pi pi-shield" style="color: #64748b;"></i> Garantía del lote</p>
+              <div style="margin: 0.5rem 0 0 0; font-size: 0.95rem; color: #475569; background: #f1f5f9; padding: 0.8rem 1rem; border-radius: 6px;">
+                Este lote ingresó sin garantía asociada.
+              </div>
+            </div>
+
+            <div style="grid-column: 1 / -1; margin-top: 0.5rem;">
+              <p style="margin: 0; font-size: 0.8rem; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;"><i class="pi pi-file-pdf" style="color: #ef4444;"></i> Factura de compra</p>
+              <div style="margin: 0.5rem 0 0 0;" *ngIf="movimientoDetalle.factura_ruta">
+                <button class="btn-secondary" (click)="descargarFacturaMovimiento(movimientoDetalle)" title="Descargar Factura adjunta">
+                  Descargar Documento PDF
+                </button>
+              </div>
+              <div style="margin: 0.5rem 0 0 0; font-size: 0.95rem; color: #dc2626; background: #fee2e2; padding: 0.8rem 1rem; border-radius: 6px;" *ngIf="!movimientoDetalle.factura_ruta">
+                No se adjuntó factura para este ingreso.
+              </div>
+            </div>
+          </ng-container>
+
+        </div>
+      </div>
+    </div>
     <div class="modal-footer" style="border-top: none; padding-top: 0;">
-      <button class="btn-primary" (click)="closeDetallesModal()">Aceptar</button>
+      <button class="btn-primary" (click)="closeMovimientoDetallesModal()">Aceptar</button>
     </div>
   </div>
 </div>

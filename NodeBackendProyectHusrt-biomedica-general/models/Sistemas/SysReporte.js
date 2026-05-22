@@ -52,8 +52,8 @@ const SysReporte = sequelize.define('SysReporte', {
         allowNull: true,
     },
     trabajoRealizado: {
-        type: DataTypes.STRING,
-        allowNull: true,
+        type: DataTypes.TEXT,
+        allowNull: true
     },
     calificacion: {
         type: DataTypes.INTEGER,

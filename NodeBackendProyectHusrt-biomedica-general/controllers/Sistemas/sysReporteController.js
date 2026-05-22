@@ -134,6 +134,21 @@ exports.getByTecnico = async (req, res) => {
         res.status(500).json({ success: false, message: 'Error al obtener reportes del técnico' });
     }
 };
+exports.getReportesByUsuario = async (req, res) => {
+    try {
+        const reportes = await SysReporte.findAll({
+            where: { usuarioIdFk: req.params.idUsuario },
+            include: [{
+                model: SysEquipo,
+                as: 'equipo',
+                include: [{ model: TipoEquipo, as: 'tipoEquipo' }]
+            }, 'servicio', { model: Usuario, as: 'usuario', include: [{ model: Cargo, as: 'cargo' }] }]
+        });
+        res.json(reportes);
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener reportes por usuario', detalle: error.message });
+    }
+};
 exports.getByEquipo = async (req, res) => {
     try {
         const data = await SysReporte.findAll({

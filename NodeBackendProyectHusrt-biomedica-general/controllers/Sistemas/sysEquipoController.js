@@ -114,6 +114,7 @@ exports.getSysEquipoById = async (req, res) => {
         if (!equipo) return res.status(404).json({ success: false, message: 'Equipo no encontrado' });
         res.json({ success: true, data: equipo });
     } catch (error) {
+        console.error('Error getSysEquipoById:', error);
         res.status(500).json({ success: false, message: 'Error al obtener el equipo' });
     }
 };

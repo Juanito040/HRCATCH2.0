@@ -4,9 +4,11 @@ const SysTipoRepuesto = require('../../models/Sistemas/SysTipoRepuesto');
 const SysAuditoriaRepuesto = require('../../models/Sistemas/SysAuditoriaRepuesto');
 const Usuario = require('../../models/generales/Usuario');
 const SysMovimientosStockRepuestos = require('../../models/Sistemas/SysMovimientosStockRepuestos');
+const TipoEquipo = require('../../models/generales/TipoEquipo');
 
 const INCLUDES_BASE = [
-  { model: SysTipoRepuesto, as: 'tipoRepuesto', attributes: ['id_sys_tipo_repuesto', 'nombre'] }
+  { model: SysTipoRepuesto, as: 'tipoRepuesto', attributes: ['id_sys_tipo_repuesto', 'nombre'] },
+  { model: TipoEquipo, as: 'tipoEquipoSistemas', attributes: ['id', 'nombres'] }
 ];
 
 // Helper para registrar auditoría
@@ -108,9 +110,8 @@ exports.create = async (req, res) => {
   try {
     const {
       nombre, descripcion_tecnica, numero_parte, numero_serie,
-      id_sys_tipo_repuesto_fk, modelo_asociado, proveedor,
-      cantidad_stock, ubicacion_fisica, garantia_inicio,
-      garantia_fin, estado, fecha_ingreso, costo_unitario,
+      id_sys_tipo_repuesto_fk, id_tipo_equipo_fk, modelo_asociado, proveedor,
+      cantidad_stock, stock_minimo, ubicacion_fisica, estado, fecha_ingreso, costo_unitario,
       observacion
     } = req.body;
 
@@ -118,9 +119,9 @@ exports.create = async (req, res) => {
 
     const repuesto = await SysRepuesto.create({
       nombre, descripcion_tecnica, numero_parte, numero_serie,
-      id_sys_tipo_repuesto_fk, modelo_asociado, proveedor,
-      cantidad_stock: cantidad_stock || 0, ubicacion_fisica,
-      garantia_inicio, garantia_fin, estado, fecha_ingreso, costo_unitario
+      id_sys_tipo_repuesto_fk, id_tipo_equipo_fk, modelo_asociado, proveedor,
+      cantidad_stock: cantidad_stock || 0, stock_minimo: stock_minimo !== undefined ? stock_minimo : 4, ubicacion_fisica,
+      estado, fecha_ingreso, costo_unitario
     });
 
     await registrarAuditoria({
@@ -145,17 +146,15 @@ exports.update = async (req, res) => {
     const { id } = req.params;
     const {
       nombre, descripcion_tecnica, numero_parte, numero_serie,
-      id_sys_tipo_repuesto_fk, modelo_asociado, proveedor,
-      cantidad_stock, stock_minimo, ubicacion_fisica, garantia_inicio,
-      garantia_fin, estado, fecha_ingreso, costo_unitario,
+      id_sys_tipo_repuesto_fk, id_tipo_equipo_fk, modelo_asociado, proveedor,
+      cantidad_stock, stock_minimo, ubicacion_fisica, estado, fecha_ingreso, costo_unitario,
       observacion
     } = req.body;
 
     const [affected] = await SysRepuesto.update({
       nombre, descripcion_tecnica, numero_parte, numero_serie,
-      id_sys_tipo_repuesto_fk, modelo_asociado, proveedor,
-      cantidad_stock, stock_minimo, ubicacion_fisica, garantia_inicio,
-      garantia_fin, estado, fecha_ingreso, costo_unitario
+      id_sys_tipo_repuesto_fk, id_tipo_equipo_fk, modelo_asociado, proveedor,
+      cantidad_stock, stock_minimo, ubicacion_fisica, estado, fecha_ingreso, costo_unitario
     }, { where: { id_sysrepuesto: id } });
 
     if (affected === 0) return res.status(404).json({ success: false, message: 'Repuesto no encontrado' });

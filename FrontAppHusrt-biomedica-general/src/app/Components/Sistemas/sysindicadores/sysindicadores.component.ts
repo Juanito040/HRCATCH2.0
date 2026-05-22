@@ -92,40 +92,131 @@ export class SysindicadoresComponent {
 
   totalReportesLabel = computed(() => `Total: ${this.reportes().length}`);
 
+  // KPIs globales computados
+  totalPendientes = computed(() =>
+    [...this.allPreventivos(), ...this.allCorrectivos()].filter(r => !this.isRealizado(r)).length
+  );
+
+  cumplimientoGlobal = computed(() => {
+    const total = this.reportes().length;
+    if (total === 0) return 0;
+    const realizados = this.reportes().filter(r => this.isRealizado(r)).length;
+    return parseFloat(((realizados / total) * 100).toFixed(1));
+  });
+
+  alertaPreventivo = computed(() => this.preventivoInfo().cumplimiento < 80 && this.allPreventivos().length > 0);
+
   constructor() { this.refrescar(); }
+
+  // ── Filtros rápidos ──────────────────────────────────────────────
+  filtrarEsteMes() {
+    const hoy = new Date();
+    this.anio = hoy.getFullYear();
+    this.mesInicio = hoy.getMonth() + 1;
+    this.mesFin = hoy.getMonth() + 1;
+    this.refrescar();
+  }
+
+  filtrarEsteTrimsestre() {
+    const hoy = new Date();
+    const mes = hoy.getMonth() + 1;
+    const trimestre = Math.ceil(mes / 3);
+    this.anio = hoy.getFullYear();
+    this.mesInicio = (trimestre - 1) * 3 + 1;
+    this.mesFin = trimestre * 3;
+    this.refrescar();
+  }
+
+  filtrarEsteSemestre() {
+    const hoy = new Date();
+    const mes = hoy.getMonth() + 1;
+    this.anio = hoy.getFullYear();
+    this.mesInicio = mes <= 6 ? 1 : 7;
+    this.mesFin = mes <= 6 ? 6 : 12;
+    this.refrescar();
+  }
+
+  filtrarEsteAnio() {
+    this.anio = new Date().getFullYear();
+    this.mesInicio = 1;
+    this.mesFin = 12;
+    this.refrescar();
+  }
 
   async refrescar() {
     if (!this.anio || !this.mesInicio || !this.mesFin) return;
 
     this.loading.set(true);
     try {
-      const fechaInicioStr = `${this.anio}-${String(this.mesInicio).padStart(2, '0')}-01`;
-      const fechaFinDate = new Date(this.anio, this.mesFin, 0); // Ultimo dia del mes
-      const fechaFinStr = `${this.anio}-${String(this.mesFin).padStart(2, '0')}-${String(fechaFinDate.getDate()).padStart(2, '0')}`;
+      // Traer TODOS los registros sin filtro de fecha en el backend,
+      // ya que el backend puede ignorar los parámetros y el filtro
+      // correcto se aplica localmente con lógica separada por tipo.
+      const res: any = await firstValueFrom(this.srv.getAll());
 
-      const res: any = await firstValueFrom(this.srv.getAll({ fecha_inicio: fechaInicioStr, fecha_fin: fechaFinStr }));
-      
       let allData: SysMantenimiento[] = Array.isArray(res) ? res : (Array.isArray(res.data) ? res.data : []);
 
-      // Filter locally because backend might ignore the date filters
+      const fechaInicioStr = `${this.anio}-${String(this.mesInicio).padStart(2, '0')}-01`;
+      const fechaFinDate = new Date(this.anio, this.mesFin, 0); // Último día del mes
+      const fechaFinStr = `${this.anio}-${String(this.mesFin).padStart(2, '0')}-${String(fechaFinDate.getDate()).padStart(2, '0')}`;
+
       const fInicio = new Date(fechaInicioStr + 'T00:00:00').getTime();
       const fFin = new Date(fechaFinStr + 'T23:59:59').getTime();
-      
-      allData = allData.filter(r => {
+
+      // ─── PREVENTIVOS ────────────────────────────────────────────────────────
+      // Los preventivos se filtran por su FECHA PROGRAMADA, no por cuándo se
+      // realizaron. Así el total de "programados" siempre refleja lo que estaba
+      // agendado en el período, independientemente de si se ejecutó o no y cuándo.
+      const preventivos = allData.filter(r => {
+        if (this.getTipoMantenimientoLabel(r.tipoMantenimiento as any) !== 'Preventivo') return false;
+
+        // Prioridad 1: año/mes programado explícito
+        if (r.añoProgramado != null && r.mesProgramado != null) {
+          return (
+            r.añoProgramado === this.anio &&
+            r.mesProgramado >= this.mesInicio &&
+            r.mesProgramado <= this.mesFin
+          );
+        }
+
+        // Prioridad 2: campo fechaProgramada como string "YYYY-MM-DD"
+        if ((r as any).fechaProgramada) {
+          const d = new Date((r as any).fechaProgramada + 'T00:00:00').getTime();
+          return d >= fInicio && d <= fFin;
+        }
+
+        // Fallback: si no tiene ninguna fecha programada, usar fechaRealizado
         if (r.fechaRealizado) {
           const d = new Date(r.fechaRealizado + 'T00:00:00').getTime();
           return d >= fInicio && d <= fFin;
-        } else if (r.añoProgramado && r.mesProgramado) {
-          return r.añoProgramado === this.anio && r.mesProgramado >= this.mesInicio && r.mesProgramado <= this.mesFin;
         }
-        return false; // Excluir si no hay fechas
+
+        return false;
       });
 
-      this.allPreventivos.set(allData.filter((r: SysMantenimiento) => r.tipoMantenimiento === 'Preventivo'));
-      this.allCorrectivos.set(allData.filter((r: SysMantenimiento) => r.tipoMantenimiento === 'Correctivo'));
-      
-      // Tambien incluimos Predictivo(3) y Otro(4) como parte de preventivos o solos? 
-      // Para mantener estructura, solo mapeamos los estrictos o guardamos todos en el computed
+      // ─── CORRECTIVOS ─────────────────────────────────────────────────────────
+      // Los correctivos se filtran por su fecha de realización o fecha de reporte,
+      // ya que no tienen programación previa.
+      const correctivos = allData.filter(r => {
+        if (this.getTipoMantenimientoLabel(r.tipoMantenimiento as any) !== 'Correctivo') return false;
+
+        // Prioridad 1: fecha en que se realizó/cerró
+        if (r.fechaRealizado) {
+          const d = new Date(r.fechaRealizado + 'T00:00:00').getTime();
+          return d >= fInicio && d <= fFin;
+        }
+
+        // Prioridad 2: fecha de reporte/creación
+        if ((r as any).fecha) {
+          const d = new Date((r as any).fecha + 'T00:00:00').getTime();
+          return d >= fInicio && d <= fFin;
+        }
+
+        return false;
+      });
+
+      this.allPreventivos.set(preventivos);
+      this.allCorrectivos.set(correctivos);
+
     } catch (e) {
       console.error(e);
       this.allPreventivos.set([]);
@@ -161,7 +252,7 @@ export class SysindicadoresComponent {
     }
     return m;
   }
-  
+
   private groupAvg<K extends string | number>(arr: SysMantenimiento[], key: (r: SysMantenimiento) => K | null | undefined, val: (r: SysMantenimiento) => number | null) {
     const sum = new Map<K, number>(), cnt = new Map<K, number>(), avg = new Map<K, number>();
     for (const r of arr) {
@@ -249,8 +340,7 @@ export class SysindicadoresComponent {
         x: { ticks: { autoSkip: true, font: { size: 12 } }, grid: { display: false } },
         y: {
           beginAtZero: true,
-          max: 100,
-          ticks: { stepSize: 5, precision: 0, font: { size: 12 }, color: '#6b7280' },
+          ticks: { precision: 0, font: { size: 12 }, color: '#6b7280' },
           grid: { color: '#f3f4f6' }
         }
       }
@@ -302,12 +392,12 @@ export class SysindicadoresComponent {
     const calcAvg = (reps: SysMantenimiento[]) => {
       const realizados = reps.filter(r => this.isRealizado(r) && r.horaInicio && r.horaTerminacion);
       if (realizados.length === 0) return '00:00:00';
-      
+
       const totalMinutes = realizados.reduce((acc, r) => {
         const start = this.hhmmssToMinutes(r.horaInicio);
         const end = this.hhmmssToMinutes(r.horaTerminacion);
         if (start != null && end != null && end >= start) {
-           return acc + (end - start);
+          return acc + (end - start);
         }
         return acc;
       }, 0);
@@ -380,11 +470,11 @@ export class SysindicadoresComponent {
     const labels = orden.filter(k => mapa.has(k) || k === 'Correctivo' || k === 'Prev. Realizado' || k === 'Prev. No Realizado');
 
     const colorMap: Record<string, string> = {
-      'Prev. Realizado': '#10b981', 
-      'Prev. No Realizado': '#fbbf24', 
-      'Correctivo': '#3b82f6', 
-      'Predictivo': '#8b5cf6', 
-      'Otro': '#94a3b8' 
+      'Prev. Realizado': '#10b981',
+      'Prev. No Realizado': '#fbbf24',
+      'Correctivo': '#3b82f6',
+      'Predictivo': '#8b5cf6',
+      'Otro': '#94a3b8'
     };
 
     return {
@@ -412,7 +502,7 @@ export class SysindicadoresComponent {
 
       const current = stats.get(name) || { prevRealizado: 0, prevNoRealizado: 0, correctivo: 0 };
       const tipo = this.getTipoMantenimientoLabel(r.tipoMantenimiento as any);
-      
+
       if (tipo === 'Preventivo') {
         if (this.isRealizado(r)) {
           current.prevRealizado++;
@@ -472,7 +562,7 @@ export class SysindicadoresComponent {
       const sName = r.equipo?.servicio?.nombres || 'Sin servicio';
       const current = stats.get(sName) || { preventivo: 0, correctivo: 0 };
       const tipo = this.getTipoMantenimientoLabel(r.tipoMantenimiento as any);
-      
+
       if (tipo === 'Preventivo') {
         current.preventivo++;
       } else if (tipo === 'Correctivo') {
@@ -537,7 +627,7 @@ export class SysindicadoresComponent {
 
   porMesChartData = computed(() => {
     const rs = this.reportes();
-    const m = new Map<string, number>(); 
+    const m = new Map<string, number>();
     for (const r of rs) {
       if (!r.fechaRealizado) continue;
       const ym = r.fechaRealizado.slice(0, 7);
@@ -637,8 +727,8 @@ export class SysindicadoresComponent {
         {
           label: 'Preventivos por Tipo',
           data,
-          backgroundColor: '#3b82f6', 
-          borderColor: '#2563eb', 
+          backgroundColor: '#3b82f6',
+          borderColor: '#2563eb',
           borderWidth: 1,
           borderRadius: 8,
           barPercentage: 0.6
@@ -665,8 +755,8 @@ export class SysindicadoresComponent {
         {
           label: 'Correctivos por Tipo',
           data,
-          backgroundColor: '#ef4444', 
-          borderColor: '#dc2626', 
+          backgroundColor: '#ef4444',
+          borderColor: '#dc2626',
           borderWidth: 1,
           borderRadius: 8,
           barPercentage: 0.6
@@ -695,8 +785,8 @@ export class SysindicadoresComponent {
         {
           label: 'Pendientes por Responsable',
           data,
-          backgroundColor: '#f59e0b', 
-          borderColor: '#d97706', 
+          backgroundColor: '#f59e0b',
+          borderColor: '#d97706',
           borderWidth: 1
         }
       ]

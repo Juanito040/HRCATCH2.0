@@ -10,6 +10,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import Swal from 'sweetalert2';
 import { extractError } from '../../../utils/error-utils';
+import { TipoEquipoService } from '../../../Services/appServices/general/tipoEquipo/tipo-equipo.service';
 
 const ROLES_PERMITIDOS = ['SUPERADMIN', 'ADMINISTRADOR','SYSTEMADMIN', 'AG', 'SISTEMASADMIN', 'SISTEMASUSER'];
 
@@ -32,6 +33,7 @@ export class SisRepuestosComponent implements OnInit {
   movimientos: SysMovimientoStock[] = [];
   filteredMovimientos: SysMovimientoStock[] = [];
   alertasStockBajo: SysRepuesto[] = [];
+  tiposEquiposSistemas: any[] = [];
 
   // ─── Estado UI ────────────────────────────────────────────
   isLoading = false;
@@ -76,9 +78,10 @@ export class SisRepuestosComponent implements OnInit {
   isMovimientoModalOpen = false;
   isSavingMovimiento = false;
   repuestoParaMovimiento: SysRepuesto | null = null;
-  formMovimiento: { tipo: 'ingreso' | 'egreso'; cantidad: number; motivo: string; referencia: string } = {
-    tipo: 'ingreso', cantidad: 1, motivo: '', referencia: ''
+  formMovimiento: { tipo: 'ingreso' | 'egreso'; cantidad: number; motivo: string; referencia: string; tieneFactura: 'si' | 'no'; motivoNoFactura: string; garantia_inicio: string; garantia_fin: string; tieneGarantia: 'si' | 'no' } = {
+    tipo: 'ingreso', cantidad: 1, motivo: '', referencia: '', tieneFactura: 'si', motivoNoFactura: '', garantia_inicio: '', garantia_fin: '', tieneGarantia: 'no'
   };
+  archivoFacturaMovimiento: File | null = null;
 
   // ─── Paginación Repuestos ─────────────────────────────────
   readonly pageSize = 12;
@@ -111,6 +114,7 @@ export class SisRepuestosComponent implements OnInit {
   private tiposService = inject(SysTipoRepuestosService);
   private auditoriaService = inject(SysAuditoriaRepuestoService);
   private movimientosService = inject(SysMovimientosStockService);
+  private tipoEquipoService = inject(TipoEquipoService);
 
   // ─── Permisos ─────────────────────────────────────────────
   get hasAccess(): boolean {
@@ -152,6 +156,7 @@ export class SisRepuestosComponent implements OnInit {
     this.loadTipos();
     this.loadAuditoria();
     this.loadAlertas();
+    this.loadTiposEquiposSistemas();
   }
 
   // ─── Carga de datos ───────────────────────────────────────
@@ -184,6 +189,15 @@ export class SisRepuestosComponent implements OnInit {
       next: (res) => { if (res.success) this.tipos = Array.isArray(res.data) ? res.data : [res.data]; },
       error: () => { this.tipos = []; }
     });
+  }
+
+  async loadTiposEquiposSistemas() {
+    try {
+      this.tiposEquiposSistemas = await this.tipoEquipoService.getTiposEquiposSistemas();
+    } catch (error) {
+      console.error('Error cargando tipos de equipos de sistemas', error);
+      this.tiposEquiposSistemas = [];
+    }
   }
 
   loadAuditoria(): void {
@@ -458,6 +472,26 @@ export class SisRepuestosComponent implements OnInit {
     this.applyAuditFilter();
   }
 
+  verDetalleAuditoria(auditoria: any): void {
+    Swal.fire({
+      title: 'Detalle del Cambio',
+      html: `
+        <div style="text-align: left; font-size: 0.95rem; line-height: 1.5; color: #374151;">
+          <p><strong>Ítem:</strong> ${auditoria.nombre_item || '—'}</p>
+          <p><strong>Acción:</strong> <span class="badge ${this.getAccionClass(auditoria.accion)}">${this.getAccionLabel(auditoria.accion)}</span></p>
+          <p><strong>Usuario:</strong> ${auditoria.usuario}</p>
+          <p><strong>Fecha:</strong> ${new Date(auditoria.fecha_hora).toLocaleString()}</p>
+          <hr style="border-color: #e5e7eb; margin: 1rem 0;">
+          <p><strong>Motivo / Observación:</strong></p>
+          <div style="background: #f3f4f6; padding: 1rem; border-radius: 8px; border: 1px solid #e5e7eb; white-space: pre-wrap; font-size: 0.9rem;">${auditoria.observacion || 'Sin observación'}</div>
+        </div>
+      `,
+      icon: 'info',
+      confirmButtonText: 'Cerrar',
+      confirmButtonColor: '#6366f1'
+    });
+  }
+
   // ─── Modal Repuesto ───────────────────────────────────────
 
   openCreateModal(): void {
@@ -524,6 +558,27 @@ export class SisRepuestosComponent implements OnInit {
     });
   }
 
+  descargarFacturaMovimiento(movimiento: SysMovimientoStock): void {
+    if (!movimiento.id || !movimiento.factura_ruta) {
+      Swal.fire('Atención', 'Este movimiento no tiene una factura adjunta', 'info');
+      return;
+    }
+    
+    // Llamar al método creado en SysMovimientosStockService
+    (this.movimientosService as any).descargarFactura(movimiento.id).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const nombreRep = movimiento.repuesto?.nombre || 'repuesto';
+        a.download = `factura_ingreso_${nombreRep}_${Date.now()}.pdf`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: () => Swal.fire('Error', 'No se pudo descargar la factura. Es posible que el archivo físico no exista.', 'error')
+    });
+  }
+
   // ─── Toggle Repuesto Activo/Inactivo ──────────────────────
 
   toggleRepuesto(repuesto: SysRepuesto): void {
@@ -577,13 +632,41 @@ export class SisRepuestosComponent implements OnInit {
 
   openMovimientoModal(repuesto: SysRepuesto): void {
     this.repuestoParaMovimiento = repuesto;
-    this.formMovimiento = { tipo: 'ingreso', cantidad: 1, motivo: '', referencia: '' };
+    this.formMovimiento = { tipo: 'ingreso', cantidad: 1, motivo: '', referencia: '', tieneFactura: 'si', motivoNoFactura: '', garantia_inicio: '', garantia_fin: '', tieneGarantia: 'no' };
+    this.archivoFacturaMovimiento = null;
     this.isMovimientoModalOpen = true;
   }
 
   closeMovimientoModal(): void {
     this.isMovimientoModalOpen = false;
     this.repuestoParaMovimiento = null;
+    this.archivoFacturaMovimiento = null;
+  }
+
+  // ─── Modal Detalles Movimiento ────────────────────────────
+  isMovimientoDetallesModalOpen = false;
+  movimientoDetalle: SysMovimientoStock | null = null;
+
+  openMovimientoDetallesModal(mov: SysMovimientoStock): void {
+    this.movimientoDetalle = mov;
+    this.isMovimientoDetallesModalOpen = true;
+  }
+
+  closeMovimientoDetallesModal(): void {
+    this.isMovimientoDetallesModalOpen = false;
+    this.movimientoDetalle = null;
+  }
+
+  onFileMovimientoSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      if (file.type !== 'application/pdf') {
+        Swal.fire('Error', 'Sólo se permiten archivos PDF', 'error');
+        event.target.value = '';
+        return;
+      }
+      this.archivoFacturaMovimiento = file;
+    }
   }
 
   guardarMovimiento(): void {
@@ -596,15 +679,54 @@ export class SisRepuestosComponent implements OnInit {
       Swal.fire('Atención', 'La cantidad debe ser mayor a 0', 'warning');
       return;
     }
+    
+    if (this.formMovimiento.tipo === 'ingreso') {
+      if (this.formMovimiento.tieneFactura === 'si' && !this.archivoFacturaMovimiento) {
+        Swal.fire('Atención', 'Debe adjuntar la factura de compra obligatoriamente', 'warning');
+        return;
+      }
+      if (this.formMovimiento.tieneFactura === 'no' && !this.formMovimiento.motivoNoFactura?.trim()) {
+        Swal.fire('Atención', 'Debe indicar el motivo por el cual no se adjunta factura', 'warning');
+        return;
+      }
+      if (this.formMovimiento.tieneGarantia === 'si') {
+        if (!this.formMovimiento.garantia_inicio || !this.formMovimiento.garantia_fin) {
+          Swal.fire('Atención', 'Debe indicar la fecha de inicio y fin de la garantía', 'warning');
+          return;
+        }
+        if (new Date(this.formMovimiento.garantia_fin) <= new Date(this.formMovimiento.garantia_inicio)) {
+          Swal.fire('Atención', 'La fecha de fin de garantía debe ser posterior a la de inicio', 'warning');
+          return;
+        }
+      }
+    }
 
     this.isSavingMovimiento = true;
-    this.movimientosService.registrarMovimiento({
-      id_repuesto_fk: this.repuestoParaMovimiento.id_sysrepuesto,
-      tipo: this.formMovimiento.tipo,
-      cantidad: this.formMovimiento.cantidad,
-      motivo: this.formMovimiento.motivo.trim(),
-      referencia: this.formMovimiento.referencia?.trim() || undefined
-    }).subscribe({
+    
+    let motivoFinal = this.formMovimiento.motivo.trim();
+    if (this.formMovimiento.tipo === 'ingreso' && this.formMovimiento.tieneFactura === 'no') {
+      motivoFinal += ` | Sin factura: ${this.formMovimiento.motivoNoFactura.trim()}`;
+    }
+
+    const formData = new FormData();
+    formData.append('id_repuesto_fk', this.repuestoParaMovimiento.id_sysrepuesto.toString());
+    formData.append('tipo', this.formMovimiento.tipo);
+    formData.append('cantidad', this.formMovimiento.cantidad.toString());
+    formData.append('motivo', motivoFinal);
+    if (this.formMovimiento.referencia) {
+      formData.append('referencia', this.formMovimiento.referencia.trim());
+    }
+    if (this.formMovimiento.tipo === 'ingreso') {
+      if (this.formMovimiento.tieneFactura === 'si' && this.archivoFacturaMovimiento) {
+        formData.append('factura_pdf', this.archivoFacturaMovimiento);
+      }
+      if (this.formMovimiento.tieneGarantia === 'si') {
+        if (this.formMovimiento.garantia_inicio) formData.append('garantia_inicio', this.formMovimiento.garantia_inicio);
+        if (this.formMovimiento.garantia_fin) formData.append('garantia_fin', this.formMovimiento.garantia_fin);
+      }
+    }
+
+    this.movimientosService.registrarMovimiento(formData).subscribe({
       next: (res) => {
         this.isSavingMovimiento = false;
         if (res.success) {
@@ -630,7 +752,7 @@ export class SisRepuestosComponent implements OnInit {
     const lista = this.repuestos.filter(r => r.is_active === true || (r.is_active as any) === 1);
     if (!lista.length) { Swal.fire('Aviso', 'No hay repuestos activos para exportar', 'info'); return; }
 
-    const encabezado = 'ID;Nombre;Tipo;Nº Parte;Nº Serie;Proveedor;Stock;Stock Mínimo;Estado;Ubicación;Garantía Inicio;Garantía Fin;Fecha Ingreso\n';
+    const encabezado = 'ID;Nombre;Tipo;Nº Parte;Nº Serie;Proveedor;Stock;Stock Mínimo;Estado;Ubicación;Fecha Ingreso\n';
     const filas = lista.map(r => [
       r.id_sysrepuesto,
       `"${r.nombre || ''}"`,
@@ -642,8 +764,6 @@ export class SisRepuestosComponent implements OnInit {
       r.stock_minimo ?? 4,
       r.estado || '',
       `"${r.ubicacion_fisica || ''}"`,
-      r.garantia_inicio || '',
-      r.garantia_fin || '',
       r.fecha_ingreso || ''
     ].join(';')).join('\n');
 
@@ -670,7 +790,7 @@ export class SisRepuestosComponent implements OnInit {
     doc.text(`Generado el ${fechaHoy} — HRCATCH2.0 Sistema Biomédico`, pageWidth / 2, 20, { align: 'center' });
     doc.setTextColor(0, 0, 0);
 
-    const head = [['ID', 'Nombre', 'Tipo', 'N° Parte', 'N° Serie', 'Proveedor', 'Stock', 'Mín.', 'Garantía Inicio', 'Garantía Fin']];
+    const head = [['ID', 'Nombre', 'Tipo', 'N° Parte', 'N° Serie', 'Proveedor', 'Stock', 'Mín.']];
     const body = lista.map(r => [
       r.id_sysrepuesto,
       r.nombre || '',
@@ -679,9 +799,7 @@ export class SisRepuestosComponent implements OnInit {
       r.numero_serie || '',
       r.proveedor || '',
       r.cantidad_stock ?? 0,
-      r.stock_minimo ?? 4,
-      r.garantia_inicio || '',
-      r.garantia_fin || ''
+      r.stock_minimo ?? 4
     ]);
 
     autoTable(doc, {

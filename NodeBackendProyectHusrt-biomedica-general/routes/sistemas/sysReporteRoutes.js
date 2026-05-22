@@ -19,6 +19,8 @@ router.get('/catalogos/tipos-falla', ctrl.getCatalogoTiposFalla);
 router.get('/dashboard', ctrl.getDashboard);
 router.get('/equipo/:idEquipo', ctrl.getByEquipo);
 router.get('/tecnico/:idUsuario', ctrl.getByTecnico);
+router.get('/usuario/:idUsuario', ctrl.getReportesByUsuario);
+
 
 // CRUD
 router.get('/',        ctrl.getAllReportes);
