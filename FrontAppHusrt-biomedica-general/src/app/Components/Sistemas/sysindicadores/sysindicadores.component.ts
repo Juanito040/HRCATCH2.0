@@ -12,6 +12,7 @@ import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
 import { MeterGroupModule } from 'primeng/metergroup';
 import { SysmantenimientoService, SysMantenimiento, SysMantenimientoResponse } from '../../../Services/appServices/sistemasServices/sysmantenimiento/sysmantenimiento.service';
+import { BackupSistemaService } from '../../../Services/appServices/biomedicaServices/backup/backup-sistema.service';
 import { firstValueFrom } from 'rxjs';
 
 type TipoMantenimiento = 'Correctivo' | 'Preventivo' | 'Predictivo' | 'Otro';
@@ -70,11 +71,14 @@ export class SysindicadoresComponent {
   ];
 
   private srv = inject(SysmantenimientoService);
+  private backupSrv = inject(BackupSistemaService);
 
   loading = signal(false);
+  vistaActual = signal<'mantenimiento' | 'backups'>('mantenimiento');
 
   allPreventivos = signal<SysMantenimiento[]>([]);
   allCorrectivos = signal<SysMantenimiento[]>([]);
+  allBackups = signal<any[]>([]);
 
   reportes = computed(() => [...this.allPreventivos(), ...this.allCorrectivos()]);
 
@@ -107,6 +111,11 @@ export class SysindicadoresComponent {
   alertaPreventivo = computed(() => this.preventivoInfo().cumplimiento < 80 && this.allPreventivos().length > 0);
 
   constructor() { this.refrescar(); }
+
+  cambiarVista(vista: 'mantenimiento' | 'backups') {
+    this.vistaActual.set(vista);
+    if (vista === 'backups') this.cargarBackups();
+  }
 
   // ── Filtros rápidos ──────────────────────────────────────────────
   filtrarEsteMes() {
@@ -221,6 +230,25 @@ export class SysindicadoresComponent {
       console.error(e);
       this.allPreventivos.set([]);
       this.allCorrectivos.set([]);
+    } finally {
+      this.loading.set(false);
+    }
+
+    if (this.vistaActual() === 'backups') await this.cargarBackups();
+  }
+
+  async cargarBackups() {
+    if (!this.anio || !this.mesInicio || !this.mesFin) return;
+    const fechaInicio = `${this.anio}-${String(this.mesInicio).padStart(2, '0')}-01`;
+    const fechaFinDate = new Date(this.anio, this.mesFin, 0);
+    const fechaFin = `${this.anio}-${String(this.mesFin).padStart(2, '0')}-${String(fechaFinDate.getDate()).padStart(2, '0')}`;
+    this.loading.set(true);
+    try {
+      const data = await this.backupSrv.getBackupsPorRango(fechaInicio, fechaFin);
+      this.allBackups.set(Array.isArray(data) ? data : []);
+    } catch (e) {
+      console.error(e);
+      this.allBackups.set([]);
     } finally {
       this.loading.set(false);
     }
@@ -792,4 +820,166 @@ export class SysindicadoresComponent {
       ]
     };
   });
+
+  // ── KPIs de Backups ──────────────────────────────────────────────
+  totalBackupsCount = computed(() => this.allBackups().length);
+  backupsCompletados = computed(() => this.allBackups().filter(b => b.estado === 'Completado').length);
+  backupsPendientes = computed(() => this.allBackups().filter(b => b.estado === 'Pendiente').length);
+  backupsNoRealizados = computed(() => this.allBackups().filter(b => b.estado === 'No realizado' || b.estado === 'Fallido').length);
+  cumplimientoBackups = computed(() => {
+    const total = this.allBackups().length;
+    if (total === 0) return 0;
+    return parseFloat(((this.backupsCompletados() / total) * 100).toFixed(1));
+  });
+
+  // ── Gráficas de Backups ──────────────────────────────────────────
+  chartBackupEstado = computed(() => {
+    const estados = ['Completado', 'Pendiente', 'No realizado', 'Fallido'];
+    const counts = estados.map(e => this.allBackups().filter(b => b.estado === e).length);
+    return {
+      labels: estados,
+      datasets: [{
+        data: counts,
+        backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'],
+        hoverOffset: 4,
+        borderColor: '#ffffff',
+        borderWidth: 2
+      }]
+    };
+  });
+
+  chartBackupTipo = computed(() => {
+    const tipos = ['Completo', 'Incremental', 'Diferencial'];
+    const counts = tipos.map(t => this.allBackups().filter(b => b.tipo === t).length);
+    return {
+      labels: tipos,
+      datasets: [{
+        label: 'Backups por Tipo',
+        data: counts,
+        backgroundColor: ['rgba(59,130,246,0.7)', 'rgba(139,92,246,0.7)', 'rgba(20,184,166,0.7)'],
+        borderColor: ['#2563eb', '#7c3aed', '#0d9488'],
+        borderWidth: 1,
+        borderRadius: 6,
+        barPercentage: 0.6
+      }]
+    };
+  });
+
+  chartBackupFrecuencia = computed(() => {
+    const frecuencias = ['Diario', 'Semanal', 'Mensual', 'Anual'];
+    const counts = frecuencias.map(f => this.allBackups().filter(b => b.frecuencia_backup === f).length);
+    return {
+      labels: frecuencias,
+      datasets: [{
+        label: 'Backups por Frecuencia',
+        data: counts,
+        backgroundColor: ['rgba(16,185,129,0.7)', 'rgba(245,158,11,0.7)', 'rgba(99,102,241,0.7)', 'rgba(236,72,153,0.7)'],
+        borderColor: ['#059669', '#d97706', '#4f46e5', '#db2777'],
+        borderWidth: 1,
+        borderRadius: 6,
+        barPercentage: 0.6
+      }]
+    };
+  });
+
+  chartBackupTendencia = computed(() => {
+    const backups = this.allBackups();
+    const completadosPorMes = new Map<string, number>();
+    const noRealizadosPorMes = new Map<string, number>();
+
+    for (const b of backups) {
+      if (!b.fecha) continue;
+      const ym = (b.fecha as string).slice(0, 7);
+      if (b.estado === 'Completado') {
+        completadosPorMes.set(ym, (completadosPorMes.get(ym) ?? 0) + 1);
+      } else if (b.estado === 'No realizado' || b.estado === 'Fallido') {
+        noRealizadosPorMes.set(ym, (noRealizadosPorMes.get(ym) ?? 0) + 1);
+      }
+    }
+
+    const allLabels = Array.from(new Set([...completadosPorMes.keys(), ...noRealizadosPorMes.keys()])).sort();
+    return {
+      labels: allLabels,
+      datasets: [
+        {
+          label: 'Completados',
+          data: allLabels.map(l => completadosPorMes.get(l) ?? 0),
+          fill: true,
+          backgroundColor: 'rgba(16, 185, 129, 0.2)',
+          borderColor: '#10b981',
+          pointBackgroundColor: '#ffffff',
+          pointBorderColor: '#10b981',
+          pointBorderWidth: 2,
+          tension: 0.4
+        },
+        {
+          label: 'No Realizados/Fallidos',
+          data: allLabels.map(l => noRealizadosPorMes.get(l) ?? 0),
+          fill: true,
+          backgroundColor: 'rgba(239, 68, 68, 0.2)',
+          borderColor: '#ef4444',
+          pointBackgroundColor: '#ffffff',
+          pointBorderColor: '#ef4444',
+          pointBorderWidth: 2,
+          tension: 0.4
+        }
+      ]
+    };
+  });
+
+  chartBackupPorSistema = computed(() => {
+    const backups = this.allBackups();
+    const sistemaCounts = new Map<string, { completado: number, noRealizado: number }>();
+
+    for (const b of backups) {
+      const nombre = b.SistemaInformacion?.nombre || b.sistemaInformacion?.nombre || `Sistema ${b.sistemaInformacionId}`;
+      const current = sistemaCounts.get(nombre) || { completado: 0, noRealizado: 0 };
+      if (b.estado === 'Completado') current.completado++;
+      else current.noRealizado++;
+      sistemaCounts.set(nombre, current);
+    }
+
+    const sorted = Array.from(sistemaCounts.entries())
+      .sort((a, b) => (b[1].completado + b[1].noRealizado) - (a[1].completado + a[1].noRealizado))
+      .slice(0, 10);
+
+    const labels = sorted.map(s => s[0]);
+    return {
+      labels,
+      datasets: [
+        {
+          label: 'Completados',
+          data: sorted.map(s => s[1].completado),
+          backgroundColor: 'rgba(16, 185, 129, 0.7)',
+          borderColor: '#059669',
+          borderWidth: 1,
+          borderRadius: 4
+        },
+        {
+          label: 'No Realizados/Fallidos',
+          data: sorted.map(s => s[1].noRealizado),
+          backgroundColor: 'rgba(239, 68, 68, 0.7)',
+          borderColor: '#dc2626',
+          borderWidth: 1,
+          borderRadius: 4
+        }
+      ]
+    };
+  });
+
+  barHorizontalOptions() {
+    return {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', labels: { font: { size: 13 } } },
+        tooltip: { mode: 'index', intersect: false }
+      },
+      scales: {
+        x: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#f3f4f6' } },
+        y: { ticks: { font: { size: 11 } }, grid: { display: false } }
+      }
+    } as any;
+  }
 }

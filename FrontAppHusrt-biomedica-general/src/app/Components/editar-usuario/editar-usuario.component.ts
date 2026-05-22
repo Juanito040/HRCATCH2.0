@@ -1,9 +1,10 @@
-import { Component, inject, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, inject, OnInit, ViewChild } from '@angular/core';
 import { UserService } from '../../Services/appServices/userServices/user.service';
 import { FormsModule } from '@angular/forms';
 import { jwtDecode } from 'jwt-decode';
 import { CommonModule, Location } from '@angular/common';
 import Swal from 'sweetalert2';
+import SignaturePad from 'signature_pad';
 
 import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
@@ -14,7 +15,6 @@ import { DividerModule } from 'primeng/divider';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { DialogModule } from 'primeng/dialog';
-import { SignaturePad, SignaturePadModule } from 'angular2-signaturepad';
 import { FirmaService } from '../../Services/appServices/biomedicaServices/firma/firma.service';
 
 import { UppercaseDirective } from '../../Directives/uppercase.directive';
@@ -25,7 +25,7 @@ import { UppercaseDirective } from '../../Directives/uppercase.directive';
   imports: [
     FormsModule, CommonModule, CardModule, InputTextModule, PasswordModule,
     ButtonModule, SelectModule, DividerModule, IconFieldModule, InputIconModule,
-    DialogModule, SignaturePadModule, UppercaseDirective
+    DialogModule, UppercaseDirective
   ],
   templateUrl: './editar-usuario.component.html',
   styleUrl: './editar-usuario.component.css'
@@ -47,12 +47,8 @@ export class EditarUsuarioComponent implements OnInit {
   // Firma Variables
   mostrarFirmaModal: boolean = false;
   firmaUrl: any = null;
-  @ViewChild(SignaturePad) signaturePad!: SignaturePad;
-  signaturePadOptions: Object = {
-    'minWidth': 1,
-    'canvasWidth': 500,
-    'canvasHeight': 300,
-  };
+  @ViewChild('signatureCanvas') signatureCanvasRef!: ElementRef<HTMLCanvasElement>;
+  private signaturePad!: SignaturePad;
 
   // Password Variables
   mostrarPasswordModal: boolean = false;
@@ -172,6 +168,13 @@ export class EditarUsuarioComponent implements OnInit {
   // Métodos Firma
   abrirModalFirma() {
     this.mostrarFirmaModal = true;
+    setTimeout(() => this.initSignaturePad(), 0);
+  }
+
+  private initSignaturePad() {
+    if (this.signatureCanvasRef) {
+      this.signaturePad = new SignaturePad(this.signatureCanvasRef.nativeElement, { minWidth: 1 });
+    }
   }
 
   cerrarModalFirma() {
@@ -179,22 +182,18 @@ export class EditarUsuarioComponent implements OnInit {
   }
 
   limpiarFirma() {
-    this.signaturePad.clear();
+    this.signaturePad?.clear();
   }
 
-  // Hook para resizing si fuera necesario
-  ngAfterViewInit() {
-    // this.signaturePad.set('minWidth', 5);
-    // this.signaturePad.clear();
-  }
+  ngAfterViewInit() { }
 
   async guardarFirma() {
-    if (this.signaturePad.isEmpty()) {
+    if (!this.signaturePad || this.signaturePad.isEmpty()) {
       Swal.fire('Atención', 'Por favor realice su firma.', 'warning');
       return;
     }
 
-    const firmaBase64 = this.signaturePad.toDataURL(); // PNG por defecto
+    const firmaBase64 = this.signaturePad.toDataURL();
 
     try {
       await this.firmaService.guardarFirma(firmaBase64, this.usuario.id);

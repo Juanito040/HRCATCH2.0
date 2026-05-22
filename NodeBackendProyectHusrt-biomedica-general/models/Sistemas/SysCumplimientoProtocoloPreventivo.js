@@ -16,7 +16,7 @@ const SysCumplimientoProtocoloPreventivo = sequelize.define('SysCumplimientoProt
         allowNull: false,
         references: {
             model: SysProtocoloPreventivo,
-            key: 'id_sysprotocolo'
+            key: 'id'
         },
     },
     sysReporteIdFk: {

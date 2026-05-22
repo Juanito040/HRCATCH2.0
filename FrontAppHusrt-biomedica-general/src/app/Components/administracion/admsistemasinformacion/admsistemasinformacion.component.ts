@@ -260,7 +260,7 @@ export class AmdSistemasInformacionComponent implements OnInit {
             if (this.isEditingBackup) {
                 await this.backupService.updateBackup(this.backupEditandoId!, payload);
                 if (payload.estado === 'Completado') {
-                    this.notificacionService.eliminarAlertaPorSistema(this.sistemaSeleccionado.id);
+                    this.notificacionService.cargarAlertas();
                 }
             } else {
                 await this.backupService.createBackup({
@@ -331,6 +331,9 @@ export class AmdSistemasInformacionComponent implements OnInit {
         try {
             await this.backupService.updateBackup(backup.id, { estado: nuevoEstado });
             backup.estado = nuevoEstado;
+            if (nuevoEstado === 'Completado') {
+                this.notificacionService.cargarAlertas();
+            }
         } catch (error) {
             console.error(error);
             Swal.fire('Error', 'No se pudo actualizar el estado', 'error');

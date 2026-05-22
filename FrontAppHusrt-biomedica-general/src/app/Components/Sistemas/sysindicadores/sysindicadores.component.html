@@ -4,11 +4,23 @@
   <div class="card border-0 shadow-sm border-round-xl surface-card p-3 mb-3">
     <div class="flex flex-column gap-3">
 
-      <!-- Fila superior: título + botones rápidos + refresh -->
+      <!-- Fila superior: título + toggle vista + botones rápidos + refresh -->
       <div class="flex flex-column lg:flex-row justify-content-between align-items-center gap-2">
-        <label class="text-xl font-bold text-700 flex align-items-center gap-2">
-          <i class="pi pi-chart-bar text-primary"></i> INDICADORES SISTEMAS
-        </label>
+        <div class="flex align-items-center gap-3 flex-wrap">
+          <label class="text-xl font-bold text-700 flex align-items-center gap-2">
+            <i [class]="vistaActual() === 'backups' ? 'pi pi-database text-primary' : 'pi pi-chart-bar text-primary'"></i>
+            {{ vistaActual() === 'backups' ? 'INDICADORES BACKUPS' : 'INDICADORES SISTEMAS' }}
+          </label>
+          <!-- Toggle de vista -->
+          <div class="flex gap-1">
+            <button pButton label="Mantenimiento" icon="pi pi-wrench"
+              [class]="vistaActual() === 'mantenimiento' ? 'p-button-sm p-button-primary' : 'p-button-sm p-button-outlined p-button-secondary'"
+              (click)="cambiarVista('mantenimiento')"></button>
+            <button pButton label="Backups" icon="pi pi-database"
+              [class]="vistaActual() === 'backups' ? 'p-button-sm p-button-primary' : 'p-button-sm p-button-outlined p-button-secondary'"
+              (click)="cambiarVista('backups')"></button>
+          </div>
+        </div>
 
         <!-- Filtros rápidos -->
         <div class="flex align-items-center gap-2 flex-wrap">
@@ -61,7 +73,8 @@
     </div>
   </div>
 
-  <div *ngIf="!loading()">
+  <!-- ══ Vista: Mantenimiento ════════════════════════════════════ -->
+  <div *ngIf="vistaActual() === 'mantenimiento' && !loading()">
 
     <!-- ══ Fila 0: KPIs Globales ══════════════════════════════════ -->
     <div class="grid mb-1">
@@ -290,6 +303,146 @@
       </div>
 
     </div>
+  </div>
+
+  <!-- ══ Vista: Backups ══════════════════════════════════════════ -->
+  <div *ngIf="vistaActual() === 'backups' && !loading()">
+
+    <!-- KPIs Backups -->
+    <div class="grid mb-1">
+
+      <div class="col-6 md:col-4 lg:col-2-4">
+        <div class="card border-0 border-round-xl p-3 h-full"
+          style="background: linear-gradient(135deg,#3b82f6 0%,#1d4ed8 100%);">
+          <div class="flex align-items-center justify-content-between mb-2">
+            <span class="text-white text-sm font-semibold opacity-80">Total Backups</span>
+            <i class="pi pi-database text-white opacity-70 text-xl"></i>
+          </div>
+          <div class="text-4xl font-black text-white">{{ totalBackupsCount() }}</div>
+          <div class="text-white opacity-70 text-xs mt-1">en el período seleccionado</div>
+        </div>
+      </div>
+
+      <div class="col-6 md:col-4 lg:col-2-4">
+        <div class="card border-0 border-round-xl p-3 h-full"
+          style="background: linear-gradient(135deg,#10b981 0%,#047857 100%);">
+          <div class="flex align-items-center justify-content-between mb-2">
+            <span class="text-white text-sm font-semibold opacity-80">Completados</span>
+            <i class="pi pi-check-circle text-white opacity-70 text-xl"></i>
+          </div>
+          <div class="text-4xl font-black text-white">{{ backupsCompletados() }}</div>
+          <div class="text-white opacity-70 text-xs mt-1">realizados exitosamente</div>
+        </div>
+      </div>
+
+      <div class="col-6 md:col-4 lg:col-2-4">
+        <div class="card border-0 border-round-xl p-3 h-full"
+          style="background: linear-gradient(135deg,#3b82f6 0%,#1e40af 100%);">
+          <div class="flex align-items-center justify-content-between mb-2">
+            <span class="text-white text-sm font-semibold opacity-80">Pendientes</span>
+            <i class="pi pi-clock text-white opacity-70 text-xl"></i>
+          </div>
+          <div class="text-4xl font-black text-white">{{ backupsPendientes() }}</div>
+          <div class="text-white opacity-70 text-xs mt-1">por ejecutar</div>
+        </div>
+      </div>
+
+      <div class="col-6 md:col-6 lg:col-2-4">
+        <div class="card border-0 border-round-xl p-3 h-full"
+          style="background: linear-gradient(135deg,#f59e0b 0%,#b45309 100%);">
+          <div class="flex align-items-center justify-content-between mb-2">
+            <span class="text-white text-sm font-semibold opacity-80">No Realizados / Fallidos</span>
+            <i class="pi pi-times-circle text-white opacity-70 text-xl"></i>
+          </div>
+          <div class="text-4xl font-black text-white">{{ backupsNoRealizados() }}</div>
+          <div class="text-white opacity-70 text-xs mt-1">sin completar o con error</div>
+        </div>
+      </div>
+
+      <div class="col-6 md:col-6 lg:col-2-4">
+        <div class="card border-0 border-round-xl p-3 h-full"
+          [style]="cumplimientoBackups() >= 80
+            ? 'background: linear-gradient(135deg,#8b5cf6 0%,#5b21b6 100%)'
+            : 'background: linear-gradient(135deg,#ef4444 0%,#991b1b 100%)'">
+          <div class="flex align-items-center justify-content-between mb-2">
+            <span class="text-white text-sm font-semibold opacity-80">Cumplimiento</span>
+            <i [class]="cumplimientoBackups() >= 80 ? 'pi pi-check-circle' : 'pi pi-exclamation-triangle'"
+              class="text-white opacity-70 text-xl"></i>
+          </div>
+          <div class="text-4xl font-black text-white">{{ cumplimientoBackups() }}%</div>
+          <div class="text-white opacity-70 text-xs mt-1">
+            {{ cumplimientoBackups() >= 80 ? '✓ Meta cumplida' : '⚠ Bajo meta (80%)' }}
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Gráficas fila 1: Estado + Tipo + Frecuencia -->
+    <div class="grid mb-1">
+
+      <div class="col-12 md:col-4">
+        <div class="card border-0 shadow-sm border-round-xl surface-card p-3 h-full">
+          <h5 class="text-lg font-bold text-800 mb-3 flex align-items-center gap-2">
+            <i class="pi pi-chart-pie text-primary"></i> Por Estado
+          </h5>
+          <div class="flex justify-content-center align-items-center" style="height: 280px;">
+            <p-chart type="doughnut" [data]="chartBackupEstado()" [options]="chartOptions()"></p-chart>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 md:col-4">
+        <div class="card border-0 shadow-sm border-round-xl surface-card p-3 h-full">
+          <h5 class="text-lg font-bold text-800 mb-3 flex align-items-center gap-2">
+            <i class="pi pi-copy text-indigo-500"></i> Por Tipo de Backup
+          </h5>
+          <div style="height: 280px;">
+            <p-chart type="bar" [data]="chartBackupTipo()" [options]="barOptions()"></p-chart>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 md:col-4">
+        <div class="card border-0 shadow-sm border-round-xl surface-card p-3 h-full">
+          <h5 class="text-lg font-bold text-800 mb-3 flex align-items-center gap-2">
+            <i class="pi pi-refresh text-teal-500"></i> Por Frecuencia
+          </h5>
+          <div style="height: 280px;">
+            <p-chart type="bar" [data]="chartBackupFrecuencia()" [options]="barOptions()"></p-chart>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Gráficas fila 2: Tendencia + Por Sistema -->
+    <div class="grid">
+
+      <div class="col-12 lg:col-5">
+        <div class="card border-0 shadow-sm border-round-xl surface-card p-3 h-full">
+          <h5 class="text-lg font-bold text-800 mb-3 flex align-items-center gap-2">
+            <i class="pi pi-chart-line text-primary"></i> Tendencia Mensual
+          </h5>
+          <div style="height: 320px;">
+            <p-chart type="line" [data]="chartBackupTendencia()" [options]="lineOptions()"></p-chart>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 lg:col-7">
+        <div class="card border-0 shadow-sm border-round-xl surface-card p-3 h-full">
+          <h5 class="text-lg font-bold text-800 mb-3 flex align-items-center gap-2">
+            <i class="pi pi-server text-orange-500"></i> Backups por Sistema de Información
+          </h5>
+          <div style="height: 320px;">
+            <p-chart type="bar" [data]="chartBackupPorSistema()" [options]="barHorizontalOptions()"></p-chart>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
   </div>
 
   <!-- Loading skeleton -->
