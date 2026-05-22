@@ -142,7 +142,7 @@ export class CrearMantenimientoComponent implements OnInit {
 
     // Solo admins pueden cambiar el tipo
     const token = getDecodedAccessToken();
-    if (token && (token.rol === 'SUPERADMIN' || token.rol === 'BIOMEDICAADMIN' || token.rol === 'BIOMEDICAUSER' || token.rol === 'SISTEMASADMIN' || token.rol === 'SISTEMASUSER')) {
+    if (token && (token.rol === 'SUPERADMIN' || token.rol === 'BIOMEDICAADMIN' || token.rol === 'BIOMEDICAUSER' || token.rol === 'SYSTEMADMIN' || token.rol === 'SYSTEMUSER')) {
       this.mantenimientoForm.get('tipoMantenimiento')?.enable();
     }
   }
@@ -293,7 +293,7 @@ export class CrearMantenimientoComponent implements OnInit {
     const token = getDecodedAccessToken();
     const puedeEditarTipo = token && (
       token.rol === 'SUPERADMIN' || token.rol === 'BIOMEDICAADMIN' ||
-      token.rol === 'BIOMEDICAUSER' || token.rol === 'SISTEMASADMIN' || token.rol === 'SISTEMASUSER'
+      token.rol === 'BIOMEDICAUSER' || token.rol === 'SYSTEMADMIN' || token.rol === 'SYSTEMUSER'
     );
     if (puedeEditarTipo) {
       this.mantenimientoForm.get('tipoMantenimiento')?.enable({ emitEvent: false });

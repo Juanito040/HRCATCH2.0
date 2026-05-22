@@ -12,7 +12,7 @@ import Swal from 'sweetalert2';
 import { extractError } from '../../../utils/error-utils';
 import { TipoEquipoService } from '../../../Services/appServices/general/tipoEquipo/tipo-equipo.service';
 
-const ROLES_PERMITIDOS = ['SUPERADMIN', 'ADMINISTRADOR','SYSTEMADMIN', 'AG', 'SISTEMASADMIN', 'SISTEMASUSER'];
+const ROLES_PERMITIDOS = ['SUPERADMIN', 'ADMINISTRADOR', 'SYSTEMADMIN', 'SYSTEMUSER', 'AG'];
 
 @Component({
   selector: 'app-sis-repuestos',

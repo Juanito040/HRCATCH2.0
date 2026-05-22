@@ -352,7 +352,7 @@ export class SisMantenimientosComponent implements OnInit {
   }
   checkRole() {
     const token = getDecodedAccessToken();
-    if (token && (token.rol === 'SUPERADMIN' || token.rol === 'SISTEMASADMIN')) {
+    if (token && (token.rol === 'SUPERADMIN' || token.rol === 'SYSTEMADMIN')) {
       this.isAdmin = true;
     }
   }

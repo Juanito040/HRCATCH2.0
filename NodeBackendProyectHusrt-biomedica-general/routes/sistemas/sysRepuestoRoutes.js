@@ -4,7 +4,7 @@ const ctrl = require('../../controllers/Sistemas/sysRepuestoController');
 const requireRoles = require('../../utilities/requireRoles');
 const { checkToken } = require('../../utilities/middleware');
 
-const ROLES = ['SUPERADMIN', 'SISTEMASADMIN', 'SYSTEMADMIN', 'SISTEMASUSER', 'SYSTEMUSER'];
+const ROLES = ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER'];
 
 router.use(checkToken);
 
