@@ -95,7 +95,13 @@ export class SistemasadminnavbarComponent implements OnInit, OnDestroy {
       { label: 'Mesa de Servicios', icon: 'pi pi-briefcase', routerLink: '/adminmesaservicios/casos' },
     ];
 
-    this.items = (this.isSystemUser || this.isTecnico) ? itemsUser : itemsAdmin;
+    if (this.isTecnico) {
+      this.items = itemsTecnico;
+    } else if (this.isSystemUser) {
+      this.items = itemsUser;
+    } else {
+      this.items = itemsAdmin;
+    }
   }
 
   ngOnDestroy(): void {

@@ -13,6 +13,7 @@ import { SysEquipo } from '../../../Services/appServices/sistemasServices/sysequ
 export class SysEquipoDetailModalComponent implements OnChanges, OnDestroy {
   @Input() isOpen = false;
   @Input() equipo: SysEquipo | null = null;
+  @Input() isAdmin = false;
   @Output() closed = new EventEmitter<void>();
   @Output() editRequested = new EventEmitter<SysEquipo>();
 
