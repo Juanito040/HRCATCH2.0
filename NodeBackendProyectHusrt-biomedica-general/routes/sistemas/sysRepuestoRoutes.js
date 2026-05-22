@@ -4,12 +4,13 @@ const ctrl = require('../../controllers/Sistemas/sysRepuestoController');
 const requireRoles = require('../../utilities/requireRoles');
 const { checkToken } = require('../../utilities/middleware');
 
-const ROLES = ['SUPERADMIN', 'ADMINISTRADOR', 'AG', 'SISTEMASADMIN', 'SISTEMASUSER', 'SISTEMASTECNICO'];
+const ROLES = ['SUPERADMIN', 'SISTEMASADMIN', 'SYSTEMADMIN', 'SISTEMASUSER', 'SYSTEMUSER'];
 
 router.use(checkToken);
 
 router.get('/', ctrl.getAll);
 router.get('/tipo/:id_tipo', ctrl.getByTipo);
+router.get('/usados/tecnico', ctrl.getUsadosPorTecnico);
 router.get('/:id', ctrl.getById);
 router.post('/', requireRoles(...ROLES), ctrl.create);
 router.post('/descontar-stock', ctrl.descontarStock);
