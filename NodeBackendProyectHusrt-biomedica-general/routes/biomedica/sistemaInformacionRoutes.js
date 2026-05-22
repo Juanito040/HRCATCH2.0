@@ -3,8 +3,8 @@ const router = express.Router();
 const { SistemaInformacion, Responsable, Usuario, BackupSistema } = require('../../models/Biomedica');
 const { checkToken } = require('../../utilities/middleware');
 
-const ROLES_ADMIN = ['SUPERADMIN', 'SYSTEMADMIN'];
-const ROLES_MODULO_SISTEMAS = ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER'];
+const ROLES_ADMIN = ['SUPERADMIN', 'SYSTEMADMIN', 'SISTEMASADMIN'];
+const ROLES_MODULO_SISTEMAS = ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER', 'SISTEMASADMIN', 'SISTEMASUSER', 'SISTEMASTECNICO'];
 
 function requireAdminRole(req, res, next) {
     if (!ROLES_ADMIN.includes(req.user?.rol)) {
@@ -22,16 +22,6 @@ async function requireSistemasModuloAccess(req, res, next) {
 
         if (!ROLES_MODULO_SISTEMAS.includes(rol)) {
             return res.status(403).json({ error: 'Rol no autorizado para el módulo de sistemas' });
-        }
-
-        if (rol === 'SUPERADMIN') return next();
-
-        const tieneSistemas = await SistemaInformacion.count({
-            where: { responsableId: req.user.id }
-        });
-
-        if (tieneSistemas === 0) {
-            return res.status(403).json({ error: 'No tiene sistemas de información asignados' });
         }
 
         return next();
@@ -54,8 +44,7 @@ router.get('/usuarios/me/acceso-modulo-sistemas', checkToken, async (req, res) =
             : 0;
 
         const rolHabilitado = ROLES_MODULO_SISTEMAS.includes(rol);
-        const esSuperadmin = rol === 'SUPERADMIN';
-        const puedeAcceder = rolHabilitado && (esSuperadmin || sistemasAsignados > 0);
+        const puedeAcceder = rolHabilitado;
 
         return res.json({ puedeAcceder, rol, sistemasAsignados });
     } catch (error) {

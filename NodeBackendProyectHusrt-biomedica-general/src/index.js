@@ -224,6 +224,45 @@ sequelize.query('SET FOREIGN_KEY_CHECKS = 0')
   .then(() => sequelize.query(`
     ALTER TABLE \`SysRepuesto\` ADD COLUMN IF NOT EXISTS \`id_tipo_equipo_fk\` INTEGER NULL
   `).catch(() => {}))
+  .then(() => sequelize.query(`
+    ALTER TABLE \`SysMovimientosStockRepuestos\` ADD COLUMN IF NOT EXISTS \`sysReporteIdFk\` INTEGER NULL
+  `).catch(() => {}))
+  .then(() => sequelize.query(`
+    ALTER TABLE \`SysMovimientosStockRepuestos\` ADD COLUMN IF NOT EXISTS \`factura_ruta\` VARCHAR(500) NULL
+  `).catch(() => {}))
+  .then(() => sequelize.query(`
+    ALTER TABLE \`SysMovimientosStockRepuestos\` ADD COLUMN IF NOT EXISTS \`garantia_inicio\` DATE NULL
+  `).catch(() => {}))
+  .then(() => sequelize.query(`
+    ALTER TABLE \`SysMovimientosStockRepuestos\` ADD COLUMN IF NOT EXISTS \`garantia_fin\` DATE NULL
+  `).catch(() => {}))
+  .then(() => sequelize.query(`
+    ALTER TABLE \`SysEquipo\` ADD COLUMN IF NOT EXISTS \`id_tipo_equipo_fk\` INTEGER NULL
+  `).catch(() => {}))
+  .then(() => sequelize.query(`
+    ALTER TABLE \`SysRepuesto\` ADD COLUMN IF NOT EXISTS \`is_active\` TINYINT(1) NOT NULL DEFAULT 1
+  `).catch(() => {}))
+  .then(() => sequelize.query(`
+    ALTER TABLE \`SysRepuesto\` ADD COLUMN IF NOT EXISTS \`fecha_inactivacion\` DATETIME NULL
+  `).catch(() => {}))
+  .then(() => sequelize.query(`
+    ALTER TABLE \`SysRepuesto\` ADD COLUMN IF NOT EXISTS \`usuario_inactivacion\` VARCHAR(150) NULL
+  `).catch(() => {}))
+  .then(() => sequelize.query(`
+    ALTER TABLE \`SysTipoRepuesto\` ADD COLUMN IF NOT EXISTS \`is_active\` TINYINT(1) NOT NULL DEFAULT 1
+  `).catch(() => {}))
+  .then(() => sequelize.query(`
+    ALTER TABLE \`SysTipoRepuesto\` ADD COLUMN IF NOT EXISTS \`fecha_inactivacion\` DATETIME NULL
+  `).catch(() => {}))
+  .then(() => sequelize.query(`
+    ALTER TABLE \`SysTipoRepuesto\` ADD COLUMN IF NOT EXISTS \`usuario_inactivacion\` VARCHAR(150) NULL
+  `).catch(() => {}))
+  .then(() => sequelize.query(`
+    ALTER TABLE \`SysReporteMantenimiento\` ADD COLUMN IF NOT EXISTS \`mesa_caso_id\` INTEGER NULL
+  `).catch(() => {}))
+  .then(() => sequelize.query(`
+    ALTER TABLE \`SysCumplimientoProtocoloPreventivo\` ADD COLUMN IF NOT EXISTS \`sysReporteIdFk\` INTEGER NULL
+  `).catch(() => {}))
   .then(() => sequelize.query('SET FOREIGN_KEY_CHECKS = 1'))
   .then(() => sequelize.sync({ alter: false }))
   .then(() => {
