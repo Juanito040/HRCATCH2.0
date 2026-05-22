@@ -192,19 +192,16 @@ export class MesaCasoDetailComponent implements OnInit {
 
   canAssign(): boolean {
     if (!this.caso) return false;
-    // Admin or Agent of the service
-    // 'ADM' is the role name for ID 1. 'AGENTE' for ID 3.
-    const hasRole = ['ADMINISTRADOR', 'ADMIN_SERVICIO', 'RESOLUTOR', 'AGENTE', 'ADM', 'AG'].includes(this.userRoleCode);
+    const hasRole = ['ADMIN', 'AGENT'].includes(this.userRoleCode);
     const sameService = this.userServiceId === (this.caso.servicioId || this.caso.servicio?.id);
 
     if (hasRole && sameService) {
       return true;
     }
-    // SuperAdmin
     const token = this.userService.getToken();
     if (token) {
       const decoded: any = jwtDecode(token);
-      if (decoded.rol === 'SUPERADMIN') return true;
+      if (decoded.rol === 'SUPERADMIN' || decoded.rol === 'MESAADMIN') return true;
     }
     return false;
   }
@@ -328,13 +325,9 @@ export class MesaCasoDetailComponent implements OnInit {
     const serviceId = this.caso.servicioId || this.caso.servicio?.id;
     if (this.caso && serviceId) {
       this.mesaService.getUsersByServicio(serviceId).subscribe((data: any[]) => {
-
-        // Show all users in the service (User requested to just bring users related to the service)
-        // We keep the role display in the dropdown so they can distinguish.
         this.usersService = data.filter(user => {
-          const roleName = user.mesaServicioRol?.nombre;
-          const isActive = user.estado;
-          return (roleName === 'ADMINISTRADOR' || roleName === 'AGENTE') && isActive === true;
+          const roleCode = user.mesaServicioRol?.codigo;
+          return (roleCode === 'ADMIN' || roleCode === 'AGENT') && user.estado;
         });
         this.displayAssignDialog = true;
       });

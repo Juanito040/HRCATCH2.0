@@ -30,19 +30,20 @@ export class HomeusersistemasComponent {
     return null;
   }
 
+  irAGestionSistemas() { this.router.navigate(['/adminsistemas']); }
   irAEquipos() { this.router.navigate(['/adminsistemas/equipos']); }
   irAEquiposBodega() { this.router.navigate(['/adminsistemas/equipos'], { queryParams: { vista: 'bodega' } }); }
   irAEquiposBaja() { this.router.navigate(['/adminsistemas/equipos'], { queryParams: { vista: 'baja' } }); }
   irATiposEquipos() { this.router.navigate(['/adminsistemas/tiposequipo']); }
   showViewMantenimientoSistemas() {
     const rol = this.getRole();
-    if (rol === 'SYSTEMASTECNICO') {
+    if (rol === 'SISTEMASTECNICO') {
       this.router.navigate(['adminsistemas/tecnico/mantenimiento']);
     } else {
       this.router.navigate(['/adminsistemas/mantenimiento']);
     }
   }
-    irAServiciosSis()          { this.router.navigate(['/adminsistemas/servicios']); }
+  irAServiciosSis()          { this.router.navigate(['/adminsistemas/servicios']); }
   irASedesSis()              { this.router.navigate(['/adminsistemas/sedes']); }
   irACalendarioEquipo()      { this.router.navigate(['/adminsistemas/planMantenimiento']); }
   irARepuestos()             { this.router.navigate(['/adminsistemas/repuestos']); }

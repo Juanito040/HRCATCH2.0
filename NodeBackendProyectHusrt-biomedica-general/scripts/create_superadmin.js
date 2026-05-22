@@ -4,6 +4,7 @@ const sequelize = require('../config/configDb');
 const Usuario = require('../models/generales/Usuario');
 const Rol = require('../models/generales/Rol');
 const Cargo = require('../models/generales/Cargo');
+const Sede = require('../models/generales/Sede');
 const Servicio = require('../models/generales/Servicio');
 const MesaServicioRol = require('../models/MesaServicios/MesaServicioRol');
 
@@ -29,9 +30,27 @@ const EMAIL = 'superadmin@husrt.local';
       console.log(`Cargo creado (id=${cargo.id})`);
     }
 
+    let sede = await Sede.findByPk(1);
+    if (!sede) {
+      sede = await Sede.create({
+        nombres: 'Sede Principal',
+        direccion: 'Dirección Principal',
+        nit: '000000000',
+        ciudad: 'Tunja',
+        departamento: 'Boyacá',
+        estado: true,
+        nivel: 1,
+      });
+      console.log(`Sede creada (id=${sede.id})`);
+    }
+
     let servicio = await Servicio.findByPk(1);
     if (!servicio) {
-      servicio = await Servicio.create({ nombres: 'General' });
+      servicio = await Servicio.create({
+        nombres: 'General',
+        ubicacion: 'Principal',
+        sedeIdFk: sede.id,
+      });
       console.log(`Servicio creado (id=${servicio.id})`);
     }
 

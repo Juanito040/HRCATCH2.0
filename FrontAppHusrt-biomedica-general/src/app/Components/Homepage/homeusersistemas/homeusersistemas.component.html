@@ -1,49 +1,22 @@
 <div class="dashboard-container">
 
-  <div class="hero-section" style="margin-bottom: 3rem;">
+  <div class="hero-section">
     <div class="hero-content">
-      <h1>Gestión de Sistemas</h1>
-      <p>Bienvenido al sistema de gestión de equipos e infraestructura tecnológica.</p>
+      <h1>Bienvenido al Sistema</h1>
+      <p>Acceda a la gesti&oacute;n de sistemas de informaci&oacute;n e infraestructura tecnol&oacute;gica.</p>
     </div>
   </div>
 
-  <div class="cards-grid" style="justify-content: center; max-width: 1500px; margin: 0 auto;">
+  <div class="cards-grid" style="justify-content: center;">
 
-    <!-- Inventario -->
-    <div class="dashboard-card inventario-card">
+    <div class="dashboard-card" (click)="irAGestionSistemas()">
       <div class="card-icon-container gradient-blue">
-        <i class="pi pi-box" style="font-size: 4rem;"></i>
+        <i class="pi pi-desktop"></i>
       </div>
       <div class="card-content">
-        <h3>Inventario</h3>
-        <p>Gestión de equipos, tipos y control del inventario de sistemas.</p>
-        <div class="sub-actions">
-          <button class="sub-action-btn" (click)="irATiposEquipos()">
-            <i class="pi pi-th-large"></i>
-            <span>Tipos de Equipo</span>
-            <i class="pi pi-arrow-right sub-arrow"></i>
-          </button>
-          <button class="sub-action-btn" (click)="irAEquiposBodega()">
-            <i class="fas fa-warehouse"></i>
-            <span>Equipos en Bodega</span>
-            <i class="pi pi-arrow-right sub-arrow"></i>
-          </button>
-          <button class="sub-action-btn" (click)="irAEquiposBaja()">
-            <i class="pi pi-ban"></i>
-            <span>Dados de Baja</span>
-            <i class="pi pi-arrow-right sub-arrow"></i>
-          </button>
-          <button class="sub-action-btn" (click)="irAServiciosSis()">
-            <i class="pi pi-building"></i>
-            <span>Por Servicio</span>
-            <i class="pi pi-arrow-right sub-arrow"></i>
-          </button>
-          <button class="sub-action-btn" (click)="irASedesSis()">
-            <i class="pi pi-map-marker"></i>
-            <span>Por Sede</span>
-            <i class="pi pi-arrow-right sub-arrow"></i>
-          </button>
-        </div>
+        <h3>Gesti&oacute;n Sistemas</h3>
+        <p>Gestione equipos, inventario, mantenimientos, backups y sistemas de informaci&oacute;n asignados.</p>
+        <span class="card-action">Ingresar <i class="pi pi-arrow-right"></i></span>
       </div>
     </div>
 

@@ -67,9 +67,14 @@ router.get('/usuarios/me/acceso-modulo-sistemas', checkToken, async (req, res) =
 });
 
 // Obtener todos los sistemas de información
+// Admins ven todos; usuarios sin rol admin ven solo los que tienen asignados como responsable.
 router.get('/sistemasinformacion', checkToken, requireSistemasModuloAccess, async (req, res) => {
     try {
+        const esAdmin = ROLES_ADMIN.includes(req.user?.rol);
+        const where = esAdmin ? {} : { responsableId: req.user.id };
+
         const sistemas = await SistemaInformacion.findAll({
+            where,
             include: [
                 { model: Usuario, as: 'responsableObj', attributes: ['id', 'nombres', 'apellidos'] },
                 { model: Responsable, as: 'proveedorObj' },

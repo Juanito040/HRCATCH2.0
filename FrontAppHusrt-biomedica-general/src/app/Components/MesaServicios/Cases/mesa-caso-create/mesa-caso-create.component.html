@@ -50,6 +50,13 @@
                         optionValue="value"></p-select>
                 </div>
 
+                <div class="col-12 md:col-6">
+                    <label class="font-bold block mb-2"><i class="pi pi-desktop mr-2"></i>Equipo (Opcional)</label>
+                    <p-select [options]="equipos" [(ngModel)]="selectedEquipo" optionLabel="labelEquipo"
+                        placeholder="Seleccione un equipo (opcional)" [filter]="true" [showClear]="true"
+                        emptyMessage="No hay equipos disponibles"></p-select>
+                </div>
+
                 <div class="col-12">
                     <label class="font-bold block mb-2">Título del Caso</label>
                     <p-iconfield position="left" class="w-full">

@@ -82,6 +82,7 @@ export class SistemasadminnavbarComponent implements OnInit, OnDestroy {
       { label: 'Trazabilidad',    icon: 'pi pi-history',  routerLink: '/adminsistemas/trazabilidad' },
       { label: 'Repuestos',       icon: 'pi pi-box',      routerLink: '/adminsistemas/repuestos' },
       { label: 'Indicadores',     icon: 'pi pi-chart-bar',routerLink: '/adminsistemas/indicadores' },
+      { label: 'Mesa de Servicios', icon: 'pi pi-briefcase', routerLink: '/adminmesaservicios/casos' },
     ];
 
     const itemsTecnico: MenuItem[] = [

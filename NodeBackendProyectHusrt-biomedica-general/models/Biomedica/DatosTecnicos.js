@@ -6,57 +6,57 @@ const DatosTecnicos = sequelize.define('DatosTecnicos', {
     vMaxOperacion: {
         type: DataTypes.STRING,
         allowNull: true,
-        defaultValue: false,
+        defaultValue: null,
     },
     vMinOperacion: {
         type: DataTypes.STRING,
         allowNull: true,
-        defaultValue: false,
+        defaultValue: null,
     },
     iMaxOperacion: {
         type: DataTypes.STRING,
         allowNull: true,
-        defaultValue: false,
+        defaultValue: null,
     },
     iMinOperacion: {
         type: DataTypes.STRING,
         allowNull: true,
-        defaultValue: false,
+        defaultValue: null,
     },
     wConsumida: {
         type: DataTypes.STRING,
         allowNull: true,
-        defaultValue: false,
+        defaultValue: null,
     },
     frecuencia: {
         type: DataTypes.STRING,
         allowNull: true,
-        defaultValue: false,
+        defaultValue: null,
     },
     presion: {
         type: DataTypes.STRING,
         allowNull: true,
-        defaultValue: false,
+        defaultValue: null,
     },
     velocidad: {
         type: DataTypes.STRING,
         allowNull: true,
-        defaultValue: false,
+        defaultValue: null,
     },
     temperatura: {
         type: DataTypes.STRING,
         allowNull: true,
-        defaultValue: false,
+        defaultValue: null,
     },
     peso: {
         type: DataTypes.STRING,
         allowNull: true,
-        defaultValue: false,
+        defaultValue: null,
     },
     capacidad: {
         type: DataTypes.STRING,
         allowNull: true,
-        defaultValue: false,
+        defaultValue: null,
     },
 }, { tableName: 'DatosTecnicos', timestamps: true });
 
