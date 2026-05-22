@@ -221,6 +221,9 @@ sequelize.query('SET FOREIGN_KEY_CHECKS = 0')
   .then(() => sequelize.query(`
     ALTER TABLE \`SysBodega\` ADD COLUMN IF NOT EXISTS \`ubicacion_esp_origen\` VARCHAR(255) NULL
   `).catch(() => {}))
+  .then(() => sequelize.query(`
+    ALTER TABLE \`SysRepuesto\` ADD COLUMN IF NOT EXISTS \`id_tipo_equipo_fk\` INTEGER NULL
+  `).catch(() => {}))
   .then(() => sequelize.query('SET FOREIGN_KEY_CHECKS = 1'))
   .then(() => sequelize.sync({ alter: false }))
   .then(() => {

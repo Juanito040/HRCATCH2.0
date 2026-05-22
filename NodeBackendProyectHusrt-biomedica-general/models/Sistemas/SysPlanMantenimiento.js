@@ -3,7 +3,7 @@ const sequelize = require('../../config/configDb');
 const SysEquipo = require('./SysEquipo');
 
 const SysPlanMantenimiento = sequelize.define('SysPlanMantenimiento', {
-  id: {
+  id_sysplan: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true
