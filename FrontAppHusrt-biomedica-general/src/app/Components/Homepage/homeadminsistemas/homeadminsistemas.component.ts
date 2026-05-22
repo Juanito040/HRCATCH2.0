@@ -38,7 +38,13 @@ export class HomeadminsistemasComponent implements OnInit {
   irAMesa() { this.router.navigate(['/adminmesaservicios/casos']); }
   irAUsuarios() { this.router.navigate(['/admusuarios']); }
   irACalendarioEquipo() { this.router.navigate(['/adminsistemas/planMantenimiento']); }
-  irARepuestos() { this.router.navigate(['/adminsistemas/repuestos']); }
+  irARepuestos() { 
+    if (this.isTecnico) {
+      this.router.navigate(['/adminsistemas/tecnico/repuestos']);
+    } else {
+      this.router.navigate(['/adminsistemas/repuestos']); 
+    }
+  }
   irAServiciosSis() { this.router.navigate(['/adminsistemas/servicios']); }
   irASedesSis() { this.router.navigate(['/adminsistemas/sedes']); }
   irAIndicadores() { this.router.navigate(['/adminsistemas/indicadores']); }

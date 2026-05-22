@@ -503,3 +503,35 @@ exports.ajustarStockEdicion = async (req, res) => {
     errores: errores.length > 0 ? errores : undefined
   });
 };
+
+// ─── Obtener repuestos usados por técnico ────────────────────────────────────
+exports.getUsadosPorTecnico = async (req, res) => {
+  try {
+    let nombreUsuario = req.user?.nombreUsuario || req.user?.nombre;
+    if (!nombreUsuario && req.user?.id) {
+      const u = await Usuario.findByPk(req.user.id);
+      if (u) nombreUsuario = u.nombreUsuario || u.nombres;
+    }
+    nombreUsuario = nombreUsuario || 'desconocido';
+
+    const movimientos = await SysMovimientosStockRepuestos.findAll({
+      where: {
+        tipo: 'egreso',
+        usuario: nombreUsuario
+      },
+      include: [
+        {
+          model: SysRepuesto,
+          as: 'repuesto',
+          attributes: ['id_sysrepuesto', 'nombre', 'numero_parte', 'numero_serie', 'cantidad_stock']
+        }
+      ],
+      order: [['fecha_movimiento', 'DESC']]
+    });
+
+    res.json({ success: true, data: movimientos });
+  } catch (error) {
+    console.error('Error getUsadosPorTecnico:', error);
+    res.status(500).json({ success: false, message: 'Error al obtener los repuestos usados por el técnico' });
+  }
+};
