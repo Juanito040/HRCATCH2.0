@@ -107,7 +107,7 @@
   [draggable]="false" [resizable]="false">
   <div class="flex flex-column align-items-center justify-content-center">
     <div style="border: 1px solid #ccc; border-radius: 5px;">
-      <signature-pad [options]="signaturePadOptions"></signature-pad>
+      <canvas #signatureCanvas width="500" height="300" style="touch-action: none;"></canvas>
     </div>
     <small class="text-secondary mt-2">Dibuja tu firma en el recuadro</small>
   </div>

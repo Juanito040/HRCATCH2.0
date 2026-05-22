@@ -32,7 +32,6 @@
     "@zxing/ngx-scanner": "^19.0.0",
     "aframe": "^0.1.3",
     "angular-local-storage": "^0.7.1",
-    "angular2-signaturepad": "^4.0.2",
     "ar.js": "^2.2.2",
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",
