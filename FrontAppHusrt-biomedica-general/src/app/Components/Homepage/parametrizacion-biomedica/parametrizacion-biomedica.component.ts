@@ -45,4 +45,5 @@ export class ParametrizacionBiomedicaComponent {
     showViewResponsables() { this.router.navigate(['/admin/responsables']); }
     showViewTiposDocumento() { this.router.navigate(['/admin/tiposdocumento']); }
     showViewEquipos() { this.router.navigate(['/biomedica/adminequipos']); }
+    showViewSistemasInformacion() { this.router.navigate(['/admin/sistemasinformacion']); }
 }

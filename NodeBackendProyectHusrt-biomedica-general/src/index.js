@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
@@ -27,6 +28,8 @@ const IndicadoresRoutes = require('./../routes/biomedica/indicadoresRoutes');
 const TrazabilidadRoutes = require('./../routes/biomedica/trazabilidadRoutes');
 const TrasladoRoutes = require('./../routes/biomedica/trasladoRoutes');
 const firmaRoutes = require('./../routes/biomedica/firmaRoutes');
+const SistemaInformacion = require('./../routes/biomedica/sistemaInformacionRoutes');
+const BackupRoutes = require('./../routes/biomedica/backupRoutes');
 const { checkToken } = require('./../utilities/middleware');
 const sequelize = require('./../config/configDb');
 const imagenesRoutes = require('./../routes/general/imagenesRoutes');
@@ -39,6 +42,7 @@ require('../models/Biomedica/ValorMedicionPreventivo');
 require('../models/Biomedica/RepuestoReporte');
 require('../models/Biomedica/Firma');
 require('../models/MesaServicios'); // Import associations
+require('../models/Biomedica'); // Import Biomedica associations
 
 
 app.use(morgan('dev'));
@@ -60,7 +64,6 @@ app.use(documentoRoutes, checkToken);
 app.use(hojaVida, checkToken);
 app.use(equipo, checkToken);
 app.use(sede, checkToken);
-app.use(servicios, checkToken);
 app.use(tipoEquipo, checkToken);
 app.use(responsable, checkToken);
 app.use(planMantenimiento, checkToken);
@@ -78,21 +81,64 @@ app.use(IndicadoresRoutes, checkToken);
 app.use(TrazabilidadRoutes, checkToken);
 app.use(TrasladoRoutes, checkToken);
 app.use(firmaRoutes, checkToken);
+app.use(SistemaInformacion, checkToken);
+app.use(BackupRoutes, checkToken);
 
 const CondicionInicialRoutes = require('./../routes/biomedica/condicionInicialRoutes');
 app.use(CondicionInicialRoutes, checkToken);
 
+
 // ===== MÓDULO SISTEMAS =====
+require('../models/Sistemas/SysEquipo');
 require('../models/Sistemas/SysHojaVida');
 require('../models/Sistemas/SysBaja');
-require('../models/Sistemas/SysMantenimiento');
+require('../models/Sistemas/SysBodega');
+require('../models/Sistemas/SysTipoRepuesto');
 require('../models/Sistemas/SysRepuesto');
+require('../models/Sistemas/SysTrazabilidad');
+require('../models/Sistemas/SysProtocoloPreventivo');
+require('../models/Sistemas/SysPlanMantenimiento');
+require('../models/Sistemas/SysReporte');
+require('../models/Sistemas/SysReporteEntrega');
+require('../models/Sistemas/SysReporteMantenimiento');
+require('../models/Sistemas/SysTipoUso');
+require('../models/Sistemas/Sysprogramacionpreventivomes');
+require('../models/Sistemas/SysCumplimientoProtocoloPreventivo');
+require('../models/Sistemas/SysAuditoriaRepuesto');
+require('../models/Sistemas/SysMovimientosStockRepuestos');
+require('../models/Sistemas/SysTraslado');
 const sysEquipoRoutes = require('./../routes/sistemas/sysEquipoRoutes');
-const sysMantenimientoRoutes = require('./../routes/sistemas/sysMantenimientoRoutes');
 const sysHojaVidaRoutes = require('./../routes/sistemas/sysHojaVidaRoutes');
+const sysTrazabilidadRoutes = require('./../routes/sistemas/sysTrazabilidadRoutes');
+const sysProtocoloPreventivoRoutes = require('./../routes/sistemas/sysProtocoloPreventivoRoutes');
+const sysPlanMantenimientoRoutes = require('./../routes/sistemas/sysPlanMantenimientoRoutes');
+const sysReporteRoutes = require('./../routes/sistemas/sysReporteRoutes');
+const sysReporteEntregaRoutes = require('./../routes/sistemas/sysReporteEntregaRoutes');
+const sysReporteMantenimientoRoutes = require('./../routes/sistemas/sysReporteMantenimientoRoutes');
+const sysTipoUsoRoutes = require('./../routes/sistemas/sysTipoUsoRoutes');
+const sysProgramacionRoutes = require('./../routes/sistemas/sysProgramacionPreventivoRoutes');
+const sysCumplimientoProtocoloPreventivoRoutes = require('./../routes/sistemas/sysCumplimientoProtocoloPreventivo');
+const sysTipoRepuestoRoutes = require('./../routes/sistemas/sysTipoRepuestoRoutes');
+const sysRepuestoRoutes = require('./../routes/sistemas/sysRepuestoRoutes');
+const sysAuditoriaRepuestoRoutes = require('./../routes/sistemas/sysAuditoriaRepuestoRoutes');
+const sysMovimientosStockRoutes = require('./../routes/sistemas/sysMovimientosStockRoutes');
+const sysMantenimientoRoutes = require('./../routes/sistemas/sysMantenimientoRoutes');
+app.use('/syscumplimiento', checkToken, sysCumplimientoProtocoloPreventivoRoutes);
+app.use('/sysprogramacion', checkToken, sysProgramacionRoutes);
 app.use('/sysequipo', checkToken, sysEquipoRoutes);
-app.use('/sysmantenimiento', checkToken, sysMantenimientoRoutes);
 app.use('/syshojavida', checkToken, sysHojaVidaRoutes);
+app.use('/systiporepuesto', checkToken, sysTipoRepuestoRoutes);
+app.use('/sysrepuesto', checkToken, sysRepuestoRoutes);
+app.use('/sysauditoria-repuesto', checkToken, sysAuditoriaRepuestoRoutes);
+app.use('/sysmovimientosstock', checkToken, sysMovimientosStockRoutes);
+app.use('/systrazabilidad', checkToken, sysTrazabilidadRoutes);
+app.use('/sysprotocolo', checkToken, sysProtocoloPreventivoRoutes);
+app.use('/sysplanmantenimiento', checkToken, sysPlanMantenimientoRoutes);
+app.use('/sysreporte', checkToken, sysReporteRoutes);
+app.use('/sysreporteentrega', checkToken, sysReporteEntregaRoutes);
+app.use('/sysreportesmtto', checkToken, sysReporteMantenimientoRoutes);
+app.use('/systipouso', checkToken, sysTipoUsoRoutes);
+app.use('/sysmantenimiento', checkToken, sysMantenimientoRoutes);
 
 
 const cargoRoutes = require('./../routes/generales/cargoRoutes');
@@ -102,10 +148,89 @@ app.use('/cargos', checkToken, cargoRoutes);
 // Moved up
 
 
-sequelize.sync({ alter: false })
+const { fixMovimientosStockFK } = require('../migrations/runMigrations');
+
+sequelize.query('SET FOREIGN_KEY_CHECKS = 0')
+  .then(() => sequelize.query(`
+    CREATE TABLE IF NOT EXISTS \`SysReporteEntrega\` (
+      id_sysreporte INTEGER AUTO_INCREMENT PRIMARY KEY,
+      fecha DATE NULL,
+      hora_llamado VARCHAR(10) NULL,
+      hora_inicio VARCHAR(10) NULL,
+      hora_terminacion VARCHAR(10) NULL,
+      servicio_anterior VARCHAR(255) NULL,
+      ubicacion_anterior VARCHAR(255) NULL,
+      servicio_nuevo VARCHAR(255) NULL,
+      ubicacion_nueva VARCHAR(255) NULL,
+      ubicacion_especifica VARCHAR(255) NULL,
+      realizado_por VARCHAR(255) NULL,
+      recibido_por VARCHAR(255) NULL,
+      observaciones TEXT NULL,
+      id_sysequipo_fk INTEGER NULL,
+      id_sysusuario_fk INTEGER NULL,
+      createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `))
+  .then(() => fixMovimientosStockFK())
+  .then(() => sequelize.query(`
+    CREATE TABLE IF NOT EXISTS \`SysBodega\` (
+      id_sysbodega INTEGER AUTO_INCREMENT PRIMARY KEY,
+      fecha_ingreso DATE NULL,
+      tipo_bodega VARCHAR(255) NULL,
+      motivo TEXT NULL,
+      id_sysequipo_fk INTEGER NULL,
+      id_sysusuario_fk INTEGER NULL,
+      createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      CONSTRAINT fk_sysbodega_equipo FOREIGN KEY (id_sysequipo_fk) REFERENCES SysEquipo(id_sysequipo) ON DELETE SET NULL,
+      CONSTRAINT fk_sysbodega_usuario FOREIGN KEY (id_sysusuario_fk) REFERENCES Usuario(id) ON DELETE SET NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `))
+  .then(() => sequelize.query(`
+    ALTER TABLE \`SysBodega\` ADD COLUMN IF NOT EXISTS \`tipo_bodega\` VARCHAR(255) NULL AFTER \`fecha_ingreso\`
+  `).catch(() => {}))
+  .then(() => sequelize.query(`
+    ALTER TABLE \`SysEquipo\` ADD COLUMN IF NOT EXISTS \`ubic_bod\` VARCHAR(255) NULL
+  `).catch(() => {}))
+  .then(() => sequelize.query(`
+    ALTER TABLE \`SysEquipo\` ADD COLUMN IF NOT EXISTS \`id_servicio_anterior_fk\` INTEGER NULL
+  `).catch(() => {}))
+  .then(() => sequelize.query(`
+    CREATE TABLE IF NOT EXISTS \`SysTraslado\` (
+      id_systraslado INTEGER AUTO_INCREMENT PRIMARY KEY,
+      tipo ENUM('BODEGA', 'REACTIVACION') NOT NULL,
+      ubicacion_origen VARCHAR(255) NULL,
+      ubicacion_destino VARCHAR(255) NULL,
+      nombre_receptor VARCHAR(255) NOT NULL,
+      cargo_receptor VARCHAR(255) NOT NULL,
+      observaciones TEXT NULL,
+      fecha DATETIME NULL,
+      id_sysequipo_fk INTEGER NOT NULL,
+      id_servicio_origen_fk INTEGER NULL,
+      id_servicio_destino_fk INTEGER NULL,
+      id_sysusuario_fk INTEGER NULL,
+      createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      CONSTRAINT fk_systraslado_equipo FOREIGN KEY (id_sysequipo_fk) REFERENCES SysEquipo(id_sysequipo) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `).catch(() => {}))
+  .then(() => sequelize.query(`
+    ALTER TABLE \`SysBodega\` ADD COLUMN IF NOT EXISTS \`ubicacion_origen\` VARCHAR(255) NULL
+  `).catch(() => {}))
+  .then(() => sequelize.query(`
+    ALTER TABLE \`SysBodega\` ADD COLUMN IF NOT EXISTS \`ubicacion_esp_origen\` VARCHAR(255) NULL
+  `).catch(() => {}))
+  .then(() => sequelize.query(`
+    ALTER TABLE \`SysRepuesto\` ADD COLUMN IF NOT EXISTS \`id_tipo_equipo_fk\` INTEGER NULL
+  `).catch(() => {}))
+  .then(() => sequelize.query('SET FOREIGN_KEY_CHECKS = 1'))
+  .then(() => sequelize.sync({ alter: false }))
   .then(() => {
     app.listen(3005, '0.0.0.0', () => {
       console.log('Server is running on http://localhost:3005');
     });
   })
-  .catch(err => console.log('Error:', err));
+  .catch(err => {
+    console.log('[DB ERROR]', err.message || err);
+  });

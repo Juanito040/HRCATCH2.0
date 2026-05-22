@@ -1,0 +1,207 @@
+<div class="page-wrapper">
+
+  <!-- Encabezado -->
+  <div class="page-header">
+    <div class="header-top">
+      <div>
+        <h1>Nueva Entrega</h1>
+        <p class="subtitle">Complete los datos correspondientes</p>
+      </div>
+    </div>
+    @if (equipo) {
+      <div class="equipo-info-strip">
+        <div class="equipo-info-item equipo-info-item--name">
+          <span class="info-value">{{ equipo.nombre_equipo || 'Equipo' }}</span>
+        </div>
+        <div class="info-divider"></div>
+        <div class="equipo-info-item">
+          <span class="info-label">Placa inventario</span>
+          <span class="info-value">{{ equipo.placa_inventario || '—' }}</span>
+        </div>
+        <div class="info-divider"></div>
+        <div class="equipo-info-item">
+          <span class="info-label">Tipo</span>
+          <span class="info-value">{{ equipo.tipoEquipo?.nombres || equipo.tipoEquipo?.nombre || '—' }}</span>
+        </div>
+        <div class="info-divider"></div>
+        <div class="equipo-info-item">
+          <span class="info-label">Servicio</span>
+          <span class="info-value">{{ equipo.servicio?.nombres || '—' }}</span>
+        </div>
+        <div class="info-divider"></div>
+        <div class="equipo-info-item">
+          <span class="info-label">Ubicación</span>
+          <span class="info-value">{{ equipo.ubicacion || '—' }}</span>
+        </div>
+        <div class="info-divider"></div>
+        <div class="equipo-info-item">
+          <span class="info-label">Marca / Modelo</span>
+          <span class="info-value">{{ equipo.marca || '—' }} / {{ equipo.modelo || '—' }}</span>
+        </div>
+        <div class="info-divider"></div>
+        <div class="equipo-info-item">
+          <span class="info-label">Periodicidad</span>
+          <span class="info-value">{{ equipo.periodicidad || '—' }}</span>
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="page-content">
+    <form (ngSubmit)="onSubmit()" #f="ngForm">
+
+      <fieldset [disabled]="!!savedReporteId" style="border:none;padding:0;margin:0;">
+      <div class="form-grid">
+
+        <!-- Columna izquierda -->
+        <div class="form-col">
+
+          <!-- Datos del Reporte -->
+          <div class="form-section">
+            <h3 class="section-title"> Datos de reporte</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Fecha <span class="required">*</span></label>
+                <input type="date" name="fecha" [(ngModel)]="form.fecha" required />
+              </div>
+              <div class="form-group">
+                <label>Hora de llamado</label>
+                <input type="time" name="hora_llamado" [(ngModel)]="form.hora_llamado" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Hora de inicio</label>
+                <input type="time" name="hora_inicio" [(ngModel)]="form.hora_inicio" />
+              </div>
+              <div class="form-group">
+                <label>Hora de terminación</label>
+                <input type="time" name="hora_terminacion" [(ngModel)]="form.hora_terminacion" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Procedencia -->
+          <div class="form-section">
+            <h3 class="section-title"> Procedencia</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Servicio anterior</label>
+                <select name="servicio_anterior" [(ngModel)]="form.servicio_anterior">
+                  <option value="">Seleccionar servicio...</option>
+                  @for (s of servicios; track s.id_servicio) {
+                    <option [value]="s.nombres || s.nombre">{{ s.nombres || s.nombre }}</option>
+                  }
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Ubicación anterior</label>
+                <input type="text" name="ubicacion_anterior" [(ngModel)]="form.ubicacion_anterior" placeholder="Ej: Sala 3" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Destino -->
+          <div class="form-section">
+            <h3 class="section-title"> Destino</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Servicio destino <span class="required">*</span></label>
+                <select name="servicio_nuevo" [(ngModel)]="form.servicio_nuevo" required>
+                  <option value="">Seleccionar servicio...</option>
+                  @for (s of servicios; track s.id_servicio) {
+                    <option [value]="s.nombres || s.nombre">{{ s.nombres || s.nombre }}</option>
+                  }
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Ubicación nueva</label>
+                <input type="text" name="ubicacion_nueva" [(ngModel)]="form.ubicacion_nueva" placeholder="Ej: Habitación 10" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group full-width">
+                <label>Ubicación específica</label>
+                <input type="text" name="ubicacion_especifica" [(ngModel)]="form.ubicacion_especifica" placeholder="Ej: Puesto 2" />
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Columna derecha -->
+        <div class="form-col">
+
+          <!-- Personal -->
+          <div class="form-section">
+            <h3 class="section-title">Personal</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Realizado por <span class="required">*</span></label>
+                <input type="text" name="realizado_por" [(ngModel)]="form.realizado_por" required placeholder="Nombre del técnico" />
+              </div>
+              <div class="form-group">
+                <label>Recibido por</label>
+                <input type="text" name="recibido_por" [(ngModel)]="form.recibido_por" placeholder="Nombre del receptor" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Equipo que se retira -->
+          <div class="form-section">
+            <h3 class="section-title"> Equipo que se retira</h3>
+            <div class="form-group full-width">
+              <label>Seleccione el equipo que sale de servicio (opcional)</label>
+              <select name="equipo_retirado" [(ngModel)]="equipoRetirado">
+                <option value="">Ninguno / No aplica</option>
+                @for (eq of equiposList; track eq.id_sysequipo) {
+                  <option [value]="eq.nombre_equipo + (eq.placa_inventario ? ' — ' + eq.placa_inventario : '')">
+                    {{ eq.nombre_equipo }}{{ eq.placa_inventario ? ' — ' + eq.placa_inventario : '' }}{{ eq.servicio?.nombres ? ' (' + eq.servicio.nombres + ')' : '' }}
+                  </option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <!-- Observaciones -->
+          <div class="form-section">
+            <h3 class="section-title"> Observaciones</h3>
+            <div class="form-group full-width">
+              <textarea name="observaciones" [(ngModel)]="form.observaciones" rows="5"
+                placeholder="Observaciones adicionales sobre la entrega..."></textarea>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      </fieldset>
+
+      <!-- Acciones -->
+      <div class="page-footer">
+        <button type="button" class="btn btn-outline" (click)="volver()">
+           Cancelar
+        </button>
+        @if (savedReporteId) {
+          <button type="button" class="btn btn-success" (click)="nuevoReporte()">
+            <i class="fas fa-plus"></i> Nuevo reporte
+          </button>
+          <button type="button" class="btn btn-download" (click)="descargarPdf()" [disabled]="isDownloadingPdf">
+            @if (isDownloadingPdf) {
+              <i class="fas fa-spinner fa-spin"></i> Generando...
+            } @else {
+              <i class="fas fa-download"></i> Descargar PDF
+            }
+          </button>
+        }
+        <button type="submit" class="btn btn-primary" [disabled]="isSubmitting || f.invalid || !!savedReporteId">
+          @if (isSubmitting) {
+            <i class="fas fa-spinner fa-spin"></i> Guardando...
+          } @else {
+           Guardar reporte
+          }
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>

@@ -106,6 +106,12 @@ export class UserService {
     )
   }
 
+  getUsersSistemas() {
+    return firstValueFrom(
+      this.httpClient.get<any[]>(`${this.baseUrl}/users`)
+    )
+  }
+
   getAllRoles() {
     return firstValueFrom(
       this.httpClient.get<any[]>(`${this.baseUrl}/roles`)

@@ -1,19 +1,40 @@
-<div class="card border-0 shadow-sm rounded-0 mb-4">
-    <p-menubar [model]="items" styleClass="border-none bg-surface-0 border-round-xl">
-        <ng-template #start>
-            <div class="flex align-items-center gap-2 mr-4">
-                <i class="pi pi-server text-primary text-2xl"></i>
-                <a class="text-xl font-bold text-color no-underline" href="/adminsistemas">{{
-                    themeService.getThemeConfig().appName }} - Sistemas</a>
+<div class="menubar-wrapper">
+    <p-menubar [model]="items" styleClass="glass-navbar border-none border-round-xl">
+        <ng-template pTemplate="start">
+            <div class="logo-container flex align-items-center gap-2 px-2 cursor-pointer" routerLink="/adminsistemas">
+                <img src="LogoAgora.png" height="40" alt="Logo" />
+                <div class="flex flex-column">
+                    <span class="font-bold text-primary text-lg">{{ themeService.getThemeConfig().appName }}</span>
+                    <span class="text-xs text-secondary">Sistemas</span>
+                </div>
             </div>
         </ng-template>
 
-        <ng-template #end>
-            <div class="flex align-items-center gap-3">
-                <p-avatar icon="pi pi-user" styleClass="bg-primary-50 text-primary" shape="circle"
-                    pTooltip="Admin Sistemas"></p-avatar>
-                <p-button icon="pi pi-sign-out" [rounded]="true" [text]="true" severity="secondary"
-                    (onClick)="navigateToAbout()" pTooltip="Cerrar Sesión"></p-button>
+        <ng-template pTemplate="end">
+            <div class="flex align-items-center gap-2">
+
+                <!-- Campana de alertas backup -->
+                <div class="cursor-pointer" style="position:relative; display:inline-flex;"
+                     (click)="op.toggle($event)" pTooltip="Alertas de Backup">
+                    <i class="pi pi-bell text-xl"></i>
+                    <span *ngIf="notificacionService.conteoAlertas > 0"
+                          style="position:absolute; top:-7px; right:-9px;
+                                 background:#ef4444; color:#fff; border-radius:50%;
+                                 font-size:0.6rem; font-weight:700;
+                                 min-width:16px; height:16px; line-height:16px;
+                                 text-align:center; padding:0 3px;">
+                        {{ notificacionService.conteoAlertas }}
+                    </span>
+                </div>
+                <p-overlayPanel #op [style]="{ width: '340px', padding: '0' }">
+                    <app-panel-alertas-backup></app-panel-alertas-backup>
+                </p-overlayPanel>
+
+                <p-avatar icon="pi pi-user" styleClass="mr-2 cursor-pointer" shape="circle"
+                    [style]="{'background-color': '#eef2ff', 'color': '#0056b3'}"
+                    (click)="viewUser()" pTooltip="Perfil"></p-avatar>
+                <button pButton icon="pi pi-power-off" class="p-button-rounded p-button-text p-button-danger"
+                    pTooltip="Cerrar Sesión" tooltipPosition="bottom" (click)="navigateToAbout()"></button>
             </div>
         </ng-template>
     </p-menubar>

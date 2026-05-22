@@ -1,1 +1,80 @@
-<p>homeusersistemas works!</p>
+<div class="dashboard-container">
+
+  <div class="hero-section">
+    <div class="hero-content">
+      <h1>Bienvenido al Sistema</h1>
+      <p>Acceda a la gesti&oacute;n de sistemas de informaci&oacute;n e infraestructura tecnol&oacute;gica.</p>
+    </div>
+  </div>
+
+  <div class="cards-grid" style="justify-content: center;">
+
+    <div class="dashboard-card" (click)="irAGestionSistemas()">
+      <div class="card-icon-container gradient-blue">
+        <i class="pi pi-desktop"></i>
+      </div>
+      <div class="card-content">
+        <h3>Gesti&oacute;n Sistemas</h3>
+        <p>Gestione equipos, inventario, mantenimientos, backups y sistemas de informaci&oacute;n asignados.</p>
+        <span class="card-action">Ingresar <i class="pi pi-arrow-right"></i></span>
+      </div>
+    </div>
+
+    <!-- Gestión de mantenimientos -->
+    <div class="dashboard-card" (click)="showViewMantenimientoSistemas()">
+      <div class="card-icon-container gradient-indigo">
+        <i class="pi pi-wrench"></i>
+      </div>
+      <div class="card-content">
+        <h3>Mantenimiento</h3>
+        <p>Programación y ejecución técnica.</p>
+        <span class="card-action">Ingresar <i class="pi pi-arrow-right"></i></span>
+      </div>
+    </div>
+
+    <!-- Gestión de Backups -->
+    <div class="dashboard-card mantenimiento-card">
+      <div class="card-icon-container gradient-blue">
+        <i class="pi pi-database" style="font-size: 4rem;"></i>
+      </div>
+      <div class="card-content">
+        <h3>Backups</h3>
+        <p>Gestión y seguimiento de backups de sistemas de información.</p>
+        <div class="sub-actions">
+          <button class="sub-action-btn" (click)="irABackups()">
+            <i class="pi pi-list"></i>
+            <span>Sistemas de Información</span>
+            <i class="pi pi-arrow-right sub-arrow"></i>
+          </button>
+          <button class="sub-action-btn" (click)="irACalendarioBackups()">
+            <i class="pi pi-calendar"></i>
+            <span>Calendario de Backups</span>
+            <i class="pi pi-arrow-right sub-arrow"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gestión de indicadores -->
+    <div class="dashboard-card" (click)="irAIndicadores()">
+      <div class="card-icon-container gradient-blue">
+        <i class="pi pi-chart-bar" style="font-size: 4rem;"></i>
+      </div>
+      <div class="card-content">
+        <h3>Indicadores</h3>
+        <p>Visualiza indicadores de equipos de sistemas.</p>
+        <span class="card-action">Acceder <i class="pi pi-arrow-right"></i></span>
+      </div>
+    </div>
+    <div class="dashboard-card" (click)="irARepuestos()">
+      <div class="card-icon-container gradient-blue">
+        <i class="pi pi-box" style="font-size: 4rem;"></i>
+      </div>
+      <div class="card-content">
+        <h3>Inventario de Repuestos</h3>
+        <p>Gestión de piezas, componentes y tipos de repuestos.</p>
+        <span class="card-action">Acceder <i class="pi pi-arrow-right"></i></span>
+      </div>
+    </div>
+  </div>
+</div>

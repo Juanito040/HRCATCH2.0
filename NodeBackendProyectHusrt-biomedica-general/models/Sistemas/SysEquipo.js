@@ -46,6 +46,10 @@ const SysEquipo = sequelize.define('SysEquipo', {
     type: DataTypes.STRING(255),
     allowNull: true
   },
+  ubic_bod: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
   activo: {
     type: DataTypes.BOOLEAN,
     allowNull: true,
@@ -89,13 +93,22 @@ const SysEquipo = sequelize.define('SysEquipo', {
   },
   preventivo_s: {
     type: DataTypes.BOOLEAN,
-    allowNull: true
+    allowNull: true,
+    defaultValue: false
   },
   fecha_modificacion: {
     type: DataTypes.DATEONLY,
     allowNull: true
   },
   id_servicio_fk: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: Servicio,
+      key: 'id'
+    }
+  },
+  id_servicio_anterior_fk: {
     type: DataTypes.INTEGER,
     allowNull: true,
     references: {
@@ -127,6 +140,8 @@ const SysEquipo = sequelize.define('SysEquipo', {
 // Asociaciones
 SysEquipo.belongsTo(Servicio, { foreignKey: 'id_servicio_fk', as: 'servicio' });
 Servicio.hasMany(SysEquipo, { foreignKey: 'id_servicio_fk', as: 'sysEquipos' });
+
+SysEquipo.belongsTo(Servicio, { foreignKey: 'id_servicio_anterior_fk', as: 'servicioAnterior', constraints: false });
 
 SysEquipo.belongsTo(TipoEquipo, { foreignKey: 'id_tipo_equipo_fk', as: 'tipoEquipo' });
 TipoEquipo.hasMany(SysEquipo, { foreignKey: 'id_tipo_equipo_fk', as: 'sysEquipos' });

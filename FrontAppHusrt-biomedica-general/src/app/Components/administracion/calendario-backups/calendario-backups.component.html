@@ -1,0 +1,206 @@
+<div class="calendario-container p-4">
+
+    <!-- Cabecera principal -->
+    <div class="flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+        <h2 class="m-0">Calendario de Backups</h2>
+        <div class="flex align-items-center gap-2">
+            <p-button icon="pi pi-chevron-left" [text]="true" [rounded]="true"
+                      (onClick)="mesAnterior()">
+            </p-button>
+            <span class="titulo-mes">{{ tituloMes }}</span>
+            <p-button icon="pi pi-chevron-right" [text]="true" [rounded]="true"
+                      (onClick)="mesSiguiente()">
+            </p-button>
+            <p-datepicker
+                [(ngModel)]="fechaSeleccionada"
+                view="month"
+                dateFormat="mm/yy"
+                (onSelect)="onMesCambia($event)"
+                [showIcon]="true">
+            </p-datepicker>
+            <p-button icon="pi pi-refresh" [outlined]="true" label="Actualizar"
+                      (onClick)="cargarBackupsDelMes()">
+            </p-button>
+            <p-button icon="pi pi-file-excel" [outlined]="true" label="Exportar Excel"
+                      styleClass="p-button-success"
+                      (onClick)="abrirModalExport()">
+            </p-button>
+        </div>
+    </div>
+
+    <!-- Leyenda -->
+    <div class="flex gap-3 mb-3 flex-wrap">
+        <div class="backup-chip backup-chip-completado leyenda-chip">Completado</div>
+        <div class="backup-chip backup-chip-fallido leyenda-chip">Fallido</div>
+        <div class="backup-chip backup-chip-pendiente leyenda-chip">Pendiente</div>
+        <div class="backup-chip backup-chip-no-realizado leyenda-chip">No realizado</div>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="loading" class="flex justify-content-center align-items-center" style="height: 300px;">
+        <p-progressSpinner></p-progressSpinner>
+    </div>
+
+    <!-- Estado vacío -->
+    <div *ngIf="calendarioVacio" class="calendar-empty-state">
+        <i class="pi pi-calendar" style="font-size: 2.5rem; color: var(--text-color-secondary)"></i>
+        <p style="color: var(--text-color-secondary); margin-top: 0.75rem;">
+            No hay backups programados para este mes.
+        </p>
+    </div>
+
+    <!-- Calendario -->
+    <div *ngIf="!loading && !calendarioVacio">
+        <!-- Cabecera días de semana -->
+        <div class="calendario-grid mb-2">
+            <div *ngFor="let dia of diasSemana" class="dia-semana-header-cell">
+                {{ dia }}
+            </div>
+        </div>
+
+        <!-- Semanas -->
+        <div class="calendario-grid">
+            <ng-container *ngFor="let semana of semanas">
+                <div *ngFor="let celda of semana"
+                     class="dia-cell"
+                     [ngClass]="celda.fecha ? getClaseDia(getBackupsDia(celda.fecha)) : 'dia-vacio'">
+                    <div *ngIf="celda.dia" class="dia-numero">{{ celda.dia }}</div>
+                    <div class="chips-container" *ngIf="celda.fecha">
+                        <div *ngFor="let backup of getBackupsDia(celda.fecha)"
+                             class="backup-chip"
+                             [ngClass]="getClaseChip(backup.estado)"
+                             [pTooltip]="getTextoTooltip(backup)"
+                             tooltipPosition="top"
+                             (click)="abrirDetalle(backup)">
+                            {{ backup.sistemaNombre }}
+                        </div>
+                    </div>
+                </div>
+            </ng-container>
+        </div>
+    </div>
+
+</div>
+
+<!-- Modal exportar Excel por rango de fechas -->
+<p-dialog
+    [(visible)]="modalExportVisible"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [style]="{ width: '420px' }"
+    appendTo="body"
+    (onHide)="cerrarModalExport()">
+
+    <ng-template pTemplate="header">
+        <div class="flex align-items-center gap-2">
+            <i class="pi pi-file-excel" style="color: #1a7d3c; font-size: 1.2rem;"></i>
+            <span style="font-weight: 600;">Exportar Backups a Excel</span>
+        </div>
+    </ng-template>
+
+    <ng-template pTemplate="content">
+        <div class="flex flex-column gap-3 py-2">
+            <p style="margin: 0; color: var(--text-color-secondary); font-size: 0.9rem;">
+                Seleccione el rango de fechas para incluir en el reporte.
+            </p>
+            <div class="flex flex-column gap-1">
+                <label style="font-weight: 500; font-size: 0.875rem;">Rango de fechas</label>
+                <p-datepicker
+                    [(ngModel)]="rangoFechas"
+                    selectionMode="range"
+                    [inline]="true"
+                    dateFormat="dd/mm/yy"
+                    [showButtonBar]="true">
+                </p-datepicker>
+            </div>
+            <div *ngIf="rangoValido" class="flex align-items-center gap-2 p-2"
+                 style="background: #f0f7ff; border-radius: 6px; font-size: 0.875rem;">
+                <i class="pi pi-calendar" style="color: #1E3A5F;"></i>
+                <span>
+                    <strong>{{ rangoFechas[0] | date:'dd/MM/yyyy' }}</strong>
+                    &nbsp;—&nbsp;
+                    <strong>{{ rangoFechas[1] | date:'dd/MM/yyyy' }}</strong>
+                </span>
+            </div>
+        </div>
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+        <p-button label="Cancelar" icon="pi pi-times" [outlined]="true"
+                  (onClick)="cerrarModalExport()">
+        </p-button>
+        <p-button label="Descargar Excel" icon="pi pi-download"
+                  styleClass="p-button-success"
+                  [disabled]="!rangoValido || exportandoRango"
+                  [loading]="exportandoRango"
+                  (onClick)="exportarExcelRango()">
+        </p-button>
+    </ng-template>
+
+</p-dialog>
+
+<!-- Modal detalle de backup -->
+<p-dialog
+    [(visible)]="modalVisible"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [style]="{ width: '480px' }"
+    appendTo="body"
+    (onHide)="cerrarDetalle()">
+
+    <ng-template pTemplate="header">
+        <div class="modal-header-content" *ngIf="backupSeleccionado">
+            <span class="modal-titulo-nombre">{{ backupSeleccionado.sistemaNombre }}</span>
+            <span class="modal-separador"> — Estado:&nbsp;</span>
+            <span class="modal-estado" [ngClass]="getClaseEstadoModal(backupSeleccionado.estado)">
+                {{ backupSeleccionado.estado }}
+            </span>
+        </div>
+    </ng-template>
+
+    <ng-template pTemplate="content">
+        <div class="modal-body" *ngIf="backupSeleccionado">
+            <div class="detalle-fila">
+                <span class="detalle-label">Sistema de información</span>
+                <span class="detalle-valor">{{ backupSeleccionado.sistemaNombre ?? '—' }}</span>
+            </div>
+            <div class="detalle-fila">
+                <span class="detalle-label">Tipo</span>
+                <span class="detalle-valor">{{ backupSeleccionado.tipo ?? '—' }}</span>
+            </div>
+            <div class="detalle-fila">
+                <span class="detalle-label">Estado</span>
+                <span class="detalle-valor detalle-estado" [ngClass]="getClaseEstadoModal(backupSeleccionado.estado)">
+                    {{ backupSeleccionado.estado ?? '—' }}
+                </span>
+            </div>
+            <div class="detalle-fila">
+                <span class="detalle-label">Frecuencia</span>
+                <span class="detalle-valor">{{ backupSeleccionado.frecuencia_backup ?? '—' }}</span>
+            </div>
+            <div class="detalle-fila">
+                <span class="detalle-label">Fecha</span>
+                <span class="detalle-valor">{{ backupSeleccionado.fecha ?? '—' }}</span>
+            </div>
+            <div class="detalle-fila" *ngIf="backupSeleccionado.observacion">
+                <span class="detalle-label">Observación</span>
+                <span class="detalle-valor">{{ backupSeleccionado.observacion }}</span>
+            </div>
+        </div>
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+        <button *ngIf="backupSeleccionado?.estado === 'Pendiente' || backupSeleccionado?.estado === 'No realizado'"
+                pButton label="Marcar como Completado"
+                icon="pi pi-check"
+                class="p-button-success p-button-sm"
+                (click)="marcarCompletado()">
+        </button>
+        <p-button label="Cerrar" icon="pi pi-times" [outlined]="true" (onClick)="cerrarDetalle()"></p-button>
+    </ng-template>
+
+</p-dialog>

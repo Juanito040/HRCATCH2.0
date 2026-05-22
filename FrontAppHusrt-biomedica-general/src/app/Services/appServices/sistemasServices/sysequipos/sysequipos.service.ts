@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, firstValueFrom } from 'rxjs';
 import { API_URL } from '../../../../constantes';
 
 export interface SysEquipo {
@@ -14,6 +14,7 @@ export interface SysEquipo {
   ubicacion?: string;
   ubicacion_especifica?: string;
   ubicacion_anterior?: string;
+  ubic_bod?: string;
   activo?: number;
   ano_ingreso?: number;
   dias_mantenimiento?: number;
@@ -24,6 +25,7 @@ export interface SysEquipo {
   numero_puertos?: number;
   mtto?: number;
   id_servicio_fk?: number;
+  id_servicio_anterior_fk?: number;
   id_tipo_equipo_fk?: number;
   id_usuario_fk?: number;
   servicio?: any;
@@ -31,6 +33,7 @@ export interface SysEquipo {
   usuario?: any;
   hojaVida?: any;
   baja?: any;
+  bodega?: { tipo_bodega?: string; motivo?: string; fecha_ingreso?: string; [key: string]: any };
   createdAt?: string;
   updatedAt?: string;
 }
@@ -59,8 +62,10 @@ export class SysequiposService {
     return this.http.get<SysEquipoResponse>(this.apiUrl, { params });
   }
 
-  getEquipoById(id: number): Observable<SysEquipoResponse> {
-    return this.http.get<SysEquipoResponse>(`${this.apiUrl}/${id}`);
+  getEquipoById(id: any) {
+    return firstValueFrom(
+      this.http.get<any>(`${this.apiUrl}/${id}`)
+    )
   }
 
   createEquipo(equipo: any): Observable<SysEquipoResponse> {
@@ -71,8 +76,8 @@ export class SysequiposService {
     return this.http.patch<SysEquipoResponse>(`${this.apiUrl}/${id}`, equipo);
   }
 
-  enviarABodega(id: number, motivo?: string): Observable<SysEquipoResponse> {
-    return this.http.delete<SysEquipoResponse>(`${this.apiUrl}/${id}`, { body: { motivo } });
+  enviarABodega(id: number, motivo?: string, tipoBodega?: string, nombre_receptor?: string, cargo_receptor?: string, observaciones?: string): Observable<SysEquipoResponse> {
+    return this.http.post<SysEquipoResponse>(`${this.apiUrl}/${id}/bodega`, { motivo, tipo_bodega: tipoBodega, nombre_receptor, cargo_receptor, observaciones });
   }
 
   darDeBaja(id: number, data: { justificacion_baja: string; accesorios_reutilizables?: string; id_usuario?: number; password: string; }): Observable<SysEquipoResponse> {
@@ -87,7 +92,26 @@ export class SysequiposService {
     return this.http.get<SysEquipoResponse>(`${this.apiUrl}/dados-baja`);
   }
 
-  reactivarEquipo(id: number): Observable<SysEquipoResponse> {
-    return this.http.patch<SysEquipoResponse>(`${this.apiUrl}/${id}/reactivar`, {});
+  reactivarEquipo(id: number, data?: { ubicacion?: string; ubicacion_especifica?: string; nombre_receptor?: string; cargo_receptor?: string; observaciones?: string; servicioDestinoId?: number }): Observable<SysEquipoResponse> {
+    return this.http.patch<SysEquipoResponse>(`${this.apiUrl}/${id}/reactivar`, data || {});
+  }
+
+  getTiposEquipoSistemas(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/tiposequipo`);
+  }
+
+  getTraslados(id: number): Promise<any> {
+    return firstValueFrom(
+      this.http.get<any>(`${this.apiUrl}/${id}/traslados`)
+    );
+  }
+
+  exportarInventario(tipo: 'todos' | 'bodega' | 'activo' | 'inactivo', obsolescencia: boolean = true, completo: boolean = false): Promise<Blob> {
+    return firstValueFrom(
+      this.http.get(`${this.apiUrl}/exportar`, {
+        params: { tipo, obsolescencia: String(obsolescencia), completo: String(completo) },
+        responseType: 'blob'
+      })
+    );
   }
 }

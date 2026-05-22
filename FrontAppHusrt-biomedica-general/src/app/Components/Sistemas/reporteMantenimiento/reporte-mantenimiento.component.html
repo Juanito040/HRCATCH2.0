@@ -1,0 +1,271 @@
+<div class="title-container">
+  <h2><strong> REPORTE DE MANTENIMINETO {{convertirMayusculas(tipoMantenimiento)}}</strong></h2>
+</div>
+
+<div class="title-container">
+  <h4><strong> DATOS DEL EQUIPO </strong></h4>
+</div>
+
+<div class="custom-grid" style="width: 94%; margin-left: 3%; margin-right: 3%;">
+
+  <div class="form-item">
+    <label>Nombre Equipo</label>
+    <input pInputText type="text" placeholder="{{equipo?.nombre_equipo}}" disabled />
+  </div>
+
+  <div class="form-item">
+    <label>Marca</label>
+    <input pInputText type="text" placeholder="{{equipo?.marca}}" disabled />
+  </div>
+
+  <div class="form-item">
+    <label>Modelo</label>
+    <input pInputText type="text" placeholder="{{equipo?.modelo}}" disabled />
+  </div>
+
+  <div class="form-item">
+    <label>Serie</label>
+    <input pInputText type="text" placeholder="{{equipo?.serie}}" disabled />
+  </div>
+
+  <div class="form-item">
+    <label>Servicio</label>
+    <input pInputText type="text" placeholder="{{equipo?.servicio?.nombres}}" disabled />
+  </div>
+
+  <div class="form-item">
+    <label>Ubicaci&oacute;n</label>
+    <input pInputText type="text" placeholder="{{equipo?.ubicacion}}" disabled />
+  </div>
+
+  <div class="form-item">
+    <label>Ubicaci&oacute;n especifica</label>
+    <input pInputText type="text" placeholder="{{equipo?.ubicacion_especifica}}" disabled />
+  </div>
+</div>
+
+<div class="title-container">
+  <h4><strong> DATOS DEL REPORTE </strong></h4>
+</div>
+
+<div class="form-container">
+  <p-card>
+    <form [formGroup]="mantenimientoForm" (ngSubmit)="onSubmit()">
+      <div class="custom-grid">
+
+        <div class="form-item">
+          <label>Fecha Inicio</label>
+          <p-datePicker formControlName="fechaRealizado" inputId="fechaRealizado" showIcon dateFormat="yy-mm-dd" />
+        </div>
+
+        <div class="form-item">
+          <label>Hora Inicio</label>
+          <input pInputText type="time" formControlName="horaInicio" />
+        </div>
+
+        <div class="form-item">
+          <label>Fecha Fin</label>
+          <p-datePicker formControlName="fechaFin" inputId="fechaFin" showIcon dateFormat="yy-mm-dd" />
+        </div>
+
+        <div class="form-item">
+          <label>Hora Terminación</label>
+          <input pInputText type="time" formControlName="horaTerminacion" />
+        </div>
+
+        <div class="form-item">
+          <label>Hora Total</label>
+          <input pInputText type="text" formControlName="horaTotal" readonly />
+        </div>
+
+        <div class="form-item">
+          <label>Tipo de Mantenimiento</label>
+          <!-- ✅ Fix: placeholder corregido, optionLabel y optionValue explícitos -->
+          <p-select [options]="tiposMantenimiento" formControlName="tipoMantenimiento" optionLabel="label"
+            optionValue="value" placeholder="Seleccione">
+          </p-select>
+        </div>
+
+        <div class="form-item">
+          <label>Tipo de Falla</label>
+          <p-select [options]="tiposFalla" formControlName="tipoFalla" optionLabel="label" optionValue="value"
+            placeholder="Seleccione">
+          </p-select>
+        </div>
+
+        <div class="form-item">
+          <label>Estado Operativo</label>
+          <p-select [options]="estadosOperativos" formControlName="estadoOperativo" optionLabel="label"
+            optionValue="value" placeholder="Seleccione">
+          </p-select>
+        </div>
+
+        <div class="form-item">
+          <label>Calificaci&oacute;n (1-5)</label>
+          <input pInputText type="number" formControlName="calificacion" min="1" max="5" />
+        </div>
+
+        <div class="form-item">
+          <label>Nombre Realizo</label>
+          <input pInputText placeholder="{{nombreUsuario?.nombreCompleto}}" type="text" disabled />
+        </div>
+
+        <div class="form-item">
+          <label>Identificacion Realizo</label>
+          <input pInputText placeholder="{{nombreUsuario?.numeroId}}" type="text" disabled />
+        </div>
+
+        <div class="form-item">
+          <label>Nombre Recibió</label>
+          <input pInputText formControlName="nombreRecibio" appUppercase />
+        </div>
+
+        <div class="form-item">
+          <label>Cédula Recibió</label>
+          <input pInputText formControlName="cedulaRecibio" appUppercase />
+        </div>
+
+      </div>
+
+      <div style="margin-top: 3%;"></div>
+
+      <div class="custom-grid">
+        <div class="form-item">
+          <label>Motivo</label>
+          <textarea pInputTextarea rows="3" formControlName="motivo" appUppercase></textarea>
+        </div>
+        <div class="form-item">
+          <label>Trabajo Realizado</label>
+          <textarea pInputTextarea rows="3" formControlName="trabajoRealizado" appUppercase></textarea>
+        </div>
+        <div class="form-item">
+          <label>Observaciones</label>
+          <textarea pInputTextarea rows="3" formControlName="observaciones" appUppercase></textarea>
+        </div>
+      </div>
+
+      <div style="margin-top: 3%;"></div>
+
+      <!-- ✅ Fix: usar tipoMantenimiento (propiedad del componente) en vez de .value del form
+           porque el campo puede estar disabled y .value no retorna nada en ese caso -->
+      <ng-container *ngIf="tipoMantenimiento === 'Preventivo'">
+        <div class="title-container">
+          <h4><strong> PROTOCOLO PREVENTIVO </strong></h4>
+          <h6>Seleccione los pasos realizados en el mantenimiento</h6>
+        </div>
+        <div formArrayName="cumplimientoProtocolo" class="w-full px-3">
+          <p-table [value]="cumplimientoProtocoloFormArray.controls" responsiveLayout="scroll" [scrollable]="true"
+            scrollHeight="400px" styleClass="p-datatable-sm" [showCurrentPageReport]="true"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros">
+            <ng-template pTemplate="header">
+              <tr>
+                <th style="width: 20%" class="text-center">Cumple</th>
+                <th style="width: 50%">Paso</th>
+                <th style="width: 40%">Observaciones</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-grupo let-i="rowIndex">
+              <tr [formGroupName]="i">
+                <td class="text-center">
+                  <p-select [options]="opcionesCumplimiento" formControlName="cumple" optionLabel="label"
+                    optionValue="value" appendTo="body" [style]="{'width':'150px'}">
+                  </p-select>
+                </td>
+                <td>
+                  <label [for]="'chk-' + i" class="cursor-pointer">{{ grupo.get('paso')?.value }}</label>
+                </td>
+                <td>
+                  <input pInputText formControlName="observaciones" class="w-full" placeholder="Ingrese observación..."
+                    appUppercase />
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        </div>
+      </ng-container>
+
+      <div style="margin-top: 3%;"></div>
+
+      <!-- ✅ Fix: una sola sección de repuestos, sin *ngIf duplicado -->
+      <div class="title-container">
+        <h4><strong> INSUMOS / REPUESTOS </strong></h4>
+        <h6>Registre los repuestos o insumos utilizados en el mantenimiento</h6>
+      </div>
+      <div formArrayName="repuestos" class="w-full px-3">
+        <p-table [value]="repuestosFormArray.controls" responsiveLayout="scroll" [scrollable]="true"
+          scrollHeight="300px" styleClass="p-datatable-sm" [showCurrentPageReport]="true"
+          currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros">
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width: 18%">Tipo Insumo</th>
+              <th style="width: 22%">Nombre Insumo</th>
+              <th style="width: 15%">Cantidad</th>
+              <th style="width: 7%">Acci&oacute;n</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-repuesto let-i="rowIndex">
+            <tr [formGroupName]="i">
+
+              <!-- 1. Tipo de repuesto -->
+              <td>
+                <p-select [options]="tiposRepuesto" formControlName="tipoRepuestoIdFk" optionLabel="label"
+                  optionValue="value" placeholder="Tipo" appendTo="body" [style]="{'width':'100%'}"
+                  (onChange)="onCambiarTipoRepuesto($event, i)">
+                </p-select>
+              </td>
+
+              <!-- 2. Repuesto del catálogo (filtrado por tipo) -->
+              <td>
+                <p-select [options]="getRepuestosParaFila(i)" formControlName="sysRepuestoIdFk" optionLabel="label"
+                  optionValue="value" placeholder="Seleccione" appendTo="body" [style]="{'width':'100%'}"
+                  [disabled]="!repuestosFormArray.at(i).get('tipoRepuestoIdFk')?.value"
+                  (onChange)="onSeleccionarRepuesto($event, i)">
+                </p-select>
+              </td>
+
+              <td>
+                <input pInputText formControlName="cantidad" class="w-full" placeholder="Cant."
+                  [ngClass]="{'ng-invalid ng-dirty': getStockRepuesto(i) !== null && getCantidadIngresada(i) > getStockRepuesto(i)!}" />
+
+                <small *ngIf="getStockRepuesto(i) !== null" [ngClass]="{
+      'text-red-500 font-semibold': getCantidadIngresada(i) > getStockRepuesto(i)!,
+      'text-green-600': getCantidadIngresada(i) <= getStockRepuesto(i)!
+    }">
+                  {{ getCantidadIngresada(i) > getStockRepuesto(i)!
+                  ? '⚠ Supera stock disponible (' + getStockRepuesto(i) + ')'
+                  : 'Stock disponible: ' + getStockRepuesto(i) }}
+                </small>
+              </td>
+
+              <td class="text-center">
+                <button pButton type="button" icon="pi pi-trash" class="p-button-danger p-button-rounded p-button-text"
+                  (click)="eliminarRepuesto(i)">
+                </button>
+              </td>
+
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="footer">
+            <tr>
+              <td colspan="6" class="text-right">
+                <button pButton label="Agregar Insumo" icon="pi pi-plus" class="p-button-sm p-button-outlined"
+                  (click)="agregarRepuesto()" type="button">
+                </button>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+
+      <div style="margin-top: 3%;"></div>
+
+      <div class="custom-grid">
+        <button type="submit" class="btn btn-dark">Guardar</button>
+        <button type="button" class="btn btn-secondary" (click)="goBack()">Cancelar</button>
+        <div></div>
+        <div></div>
+      </div>
+
+    </form>
+  </p-card>
+</div>

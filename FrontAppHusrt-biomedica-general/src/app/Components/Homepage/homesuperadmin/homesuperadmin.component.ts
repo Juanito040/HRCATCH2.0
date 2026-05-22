@@ -36,6 +36,10 @@ export class HomesuperadminComponent {
     this.router.navigate(['/adminsistemas']);
   }
 
+  viewParametrizacionSIS() {
+    this.router.navigate(['/adminsistemas/parametrizacion']);
+  }
+
   viewGestionMantenimiento() {
     // Ejemplo: this.router.navigate(['/mantenimiento/home']);
   }

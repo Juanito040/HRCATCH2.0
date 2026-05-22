@@ -24,15 +24,15 @@ exports.getAll = async (req, res) => {
     try {
         const where = {};
         if (req.query.id_equipo) where.id_sysequipo_fk = req.query.id_equipo;
-        if (req.query.tipo_mantenimiento) where.tipo_mantenimiento = req.query.tipo_mantenimiento;
+        if (req.query.tipo_mantenimiento) where.tipoMantenimiento = req.query.tipo_mantenimiento;
         if (req.query.fecha_inicio && req.query.fecha_fin) {
-            where.fecha = { [Op.between]: [req.query.fecha_inicio, req.query.fecha_fin] };
+            where.fechaRealizado = { [Op.between]: [req.query.fecha_inicio, req.query.fecha_fin] };
         }
 
         const data = await SysMantenimiento.findAll({
             where,
             include: INCLUDES_FULL,
-            order: [['fecha', 'DESC'], ['createdAt', 'DESC']]
+            order: [['fechaRealizado', 'DESC'], ['createdAt', 'DESC']]
         });
 
         res.json({ success: true, count: data.length, data });
@@ -57,7 +57,7 @@ exports.getByEquipo = async (req, res) => {
         const data = await SysMantenimiento.findAll({
             where: { id_sysequipo_fk: req.params.idEquipo },
             include: INCLUDES_FULL,
-            order: [['fecha', 'DESC']]
+            order: [['fechaRealizado', 'DESC']]
         });
         res.json({ success: true, count: data.length, data });
     } catch (error) {
@@ -67,14 +67,14 @@ exports.getByEquipo = async (req, res) => {
 
 exports.getByTecnico = async (req, res) => {
     try {
-        const where = { id_sysusuario_fk: req.params.idUsuario };
+        const where = { usuarioIdFk: req.params.idUsuario };
         if (req.query.fecha_inicio && req.query.fecha_fin) {
-            where.fecha = { [Op.between]: [req.query.fecha_inicio, req.query.fecha_fin] };
+            where.fechaRealizado = { [Op.between]: [req.query.fecha_inicio, req.query.fecha_fin] };
         }
         const data = await SysMantenimiento.findAll({
             where,
             include: INCLUDES_FULL,
-            order: [['fecha', 'DESC']]
+            order: [['fechaRealizado', 'DESC']]
         });
         res.json({ success: true, count: data.length, data });
     } catch (error) {
@@ -88,7 +88,7 @@ exports.create = async (req, res) => {
             return res.status(400).json({ success: false, message: 'El ID del equipo es requerido' });
         }
         const mantenimiento = await SysMantenimiento.create(req.body);
-        const completo = await SysMantenimiento.findByPk(mantenimiento.id_sysmtto, { include: INCLUDES_FULL });
+        const completo = await SysMantenimiento.findByPk(mantenimiento.id, { include: INCLUDES_FULL });
         res.status(201).json({ success: true, message: 'Mantenimiento creado exitosamente', data: completo });
     } catch (error) {
         console.error('Error create SysMantenimiento:', error);
@@ -129,15 +129,15 @@ exports.getDashboard = async (req, res) => {
             fecha_fin = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).toISOString().split('T')[0];
         }
 
-        const where = { fecha: { [Op.between]: [fecha_inicio, fecha_fin] } };
+        const where = { fechaRealizado: { [Op.between]: [fecha_inicio, fecha_fin] } };
 
         const [total, correctivos, preventivos, predictivos, otros, recientes] = await Promise.all([
             SysMantenimiento.count({ where }),
-            SysMantenimiento.count({ where: { ...where, tipo_mantenimiento: 1 } }),
-            SysMantenimiento.count({ where: { ...where, tipo_mantenimiento: 2 } }),
-            SysMantenimiento.count({ where: { ...where, tipo_mantenimiento: 3 } }),
-            SysMantenimiento.count({ where: { ...where, tipo_mantenimiento: 4 } }),
-            SysMantenimiento.findAll({ where, include: INCLUDES_FULL, order: [['fecha', 'DESC']], limit: 20 })
+            SysMantenimiento.count({ where: { ...where, tipoMantenimiento: 'Correctivo' } }),
+            SysMantenimiento.count({ where: { ...where, tipoMantenimiento: 'Preventivo' } }),
+            SysMantenimiento.count({ where: { ...where, tipoMantenimiento: 'Predictivo' } }),
+            SysMantenimiento.count({ where: { ...where, tipoMantenimiento: 'Otro' } }),
+            SysMantenimiento.findAll({ where, include: INCLUDES_FULL, order: [['fechaRealizado', 'DESC']], limit: 20 })
         ]);
 
         res.json({
@@ -145,8 +145,8 @@ exports.getDashboard = async (req, res) => {
             data: {
                 total,
                 estadisticasTipo: [
-                    { tipo: 'Preventivo', cantidad: preventivos },
                     { tipo: 'Correctivo', cantidad: correctivos },
+                    { tipo: 'Preventivo', cantidad: preventivos },
                     { tipo: 'Predictivo', cantidad: predictivos },
                     { tipo: 'Otro', cantidad: otros }
                 ],
@@ -167,4 +167,23 @@ exports.getCatalogoTiposMantenimiento = (req, res) => {
 
 exports.getCatalogoTiposFalla = (req, res) => {
     res.json({ success: true, data: getAllTiposFalla() });
+};
+
+// ─── DELETE /sysmovimientosstock/:id ─────────────────────────────────────────
+exports.deleteById = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const movimiento = await SysMovimientosStockRepuestos.findByPk(id);
+        if (!movimiento) {
+            return res.status(404).json({ success: false, message: 'Movimiento no encontrado' });
+        }
+
+        await movimiento.destroy();
+
+        res.json({ success: true, message: `Movimiento ID ${id} eliminado correctamente` });
+    } catch (error) {
+        console.error('Error deleteById movimiento stock:', error);
+        res.status(500).json({ success: false, message: 'Error al eliminar el movimiento', error: error.message });
+    }
 };

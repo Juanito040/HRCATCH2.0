@@ -115,5 +115,17 @@
                 <span class="card-action">Gestionar <i class="pi pi-cog"></i></span>
             </div>
         </div>
+
+        <!-- Sistemas de Informaci&oacute;n -->
+        <div class="dashboard-card" *ngIf="isSuperAdmin" (click)="showViewSistemasInformacion()">
+            <div class="card-icon-container gradient-blue">
+                <i class="pi pi-server"></i>
+            </div>
+            <div class="card-content">
+                <h3>Sistemas de Informaci&oacute;n</h3>
+                <p>Gestiona los sistemas de información y el calendario de backups.</p>
+                <span class="card-action">Administrar <i class="pi pi-cog"></i></span>
+            </div>
+        </div>
     </div>
 </div>

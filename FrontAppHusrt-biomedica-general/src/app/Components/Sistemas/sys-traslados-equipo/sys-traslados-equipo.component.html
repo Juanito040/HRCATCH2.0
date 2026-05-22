@@ -1,0 +1,119 @@
+<div class="w-full md:w-11 m-auto mt-4 p-3 md:p-4 bg-white shadow-2 border-round">
+
+  <!-- Header centrado -->
+  <div class="text-center mb-4">
+    <h1 class="text-xl md:text-3xl font-bold">REGISTRO DE TRASLADOS</h1>
+    <h3 class="text-lg md:text-xl" *ngIf="equipo">{{ equipo.nombre_equipo }}</h3>
+    <h6 class="text-sm md:text-base text-500" *ngIf="equipo">
+      <span *ngIf="equipo.marca || equipo.modelo">{{ equipo.marca }} {{ equipo.modelo }}</span>
+      <span *ngIf="equipo.placa_inventario"> · Placa: {{ equipo.placa_inventario }}</span>
+      <span *ngIf="equipo.serie"> · Serie: {{ equipo.serie }}</span>
+    </h6>
+  </div>
+
+  <!-- Loading -->
+  @if (isLoading) {
+    <div class="text-center p-4">
+      <div class="spinner mx-auto mb-2"></div>
+      <p class="text-500">Cargando traslados...</p>
+    </div>
+  }
+
+  <!-- Error -->
+  @if (!isLoading && error) {
+    <div class="text-center p-4">
+      <i class="fas fa-exclamation-circle text-red-500 text-3xl mb-2"></i>
+      <p class="text-red-500">{{ error }}</p>
+    </div>
+  }
+
+  <!-- Tabla -->
+  @if (!isLoading && !error) {
+    <p-table
+      [value]="trasladosFiltrados"
+      [paginator]="true"
+      [rows]="10"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      [tableStyle]="{ 'min-width': '60rem' }"
+      responsiveLayout="scroll"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros">
+
+      <ng-template pTemplate="caption">
+        <div class="flex align-items-center justify-content-between flex-wrap gap-2">
+          <div class="flex gap-3">
+            <span class="text-500 text-sm">Total: <strong>{{ traslados.length }}</strong></span>
+            <span class="text-500 text-sm">Bodega: <strong>{{ contarPorTipo('BODEGA') }}</strong></span>
+            <span class="text-500 text-sm">Reactivaciones: <strong>{{ contarPorTipo('REACTIVACION') }}</strong></span>
+          </div>
+          <div class="flex gap-2">
+            <button class="filtro-btn" [class.active]="filtroTipo === 'TODOS'" (click)="setFiltro('TODOS')">Todos</button>
+            <button class="filtro-btn" [class.active]="filtroTipo === 'BODEGA'" (click)="setFiltro('BODEGA')">
+              <i class="fas fa-warehouse"></i> Bodega
+            </button>
+            <button class="filtro-btn" [class.active]="filtroTipo === 'REACTIVACION'" (click)="setFiltro('REACTIVACION')">
+              <i class="fas fa-power-off"></i> Reactivación
+            </button>
+          </div>
+        </div>
+      </ng-template>
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th>#</th>
+          <th>Fecha</th>
+          <th>Tipo</th>
+          <th>Ubicación Origen</th>
+          <th>Ubicación Destino</th>
+          <th>Servicio Origen</th>
+          <th>Servicio Destino</th>
+          <th>Receptor</th>
+          <th>Cargo</th>
+          <th>Observaciones</th>
+          <th>Registrado por</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-t let-i="rowIndex">
+        <tr>
+          <td class="text-500 text-sm text-center">{{ i + 1 }}</td>
+          <td style="white-space: nowrap">{{ formatFecha(t.fecha || t.createdAt) }}</td>
+          <td>
+            <p-tag
+              [value]="t.tipo === 'BODEGA' ? 'A Bodega' : 'Reactivación'"
+              [severity]="t.tipo === 'BODEGA' ? 'warning' : 'success'">
+            </p-tag>
+          </td>
+          <td>{{ t.ubicacion_origen || '—' }}</td>
+          <td>{{ t.ubicacion_destino || '—' }}</td>
+          <td>{{ t.servicioOrigen?.nombres || '—' }}</td>
+          <td>{{ t.servicioDestino?.nombres || '—' }}</td>
+          <td><strong>{{ t.nombre_receptor }}</strong></td>
+          <td>{{ t.cargo_receptor }}</td>
+          <td class="obs-cell">{{ t.observaciones || '—' }}</td>
+          <td>{{ getNombreUsuario(t) }}</td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="11" class="text-center p-5">
+            <div class="flex flex-column align-items-center gap-2">
+              <i class="fas fa-exchange-alt text-3xl text-400 mb-2"></i>
+              <span class="font-semibold text-700">Sin traslados registrados</span>
+              <span class="text-500 text-sm" *ngIf="filtroTipo === 'TODOS'">
+                Este equipo aún no tiene registros de traslado.<br>
+                Los traslados se generan automáticamente al enviar el equipo a bodega o al reactivarlo.
+              </span>
+              <span class="text-500 text-sm" *ngIf="filtroTipo !== 'TODOS'">
+                No hay traslados de tipo <strong>{{ filtroTipo === 'BODEGA' ? 'Bodega' : 'Reactivación' }}</strong> para este equipo.
+              </span>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+    </p-table>
+  }
+
+</div>

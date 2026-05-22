@@ -1,0 +1,223 @@
+<div class="w-full md:w-11 m-auto mt-4 p-3 md:p-4 bg-white shadow-2 border-round">
+
+  <!-- Encabezado -->
+  <div class="text-center mb-4">
+    <h1 class="text-xl md:text-3xl font-bold">HISTÓRICO DE MANTENIMIENTOS</h1>
+    <h3 class="text-lg md:text-xl">{{ equipo?.nombre_equipo }}</h3>
+    <h6 class="text-sm md:text-base text-500">
+      {{ equipo?.marca }} {{ equipo?.modelo }}
+      @if (equipo?.placa_inventario) { · Placa: {{ equipo.placa_inventario }} }
+      @if (equipo?.serie) { · Serie: {{ equipo.serie }} }
+    </h6>
+  </div>
+
+  <!-- Error -->
+  @if (error) {
+    <div class="text-center p-4">
+      <p class="text-red-500">{{ error }}</p>
+    </div>
+  }
+
+  <!-- Tabla -->
+  <p-table
+    #dt
+    [value]="mantenimientos"
+    dataKey="id"
+    [paginator]="true"
+    [rows]="10"
+    [rowsPerPageOptions]="[10, 25, 50, 100]"
+    [loading]="isLoading"
+    [globalFilterFields]="['id','fechaRealizado','tipoMantenimiento','tipoFalla','nombreRecibio','observaciones']"
+    [tableStyle]="{ 'min-width': '50rem' }"
+    responsiveLayout="scroll"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros">
+
+    <!-- Filtro -->
+    <ng-template pTemplate="caption">
+      <div class="flex justify-content-end">
+        <p-iconfield iconPosition="left">
+          <p-inputicon>
+            <i class="pi pi-search"></i>
+          </p-inputicon>
+          <input pInputText type="text" (input)="onGlobalFilter($event)" placeholder="Búsqueda general" />
+        </p-iconfield>
+      </div>
+    </ng-template>
+
+    <!-- Cabecera -->
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="id" style="width:5%">Número <p-sortIcon field="id"></p-sortIcon></th>
+        <th pSortableColumn="fechaRealizado">Fecha <p-sortIcon field="fechaRealizado"></p-sortIcon></th>
+        <th pSortableColumn="horaTotal">Total Horas <p-sortIcon field="horaTotal"></p-sortIcon></th>
+        <th pSortableColumn="tipoMantenimiento">Tipo Mantenimiento <p-sortIcon field="tipoMantenimiento"></p-sortIcon></th>
+        <th pSortableColumn="tipoFalla">Tipo Falla <p-sortIcon field="tipoFalla"></p-sortIcon></th>
+        <th>Realizó</th>
+        <th pSortableColumn="nombreRecibio">Recibió <p-sortIcon field="nombreRecibio"></p-sortIcon></th>
+        <th>Observaciones</th>
+        <th style="width:8%">Opciones</th>
+      </tr>
+    </ng-template>
+
+    <!-- Cuerpo -->
+    <ng-template pTemplate="body" let-m>
+      <tr>
+        <td>{{ m.id }}</td>
+        <td>
+          @if (m.fechaRealizado) {
+            {{ formatFecha(m.fechaRealizado) }}
+          } @else {
+            <span class="text-orange-500 text-sm">Prog: {{ getFechaProgramada(m) }}</span>
+          }
+        </td>
+        <td>{{ m.horaTotal ?? '—' }}</td>
+        <td>
+          <p-tag [value]="m.tipoMantenimiento ?? 'Sin tipo'" [severity]="getTipoSeverity(m.tipoMantenimiento)"></p-tag>
+        </td>
+        <td>{{ m.tipoFalla ?? '—' }}</td>
+        <td>{{ getNombreTecnico(m) }}</td>
+        <td>{{ m.nombreRecibio ?? '—' }}</td>
+        <td class="obs-cell">{{ m.observaciones ?? '—' }}</td>
+        <td style="text-align:center">
+          @if (m.fechaRealizado || m.tipoMantenimiento === 'Correctivo') {
+            <button type="button" class="btn btn-dark btn-sm" (click)="verDetalle(m)">Ver</button>
+          } @else {
+            <button type="button" class="btn btn-warning btn-sm" (click)="verDetalle(m)">Pendiente</button>
+          }
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="9" class="text-center p-4">No hay mantenimientos registrados para este equipo.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+</div>
+
+
+<!-- Dialog de detalle -->
+<p-dialog
+  [header]="'Mantenimiento N° ' + reporteSeleccionado?.id"
+  [(visible)]="modalDetalle"
+  [modal]="true"
+  [style]="{ width: '90vw', maxWidth: '860px' }"
+  [maximizable]="true"
+  [baseZIndex]="1000">
+
+  @if (reporteSeleccionado) {
+    <div class="p-fluid p-3">
+
+      <!-- Información del equipo -->
+      <div class="grid mb-3">
+        <div class="col-12">
+          <p-card header="Información del Equipo">
+            <div class="grid">
+              <div class="col-12 md:col-4">
+                <p><strong>Nombre:</strong> {{ equipo?.nombre_equipo }}</p>
+                <p><strong>Marca:</strong> {{ equipo?.marca ?? '—' }}</p>
+                <p><strong>Modelo:</strong> {{ equipo?.modelo ?? '—' }}</p>
+              </div>
+              <div class="col-12 md:col-4">
+                <p><strong>Serie:</strong> {{ equipo?.serie ?? '—' }}</p>
+                <p><strong>Placa:</strong> {{ equipo?.placa_inventario ?? '—' }}</p>
+              </div>
+              <div class="col-12 md:col-4">
+                <p><strong>Ubicación:</strong> {{ equipo?.ubicacion ?? '—' }}</p>
+                <p><strong>Ubic. específica:</strong> {{ equipo?.ubicacion_especifica ?? '—' }}</p>
+              </div>
+            </div>
+          </p-card>
+        </div>
+      </div>
+
+      <!-- Detalle del mantenimiento -->
+      <div class="grid mb-3">
+        <div class="col-12">
+          <p-card header="Detalle del Mantenimiento">
+            <div class="grid">
+              <div class="col-12 md:col-4">
+                <p><strong>Tipo:</strong> {{ reporteSeleccionado.tipoMantenimiento ?? '—' }}</p>
+                <p><strong>Fecha Realizado:</strong> {{ formatFecha(reporteSeleccionado.fechaRealizado) }}</p>
+                <p><strong>Hora Inicio:</strong> {{ reporteSeleccionado.horaInicio ?? '—' }}</p>
+                <p><strong>Hora Terminación:</strong> {{ reporteSeleccionado.horaTerminacion ?? '—' }}</p>
+                <p><strong>Total Horas:</strong> {{ reporteSeleccionado.horaTotal ?? '—' }}</p>
+              </div>
+              <div class="col-12 md:col-4">
+                <p><strong>Tipo Falla:</strong> {{ reporteSeleccionado.tipoFalla ?? '—' }}</p>
+                <p><strong>Estado Operativo:</strong> {{ reporteSeleccionado.estadoOperativo ?? '—' }}</p>
+                <p><strong>Motivo:</strong> {{ reporteSeleccionado.motivo ?? '—' }}</p>
+                <p><strong>Trabajo Realizado:</strong> {{ reporteSeleccionado.trabajoRealizado ?? '—' }}</p>
+              </div>
+              <div class="col-12 md:col-4">
+                <p><strong>Calificación:</strong> {{ reporteSeleccionado.calificacion ?? '—' }}</p>
+                <p><strong>Mant. Propio:</strong> {{ reporteSeleccionado.mantenimientoPropio ? 'Sí' : 'No' }}</p>
+                <p><strong>Realizado:</strong> {{ reporteSeleccionado.realizado ? 'Sí' : 'No' }}</p>
+                <p><strong>Observaciones:</strong> {{ reporteSeleccionado.observaciones ?? '—' }}</p>
+              </div>
+            </div>
+          </p-card>
+        </div>
+      </div>
+
+      <!-- Repuestos -->
+      @if (reporteSeleccionado.repuestos && reporteSeleccionado.repuestos.length > 0) {
+        <div class="grid mb-3">
+          <div class="col-12">
+            <p-card header="Repuestos Utilizados">
+              <table class="table table-striped table-bordered">
+                <thead>
+                  <tr>
+                    <th>Nombre Insumo</th>
+                    <th>Cantidad</th>
+                    <th>Comprobante</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let rep of reporteSeleccionado.repuestos">
+                    <td>{{ rep.nombreInsumo }}</td>
+                    <td>{{ rep.cantidad }}</td>
+                    <td>{{ rep.comprobanteEgreso ?? 'N/A' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </p-card>
+          </div>
+        </div>
+      }
+
+      <!-- Técnico y PDF -->
+      <div class="grid">
+        <div class="col-12">
+          <p-card header="Realizado Por">
+            <div class="grid">
+              <div class="col-12 md:col-6">
+                <p><strong>Técnico:</strong> {{ getNombreTecnico(reporteSeleccionado) }}</p>
+                <p><strong>Recibió:</strong> {{ reporteSeleccionado.nombreRecibio ?? '—' }}</p>
+                <p><strong>Cédula Recibió:</strong> {{ reporteSeleccionado.cedulaRecibio ?? '—' }}</p>
+              </div>
+              <div class="col-12 md:col-6 flex align-items-start gap-2 flex-wrap">
+                @if (reporteSeleccionado.rutaPdf) {
+                  <button type="button" class="btn btn-dark"
+                    (click)="verPdf(reporteSeleccionado.rutaPdf!)">
+                    Ver Reporte PDF
+                  </button>
+                } @else {
+                  <button type="button" class="btn btn-dark"
+                    (click)="generarPdf(reporteSeleccionado)">
+                    Generar PDF
+                  </button>
+                }
+              </div>
+            </div>
+          </p-card>
+        </div>
+      </div>
+
+    </div>
+  }
+
+</p-dialog>

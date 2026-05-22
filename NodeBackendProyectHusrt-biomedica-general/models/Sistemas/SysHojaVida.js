@@ -29,6 +29,8 @@ const SysHojaVida = sequelize.define('SysHojaVida', {
   convenio: { type: DataTypes.BOOLEAN, allowNull: true, defaultValue: false },
   donado: { type: DataTypes.BOOLEAN, allowNull: true, defaultValue: false },
   comodato: { type: DataTypes.BOOLEAN, allowNull: true, defaultValue: false },
+  fecha_inicio_soporte: { type: DataTypes.DATEONLY, allowNull: true },
+  anos_soporte_fabricante: { type: DataTypes.INTEGER, allowNull: true },
   id_sysequipo_fk: {
     type: DataTypes.INTEGER,
     allowNull: true,

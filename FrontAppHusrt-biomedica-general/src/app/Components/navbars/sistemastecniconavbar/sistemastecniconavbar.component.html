@@ -1,0 +1,27 @@
+<div class="card border-0 shadow-sm rounded-0 mb-4">
+    <p-menubar [model]="items" styleClass="border-none bg-surface-0 border-round-xl">
+        <ng-template #start>
+            <div class="flex align-items-center gap-2 mr-4 cursor-pointer" routerLink="/adminsistemas">
+                <img src="LogoAgora.png" height="40" alt="Logo" />
+                <div class="flex flex-column">
+                    <span class="font-bold text-primary text-lg">{{ themeService.getThemeConfig().appName }}</span>
+                    <span class="text-xs text-secondary">Sistemas</span>
+                </div>
+            </div>
+        </ng-template>
+
+        <ng-template #end>
+            <div class="flex align-items-center gap-3">
+                <button pButton label="Pendientes" icon="pi pi-bell" class="p-button-text"
+                    routerLink="adminsistemas/tecnico/pendientes"></button>
+                <div class="flex align-items-center gap-2">
+                    <p-avatar icon="pi pi-user" styleClass="mr-2 cursor-pointer" shape="circle"
+                        [style]="{'background-color': '#eef2ff', 'color': '#0056b3'}" (click)="viewUser()"
+                        pTooltip="Perfil"></p-avatar>
+                    <button pButton icon="pi pi-power-off" class="p-button-rounded p-button-text p-button-danger"
+                        pTooltip="Cerrar Sesión" tooltipPosition="bottom" (click)="navigateToAbout()"></button>
+                </div>
+            </div>
+        </ng-template>
+    </p-menubar>
+</div>

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, inject } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnChanges, OnDestroy, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { SysEquipo } from '../../../Services/appServices/sistemasServices/sysequipos/sysequipos.service';
@@ -10,7 +10,7 @@ import { SysEquipo } from '../../../Services/appServices/sistemasServices/sysequ
   templateUrl: './equipo-detail-modal.component.html',
   styleUrls: ['./equipo-detail-modal.component.css']
 })
-export class SysEquipoDetailModalComponent implements OnChanges {
+export class SysEquipoDetailModalComponent implements OnChanges, OnDestroy {
   @Input() isOpen = false;
   @Input() equipo: SysEquipo | null = null;
   @Output() closed = new EventEmitter<void>();
@@ -18,7 +18,15 @@ export class SysEquipoDetailModalComponent implements OnChanges {
 
   private router = inject(Router);
 
-  ngOnChanges(changes: SimpleChanges) {}
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['isOpen'] && typeof document !== 'undefined') {
+      document.body.style.overflow = changes['isOpen'].currentValue ? 'hidden' : '';
+    }
+  }
+
+  ngOnDestroy() {
+    if (typeof document !== 'undefined') document.body.style.overflow = '';
+  }
 
   close() { this.closed.emit(); }
   requestEdit() { if (this.equipo) this.editRequested.emit(this.equipo); }

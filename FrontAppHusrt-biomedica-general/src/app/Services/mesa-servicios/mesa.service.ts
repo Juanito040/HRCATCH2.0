@@ -116,4 +116,12 @@ export class MesaService {
     rateCaso(casoId: number, data: any): Observable<any> {
         return this.http.post<any>(`${this.apiUrl}/casos/${casoId}/calificar`, data, this.createHeaders());
     }
+
+    createSysReporteMantenimiento(data: any): Observable<{ success: boolean; data: any }> {
+        return this.http.post<{ success: boolean; data: any }>(`${API_URL}/sysreportesmtto`, data, this.createHeaders());
+    }
+
+    getSysReportesMantenimiento(id_sysequipo: number): Observable<{ success: boolean; data: any[] }> {
+        return this.http.get<{ success: boolean; data: any[] }>(`${API_URL}/sysreportesmtto/equipo/${id_sysequipo}`, this.createHeaders());
+    }
 }

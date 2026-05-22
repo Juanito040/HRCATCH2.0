@@ -20,6 +20,7 @@ export class RedireccionInicialComponent implements OnInit {
 
                 switch (role) {
                     case 'SYSTEMADMIN':
+                    case 'SISTEMASTECNICO':
                         this.router.navigate(['/adminsistemas']);
                         break;
                     case 'SUPERADMIN':
@@ -40,6 +41,9 @@ export class RedireccionInicialComponent implements OnInit {
                         break;
                     case 'MESAADMIN':
                         this.router.navigate(['/adminmesaservicios']);
+                        break;
+                    case 'SYSTEMUSER':
+                        this.router.navigate(['/usersistemas']);
                         break;
                     case 'INVITADO':
                         this.router.navigate(['/biomedica/home-invitado']);
