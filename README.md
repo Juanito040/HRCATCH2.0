@@ -1,32 +1,34 @@
-# HUSRT Biomedica — Sistema de Gestión de Equipos Biomédicos
+# HRCATCH 2.0 — Sistema de Gestión Integral HUSRT
 
-Sistema web full-stack desarrollado para el **Hospital Universitario San Rafael de Tunja (HUSRT)**, orientado a la gestión integral de equipos biomédicos, mantenimiento, metrología y soporte técnico interno.
+Sistema web full-stack desarrollado para el **Hospital Universitario San Rafael de Tunja (HUSRT)**, orientado a la gestión integral de equipos biomédicos y de sistemas, mantenimiento preventivo y correctivo, metrología, backups y soporte técnico interno.
 
 ---
 
-## Módulos principales
+## Módulos
 
 | Módulo | Descripción |
 |--------|-------------|
-| **Biomédica** | Inventario de equipos, ciclo de vida, mantenimiento preventivo y correctivo, metrología, trazabilidad y reportes |
+| **Biomédica** | Inventario de equipos, hoja de vida, mantenimiento preventivo y correctivo, metrología, protocolos, trazabilidad, indicadores y reportes |
+| **Sistemas** | Gestión de equipos de TI, mantenimiento, repuestos, trazabilidad, indicadores y traslados |
+| **Backups** | Registro de sistemas de información, calendario de backups y alertas de vencimiento |
 | **Mesa de Servicios** | Gestión de tickets y casos de soporte interno por categoría y rol |
-| **Sistemas** | Módulo espejo para gestión de equipos del área de sistemas |
-| **Administración** | Usuarios, roles, fabricantes, proveedores, sedes, servicios y clasificaciones |
+| **Administración** | Usuarios, roles, fabricantes, proveedores, responsables, sedes, servicios y clasificaciones |
 
 ---
 
 ## Stack tecnológico
 
 ### Frontend — Angular 19
-- Angular 19.2 + Angular Material + PrimeNG + Bootstrap 5
-- Chart.js (dashboards), jsPDF + ExcelJS (reportes), @zxing (QR/código de barras)
-- Autenticación JWT con guards y RBAC
+- Angular 19.2, Angular Material, PrimeNG 19, Bootstrap 5
+- Chart.js para dashboards; jsPDF + jsPDF-AutoTable para reportes PDF; ExcelJS + XLSX para exportación a Excel
+- @zxing/ngx-scanner para lectura de QR y código de barras; signature_pad para firmas digitales
+- Autenticación JWT con route guards y control de acceso basado en roles (RBAC)
 
 ### Backend — Node.js + Express
-- Express 4 + Sequelize 6 (ORM)
-- Base de datos: **MariaDB** (compatible MySQL)
-- JWT + bcryptjs (autenticación y hash de contraseñas)
-- Multer (carga de archivos), Nodemailer (correos), PDFKit (generación PDF)
+- Express 4, Sequelize 6 (ORM), MariaDB / MySQL 8+
+- JWT + bcryptjs para autenticación y hash de contraseñas
+- Multer para carga de archivos, Nodemailer para notificaciones por correo, PDFKit para generación de documentos PDF
+- Axios para integraciones HTTP, ExcelJS para exportación de datos
 
 ---
 
@@ -34,33 +36,29 @@ Sistema web full-stack desarrollado para el **Hospital Universitario San Rafael 
 
 - Node.js >= 18.x
 - Angular CLI >= 19.x (`npm install -g @angular/cli`)
-- MariaDB o MySQL >= 10.x
+- MariaDB >= 10.x o MySQL >= 8.x
 - Git
 
 ---
 
-## Instalación y puesta en marcha
+## Instalación
 
 ### 1. Clonar el repositorio
 
 ```bash
 git clone <URL_DEL_REPO>
-cd "Nuevo aplicativo"
+cd HRCATCH2.0
 ```
 
-### 2. Configurar el Backend
+### 2. Backend
 
 ```bash
 cd NodeBackendProyectHusrt-biomedica-general
-
-# Instalar dependencias
 npm install
-
-# Crear archivo de variables de entorno
 cp .env.example .env
 ```
 
-Editar `.env` con los datos reales:
+Editar `.env` con los valores del entorno:
 
 ```env
 DB_NAME=nombre_base_de_datos
@@ -70,37 +68,40 @@ DB_HOST=localhost
 DB_PORT=3306
 JWT_SECRET=cadena_aleatoria_larga_y_segura
 PORT=3005
+MAIL_USER=correo@dominio.gov.co
+MAIL_PASS=app_password_del_correo
+CLIENT_URL=http://localhost:4200
 ```
 
-> **Nota:** Para generar un `JWT_SECRET` seguro puedes usar:
-> `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"`
+Para generar un `JWT_SECRET` seguro:
+```bash
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+```
 
 Iniciar el servidor:
 
 ```bash
-npm run dev      # desarrollo (nodemon)
+npm run dev      # desarrollo con hot-reload (nodemon)
 npm start        # producción
 ```
 
-El servidor queda disponible en `http://localhost:3005`
+Disponible en `http://localhost:3005`.
 
-### 3. Configurar el Frontend
+> Al iniciar, el servidor ejecuta automáticamente las migraciones `ADD COLUMN IF NOT EXISTS` necesarias. No se requieren scripts de migración manuales.
+
+### 3. Frontend
 
 ```bash
 cd FrontAppHusrt-biomedica-general
-
-# Instalar dependencias
 npm install
-
-# Iniciar servidor de desarrollo
 ng serve
 ```
 
-La aplicación queda disponible en `http://localhost:4200`
+Disponible en `http://localhost:4200`.
 
 ---
 
-## Variables de entorno (Backend)
+## Variables de entorno
 
 | Variable | Descripción | Ejemplo |
 |----------|-------------|---------|
@@ -111,46 +112,82 @@ La aplicación queda disponible en `http://localhost:4200`
 | `DB_PORT` | Puerto de la base de datos | `3306` |
 | `JWT_SECRET` | Clave secreta para firmar tokens JWT | — |
 | `PORT` | Puerto del servidor Express | `3005` |
+| `MAIL_USER` | Correo para envío de notificaciones | `correo@dominio.gov.co` |
+| `MAIL_PASS` | App Password del correo (no la contraseña de la cuenta) | — |
+| `CLIENT_URL` | URL del frontend | `http://localhost:4200` |
 
 ---
 
 ## Roles del sistema
 
+### Globales
 | Rol | Acceso |
 |-----|--------|
-| `SuperAdmin` | Acceso total al sistema |
-| `Admin` | Gestión de usuarios y configuración |
-| `Tecnico` | Gestión de equipos y mantenimientos |
-| `Usuario` | Consulta y creación de solicitudes |
+| `SUPERADMIN` | Acceso total a todos los módulos |
+| `ADMINISTRADOR` / `ADM` | Administración general y mesa de servicios |
+
+### Módulo Biomédica
+| Rol | Acceso |
+|-----|--------|
+| `BIOMEDICAADMIN` | Gestión completa |
+| `BIOMEDICAUSER` | Consulta y registro |
+| `BIOMEDICATECNICO` | Equipos, mantenimientos y actividades técnicas |
+| `INVITADO` | Solo lectura |
+
+### Módulo Sistemas
+| Rol | Acceso |
+|-----|--------|
+| `SYSTEMADMIN` / `SISTEMASADMIN` | Gestión completa |
+| `SYSTEMUSER` / `SISTEMASUSER` | Consulta y registro |
+| `SISTEMASTECNICO` | Equipos, mantenimientos y repuestos |
+
+### Mesa de Servicios
+| Rol | Acceso |
+|-----|--------|
+| `MESAADMIN` | Administración y configuración |
+| `MESAUSER` / `SOL` | Creación y seguimiento de casos |
+| `OBS` | Solo lectura |
 
 ---
 
 ## Estructura del proyecto
 
 ```
-Nuevo aplicativo/
-├── FrontAppHusrt-biomedica-general/   # Aplicación Angular
+HRCATCH2.0/
+├── FrontAppHusrt-biomedica-general/
 │   └── src/app/
-│       ├── Components/                # Módulos de la app
-│       ├── app.routes.ts              # Rutas principales
-│       └── auth.guard.ts              # Guard de autenticación
+│       ├── Components/
+│       │   ├── Sistemas/          # Equipos, backups, repuestos, mantenimiento
+│       │   ├── MesaServicios/     # Tickets y casos de soporte
+│       │   ├── administracion/    # Usuarios y parametrización
+│       │   ├── navbars/           # Barras de navegación por rol
+│       │   └── userBiomedica/     # Inventario y gestión biomédica
+│       ├── Services/              # Servicios HTTP, autenticación, notificaciones
+│       ├── guards/                # Guards de autenticación y roles
+│       └── app.routes.ts          # Definición de rutas
 │
-└── NodeBackendProyectHusrt-biomedica-general/  # API REST
-    ├── src/index.js                   # Punto de entrada
-    ├── config/configDb.js             # Conexión a BD (Sequelize)
-    ├── models/                        # Modelos de datos
-    ├── routes/                        # Rutas de la API
-    ├── controllers/                   # Lógica de negocio
-    └── .env.example                   # Plantilla de variables de entorno
+└── NodeBackendProyectHusrt-biomedica-general/
+    ├── src/index.js               # Punto de entrada, migraciones automáticas y arranque
+    ├── config/configDb.js         # Conexión Sequelize
+    ├── models/
+    │   ├── Biomedica/             # Modelos del módulo biomédica
+    │   ├── Sistemas/              # Modelos del módulo sistemas
+    │   ├── MesaServicios/         # Modelos de mesa de servicios
+    │   └── generales/             # Modelos compartidos (usuario, rol, sede)
+    ├── routes/
+    │   ├── biomedica/             # Endpoints biomédica y backups
+    │   ├── sistemas/              # Endpoints módulo sistemas
+    │   ├── general/               # Endpoints generales
+    │   └── mesaservicios/         # Endpoints mesa de servicios
+    ├── utilities/middleware.js    # Middleware de validación JWT
+    └── .env.example               # Plantilla de variables de entorno
 ```
 
 ---
 
 ## Notas de seguridad
 
-- Nunca subir el archivo `.env` al repositorio (ya está en `.gitignore`)
-- Usar contraseñas fuertes y un `JWT_SECRET` generado aleatoriamente en producción
-- No usar el usuario `root` de la base de datos en producción; crear un usuario con permisos limitados
-
----
-
+- No subir el archivo `.env` al repositorio (incluido en `.gitignore`).
+- Usar un `JWT_SECRET` generado aleatoriamente; nunca usar valores predecibles en producción.
+- Crear un usuario de base de datos con permisos mínimos; no usar `root` en producción.
+- El `MAIL_PASS` debe ser un App Password generado desde la configuración de seguridad del correo, no la contraseña de la cuenta.
