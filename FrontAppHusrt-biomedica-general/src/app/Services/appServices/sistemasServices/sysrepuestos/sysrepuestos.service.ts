@@ -95,4 +95,8 @@ export class SysRepuestosService {
   }): Observable<any> {
     return this.http.post(`${this.apiUrl}/ajustar-stock-edicion`, payload);
   }
+
+  getUsadosPorTecnico(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/usados/tecnico`);
+  }
 }

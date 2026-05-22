@@ -98,6 +98,7 @@ import { SysReporteFormComponent } from './Components/Sistemas/sys-reporte-form/
 import { CrearMantenimientoComponent } from './Components/Sistemas/reporteMantenimiento/reporte-mantenimiento.component';
 import { ProgramarMantenimientoComponent } from './Components/Sistemas/programar-mantenimiento/programar-mantenimiento.component';
 import { SisRepuestosComponent } from './Components/Sistemas/repuestos/repuestos.component';
+import { SisRepuestosTecnicoComponent } from './Components/Sistemas/repuestos-tecnico/repuestos-tecnico.component';
 import { HistoricoMantenimientosEquipoComponent } from './Components/Sistemas/historico-mantenimientos-equipo/historico-mantenimientos-equipo.component';
 import { SysindicadoresComponent } from './Components/Sistemas/sysindicadores/sysindicadores.component';
 import { SysTrasladosEquipoComponent } from './Components/Sistemas/sys-traslados-equipo/sys-traslados-equipo.component';
@@ -226,7 +227,8 @@ export const routes: Routes = [
     data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER', 'SISTEMASADMIN', 'SISTEMASUSER', 'SISTEMASTECNICO'] }
   },
   { path: 'adminsistemas/planMantenimiento', component: ProgramarMantenimientoComponent, canActivate: [authGuard], data: { roles: ['SYSTEMADMIN', 'SYSTEMUSER', 'SISTEMASADMIN', 'SISTEMASUSER', 'SUPERADMIN', 'SISTEMASTECNICO'] } },
-  { path: 'adminsistemas/repuestos', component: SisRepuestosComponent, canActivate: [authGuard], data: { roles: ['SYSTEMADMIN', 'SYSTEMUSER', 'SISTEMASADMIN', 'SISTEMASUSER', 'SUPERADMIN', 'SISTEMASTECNICO'] } },
+  { path: 'adminsistemas/repuestos', component: SisRepuestosComponent, canActivate: [authGuard], data: { roles: ['SYSTEMADMIN', 'SYSTEMUSER', 'SISTEMASADMIN', 'SISTEMASUSER', 'SUPERADMIN'] } },
+  { path: 'adminsistemas/tecnico/repuestos', component: SisRepuestosTecnicoComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SISTEMASTECNICO'] } },
   { path: 'adminsistemas/historico-mantenimiento/:equipoId', component: HistoricoMantenimientosEquipoComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER', 'SISTEMASADMIN', 'SISTEMASUSER', 'SISTEMASTECNICO'] } },
   { path: 'adminsistemas/indicadores', component: SysindicadoresComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER', 'SISTEMASADMIN', 'SISTEMASUSER', 'SISTEMASTECNICO'] } },
   { path: 'adminsistemas/traslados/:equipoId', component: SysTrasladosEquipoComponent, canActivate: [authGuard], data: { roles: ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER', 'SISTEMASADMIN', 'SISTEMASUSER', 'SISTEMASTECNICO'] } },

@@ -47,7 +47,7 @@ export class SistemastecniconavbarComponent implements OnInit {
       {
         label: 'Repuestos',
         icon: 'pi pi-box',
-        routerLink: '/adminsistemas/repuestos'
+        routerLink: '/adminsistemas/tecnico/repuestos'
       },
     ];
 
