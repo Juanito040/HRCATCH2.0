@@ -43,7 +43,7 @@ export class RedireccionInicialComponent implements OnInit {
                         this.router.navigate(['/adminmesaservicios']);
                         break;
                     case 'SYSTEMUSER':
-                        this.router.navigate(['/usersistemas']);
+                        this.router.navigate(['/adminsistemas']);
                         break;
                     case 'INVITADO':
                         this.router.navigate(['/biomedica/home-invitado']);

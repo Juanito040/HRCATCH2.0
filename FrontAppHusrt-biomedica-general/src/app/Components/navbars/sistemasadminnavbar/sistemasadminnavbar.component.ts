@@ -90,11 +90,12 @@ export class SistemasadminnavbarComponent implements OnInit, OnDestroy {
       { label: 'Equipos',        icon: 'pi pi-desktop',   routerLink: '/adminsistemas/equipos' },
       { label: 'Mantenimientos', icon: 'pi pi-wrench',    routerLink: '/adminsistemas/mantenimientos' },
       { label: 'Plan Mtto.',     icon: 'pi pi-calendar',  routerLink: '/adminsistemas/planMantenimiento' },
+      { label: 'Backups',        icon: 'pi pi-database',  items: backupItems },
       { label: 'Repuestos',      icon: 'pi pi-cog',       routerLink: '/adminsistemas/repuestos' },
       { label: 'Mesa de Servicios', icon: 'pi pi-briefcase', routerLink: '/adminmesaservicios/casos' },
     ];
 
-    this.items = this.isTecnico ? itemsTecnico : (this.isSystemUser ? itemsUser : itemsAdmin);
+    this.items = (this.isSystemUser || this.isTecnico) ? itemsUser : itemsAdmin;
   }
 
   ngOnDestroy(): void {
