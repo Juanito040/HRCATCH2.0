@@ -91,6 +91,20 @@ const SysReporte = sequelize.define('SysReporte', {
             key: 'id'
         },
     },
+    equipoBackup: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      
+    },
+    horaEntregaBackup: {
+      type: DataTypes.TIME,
+      allowNull: true,
+    },
+    horaRecoleccionBackup: {
+      type: DataTypes.TIME,
+      allowNull: true,
+    },
     id_sysequipo_fk: {
         type: DataTypes.INTEGER,
         allowNull: false,

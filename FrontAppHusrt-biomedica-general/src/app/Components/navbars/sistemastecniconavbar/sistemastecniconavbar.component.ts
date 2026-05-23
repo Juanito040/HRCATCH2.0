@@ -35,12 +35,12 @@ export class SistemastecniconavbarComponent implements OnInit {
     ];
 
     const itemsAdmin: MenuItem[] = [
-      { label: 'Inicio',           icon: 'pi pi-home',     routerLink: '/adminsistemas/gestion' },
+      { label: 'Inicio',           icon: 'pi pi-home',     routerLink: 'usersistemas' },
       { label: 'Mesa de Servicios', icon: 'pi pi-briefcase', routerLink: '/adminmesaservicios/casos' },
     ];
 
     const itemsUser: MenuItem[] = [
-      { label: 'Inicio',         icon: 'pi pi-home',   routerLink: '/adminsistemas/gestion' },
+      { label: 'Inicio',         icon: 'pi pi-home',   routerLink: 'usersistemas' },
       { label: 'Inventario',     icon: 'pi pi-box',    items: inventarioItemsUser },
       { label: 'Mantenimientos', icon: 'pi pi-wrench', routerLink: '/adminsistemas/mantenimientos' },
       { label: 'Trazabilidad',   icon: 'pi pi-history', routerLink: '/adminsistemas/trazabilidad' },

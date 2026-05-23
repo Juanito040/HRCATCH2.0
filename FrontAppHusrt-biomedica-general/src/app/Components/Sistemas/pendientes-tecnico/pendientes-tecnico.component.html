@@ -58,13 +58,13 @@
                     <td class="text-center">
                         <button *ngIf="!report.realizado" pButton icon="pi pi-play"
                             class="p-button-success p-button-rounded p-button-sm" pTooltip="Realizar Mantenimiento"
-                            tooltipPosition="left" (click)="realizarReporte(report.equipo.id, report.id)"></button>
+                            tooltipPosition="left" (click)="realizarReporte(report.equipo.id_sysequipo, report.id)"></button>
 
                         <!-- If realized but no PDF, allow viewing details or re-entering if possible? 
                               For now, maybe just view details to see what's missing or allow 'realizar' again to update/attach pdf? -->
                         <button *ngIf="report.realizado && !report.rutaPdf" pButton icon="pi pi-file-edit"
                             class="p-button-warning p-button-rounded p-button-sm" pTooltip="Completar / Adjuntar"
-                            tooltipPosition="left" (click)="realizarReporte(report.equipo.id, report.id)"></button>
+                            tooltipPosition="left" (click)="realizarReporte(report.equipo.id_sysequipo, report.id)"></button>
                     </td>
                 </tr>
             </ng-template>

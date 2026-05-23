@@ -218,8 +218,8 @@ export class SisMantenimientoTecnicoComponent implements OnInit {
     }
 
     realizarReporte(idEquipo: number, idReporte: number) {
-        sessionStorage.setItem('TipoMantenimiento', 'P');
-        sessionStorage.setItem('idReporte', idReporte.toString());
+        localStorage.setItem('TipoMantenimiento', 'P');              
+        localStorage.setItem('idMantenimiento', idReporte.toString()); 
         this.router.navigate(['adminsistemas/reporteMantenimiento', idEquipo]);
     }
 

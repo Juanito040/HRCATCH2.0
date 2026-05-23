@@ -12,6 +12,7 @@ import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
 import { MeterGroupModule } from 'primeng/metergroup';
 import { SysmantenimientoService, SysMantenimiento, SysMantenimientoResponse } from '../../../Services/appServices/sistemasServices/sysmantenimiento/sysmantenimiento.service';
+import { SedeService } from '../../../Services/appServices/general/sede/sede.service';
 import { firstValueFrom } from 'rxjs';
 
 type TipoMantenimiento = 'Correctivo' | 'Preventivo' | 'Predictivo' | 'Otro';
@@ -70,6 +71,8 @@ export class SysindicadoresComponent {
   ];
 
   private srv = inject(SysmantenimientoService);
+  private sedeSrv = inject(SedeService);
+  sedesMap = signal<Map<number, string>>(new Map());
 
   loading = signal(false);
 
@@ -147,6 +150,10 @@ export class SysindicadoresComponent {
     if (!this.anio || !this.mesInicio || !this.mesFin) return;
 
     this.loading.set(true);
+    const sedesArr = await this.sedeSrv.getAllSedes();
+    const sMap = new Map<number, string>();
+    sedesArr.forEach((s: any) => sMap.set(s.id, s.nombres));
+    this.sedesMap.set(sMap);
     try {
       // Traer TODOS los registros sin filtro de fecha en el backend,
       // ya que el backend puede ignorar los parámetros y el filtro
@@ -788,6 +795,46 @@ export class SysindicadoresComponent {
           backgroundColor: '#f59e0b',
           borderColor: '#d97706',
           borderWidth: 1
+        }
+      ]
+    };
+  });
+  porSedeChartData = computed(() => {
+    const reportes = this.reportes();
+    const map = this.sedesMap();
+    const stats = new Map<string, { preventivo: number, correctivo: number }>();
+
+    reportes.forEach(r => {
+      const sedeId = (r as any).servicio?.sedeIdFk;
+      if (sedeId == null) return;
+      const nombre = map.get(sedeId) || `Sede ${sedeId}`;
+      const current = stats.get(nombre) || { preventivo: 0, correctivo: 0 };
+      const tipo = this.getTipoMantenimientoLabel((r as any).tipoMantenimiento);
+      if (tipo === 'Preventivo') current.preventivo++;
+      else if (tipo === 'Correctivo') current.correctivo++;
+      stats.set(nombre, current);
+    });
+
+    const labels = Array.from(stats.keys()).sort((a, b) => {
+      const totalA = (stats.get(a)?.preventivo ?? 0) + (stats.get(a)?.correctivo ?? 0);
+      const totalB = (stats.get(b)?.preventivo ?? 0) + (stats.get(b)?.correctivo ?? 0);
+      return totalB - totalA;
+    });
+
+    return {
+      labels,
+      datasets: [
+        {
+          label: 'Preventivo',
+          data: labels.map(l => stats.get(l)?.preventivo ?? 0),
+          backgroundColor: '#3b82f6', borderColor: '#2563eb',
+          borderWidth: 1, borderRadius: 4, barPercentage: 0.7
+        },
+        {
+          label: 'Correctivo',
+          data: labels.map(l => stats.get(l)?.correctivo ?? 0),
+          backgroundColor: '#f97316', borderColor: '#ea580c',
+          borderWidth: 1, borderRadius: 4, barPercentage: 0.7
         }
       ]
     };

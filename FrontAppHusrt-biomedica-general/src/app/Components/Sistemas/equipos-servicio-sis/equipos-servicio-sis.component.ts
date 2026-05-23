@@ -93,7 +93,7 @@ export class EquiposServicioSisComponent implements OnInit, OnDestroy {
 
   readonly anioOptions = Array.from({ length: 11 }, (_, i) => new Date().getFullYear() + i);
 
-  private readonly MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  private readonly MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
   private router = inject(Router);
   private sysequiposService = inject(SysequiposService);
@@ -104,9 +104,11 @@ export class EquiposServicioSisComponent implements OnInit, OnDestroy {
   getEstadoSoporte = getEstadoSoporte;
   labelsSoporte = LABELS_SOPORTE;
 
+  private readonly ROLES_ADMIN = ['SUPERADMIN', 'ADMINISTRADOR', 'SYSTEMADMIN', 'AG', 'SISTEMASADMIN'];
+
   get isAdmin(): boolean {
     const decoded = getDecodedAccessToken();
-    return decoded?.rol === 'ADMINISTRADOR' || decoded?.rol === 'SUPERADMIN' || decoded?.rol === 'SYSTEMADMIN';
+    return this.ROLES_ADMIN.includes(decoded?.rol);
   }
 
   async ngOnInit() {
@@ -185,16 +187,21 @@ export class EquiposServicioSisComponent implements OnInit, OnDestroy {
   }
 
   private buildOpciones(equipo: SysEquipo): MenuItem[] {
-    return [
-      { label: 'Ver Detalles',          icon: 'pi pi-eye',             command: () => this.openDetailModal(equipo) },
-      { label: 'Editar',                icon: 'pi pi-pencil',          command: () => this.openEditModal(equipo) },
-      { label: 'Plan de Mantenimiento', icon: 'pi pi-calendar',        command: () => this.openPlanDialog(equipo) },
-      { label: 'Reporte de Entrega',    icon: 'fas fa-file-export',    command: () => this.openReporteForm(equipo) },
-      { label: 'Ver Reportes',          icon: 'fas fa-clipboard-list', command: () => this.openReportesList(equipo) },
-      { label: 'Ver Historial',         icon: 'fas fa-history',        command: () => this.openHistorialModal(equipo) },
-      { label: 'Enviar a Bodega',       icon: 'fas fa-warehouse',      command: () => this.confirmBodega(equipo) },
-      { label: 'Dar de Baja',           icon: 'pi pi-ban',             command: () => this.confirmBaja(equipo) },
+    const items: MenuItem[] = [
+      { label: 'Ver Detalles', icon: 'pi pi-eye', command: () => this.openDetailModal(equipo) },
+      { label: 'Editar', icon: 'pi pi-pencil', command: () => this.openEditModal(equipo) },
+      { label: 'Reporte de Entrega', icon: 'fas fa-file-export', command: () => this.openReporteForm(equipo) },
+      { label: 'Ver Reportes', icon: 'fas fa-clipboard-list', command: () => this.openReportesList(equipo) },
+      { label: 'Ver Historial', icon: 'fas fa-history', command: () => this.openHistorialModal(equipo) },
     ];
+    if (this.isAdmin) {
+      items.push(
+        { label: 'Enviar a Bodega', icon: 'fas fa-warehouse', command: () => this.confirmBodega(equipo) },
+        { label: 'Dar de Baja', icon: 'pi pi-ban', command: () => this.confirmBaja(equipo) },
+        { label: 'Plan de Mantenimiento', icon: 'pi pi-calendar', command: () => this.openPlanDialog(equipo) },
+      );
+    }
+    return items;
   }
 
   private withOpciones(equipos: SysEquipo[]): any[] {

@@ -51,6 +51,10 @@ export interface SysMantenimiento {
 
   valoresMediciones?: any[];
   repuestos?: any[];
+  equipoBackup?: boolean;
+  horaEntregaBackup?: string | null;
+  horaRecoleccionBackup?: string | null;
+
 
   tecnico?: string;
   adjunto_url?: string;

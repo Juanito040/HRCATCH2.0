@@ -169,9 +169,21 @@
             </span>
           </td>
 
-          <td>
-            <p-tag [severity]="getTipoSeverity(m.tipoMantenimiento)" [value]="m.tipoMantenimiento || 'N/A'"
-              [rounded]="true"></p-tag>
+           <td>
+            <div class="flex flex-column gap-1 align-items-start">
+              <p-tag [severity]="getTipoSeverity(m.tipoMantenimiento)" [value]="m.tipoMantenimiento || 'N/A'"
+                [rounded]="true"></p-tag>
+              <p-tag
+                *ngIf="m.equipoBackup"
+                severity="secondary"
+                value="Backup"
+                icon="pi pi-desktop"
+                [rounded]="true"
+                pTooltip="Se dejó equipo de backup"
+                tooltipPosition="top"
+                styleClass="text-xs">
+              </p-tag>
+            </div>
           </td>
 
           <td><span class="text-700">{{ m.tipoFalla || '—' }}</span></td>
@@ -296,6 +308,44 @@
               <p><strong>Calificación:</strong> {{ r.calificacion ?? '—' }}</p>
               <p><strong>Estado Operativo:</strong> {{ r.estadoOperativo || '—' }}</p>
               <p><strong>Mantenimiento Propio:</strong> {{ r.mantenimientoPropio ? 'Sí' : 'No' }}</p>
+            </div>
+          </div>
+        </p-card>
+      </div>
+    </div>
+     <!-- EQUIPO DE BACKUP -->
+    <div class="grid mt-2" *ngIf="r.equipoBackup">
+      <div class="col-12">
+        <p-card>
+          <ng-template pTemplate="header">
+            <div class="flex align-items-center gap-2 px-3 pt-3">
+              <i class="pi pi-desktop text-blue-500 text-xl"></i>
+              <span class="font-bold text-lg">Equipo de Backup</span>
+              <p-tag severity="secondary" value="Se dejó backup" [rounded]="true" styleClass="ml-2"></p-tag>
+            </div>
+          </ng-template>
+          <div class="p-text-sm grid">
+            <div class="col-12 md:col-4">
+              <p>
+                <strong>¿Se dejó backup?</strong>
+                <span class="ml-2">
+                  <p-tag severity="success" value="Sí" icon="pi pi-check" [rounded]="true"></p-tag>
+                </span>
+              </p>
+            </div>
+            <div class="col-12 md:col-4">
+              <p>
+                <i class="pi pi-clock text-500 mr-1"></i>
+                <strong>Hora de entrega del backup:</strong>
+                {{ r.horaEntregaBackup || '—' }}
+              </p>
+            </div>
+            <div class="col-12 md:col-4">
+              <p>
+                <i class="pi pi-clock text-500 mr-1"></i>
+                <strong>Hora de recolección del backup:</strong>
+                {{ r.horaRecoleccionBackup || '—' }}
+              </p>
             </div>
           </div>
         </p-card>

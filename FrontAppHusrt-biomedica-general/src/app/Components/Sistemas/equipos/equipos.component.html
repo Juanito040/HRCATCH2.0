@@ -11,7 +11,7 @@
       }
     </div>
     <div class="header-actions">
-      <button class="btn btn-primary" (click)="openCreateModal()">
+      <button *ngIf="isAdmin" class="btn btn-primary" (click)="openCreateModal()">
         <span>+ Nuevo Equipo</span>
       </button>
     </div>

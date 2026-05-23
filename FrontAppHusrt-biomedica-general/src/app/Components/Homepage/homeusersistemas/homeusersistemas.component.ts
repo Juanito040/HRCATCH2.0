@@ -37,7 +37,7 @@ export class HomeusersistemasComponent {
   showViewMantenimientoSistemas() {
     const rol = this.getRole();
     if (rol === 'SYSTEMASTECNICO') {
-      this.router.navigate(['adminsistemas/tecnico/mantenimiento']);
+      this.router.navigate(['usersistemas/tecnico/mantenimiento']);
     } else {
       this.router.navigate(['/adminsistemas/mantenimiento']);
     }

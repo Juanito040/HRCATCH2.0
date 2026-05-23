@@ -187,7 +187,7 @@ sequelize.query('SET FOREIGN_KEY_CHECKS = 0')
       CONSTRAINT fk_sysbodega_usuario FOREIGN KEY (id_sysusuario_fk) REFERENCES Usuario(id) ON DELETE SET NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `))
-  .then(() => {})
+  .then(() => { })
   .then(() => sequelize.sync({ alter: false }))
   .then(() => {
     app.listen(3005, '0.0.0.0', () => {

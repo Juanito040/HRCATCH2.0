@@ -6,6 +6,7 @@ import { TipoEquipoService } from '../../../Services/appServices/general/tipoEqu
 import { SysEquipoModalComponent } from '../equipo-modal/equipo-modal.component';
 import { SysequiposService } from '../../../Services/appServices/sistemasServices/sysequipos/sysequipos.service';
 import Swal from 'sweetalert2';
+import { getDecodedAccessToken } from '../../../utilidades';
 
 @Component({
   selector: 'app-clasificacion-tipo-equipo-sis',
@@ -28,8 +29,13 @@ export class ClasificacionTipoEquipoSisComponent implements OnInit {
 
   private tipoEquipoService = inject(TipoEquipoService);
   private sysequiposService = inject(SysequiposService);
-  constructor(private router: Router) {}
+  constructor(private router: Router) { }
+  private readonly ROLES_ADMIN = ['SUPERADMIN', 'ADMINISTRADOR', 'SYSTEMADMIN', 'AG', 'SISTEMASADMIN'];
 
+  get isAdmin(): boolean {
+    const decoded = getDecodedAccessToken();
+    return this.ROLES_ADMIN.includes(decoded?.rol);
+  }
   async ngOnInit() {
     this.isLoading = true;
     try {
@@ -97,7 +103,7 @@ export class ClasificacionTipoEquipoSisComponent implements OnInit {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = tipo === 'bodega' ? 'Inventario_Sistemas_Bodega.xlsx' : tipo === 'activo' ? 'Inventario_Sistemas_Activo.xlsx' : tipo === 'inactivo' ? 'Inventario_Sistemas_Inactivo.xlsx' : 'Inventario_Sistemas_Todos.xlsx' ;
+      a.download = tipo === 'bodega' ? 'Inventario_Sistemas_Bodega.xlsx' : tipo === 'activo' ? 'Inventario_Sistemas_Activo.xlsx' : tipo === 'inactivo' ? 'Inventario_Sistemas_Inactivo.xlsx' : 'Inventario_Sistemas_Todos.xlsx';
       a.click();
       window.URL.revokeObjectURL(url);
     } catch {
