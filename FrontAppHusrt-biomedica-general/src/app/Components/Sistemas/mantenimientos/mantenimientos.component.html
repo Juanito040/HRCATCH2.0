@@ -138,8 +138,7 @@
 
       <ng-template pTemplate="body" let-m>
         <tr class="hover:bg-blue-50 transition-colors transition-duration-150 fila-clickable"
-            (click)="openHistoricoMantenimientos(m.equipo)"
-            title="Ver histórico de mantenimientos del equipo">
+          (click)="openHistoricoMantenimientos(m.equipo)" title="Ver histórico de mantenimientos del equipo">
 
           <td><code class="reporte-badge">{{ m.id }}</code></td>
 
@@ -169,19 +168,12 @@
             </span>
           </td>
 
-           <td>
+          <td>
             <div class="flex flex-column gap-1 align-items-start">
               <p-tag [severity]="getTipoSeverity(m.tipoMantenimiento)" [value]="m.tipoMantenimiento || 'N/A'"
                 [rounded]="true"></p-tag>
-              <p-tag
-                *ngIf="m.equipoBackup"
-                severity="secondary"
-                value="Backup"
-                icon="pi pi-desktop"
-                [rounded]="true"
-                pTooltip="Se dejó equipo de backup"
-                tooltipPosition="top"
-                styleClass="text-xs">
+              <p-tag *ngIf="m.equipoBackup" severity="secondary" value="Backup" icon="pi pi-desktop" [rounded]="true"
+                pTooltip="Se dejó equipo de backup" tooltipPosition="top" styleClass="text-xs">
               </p-tag>
             </div>
           </td>
@@ -223,7 +215,7 @@
 
               <!-- ➕ Crear reporte: solo si NO está realizado -->
               <button pButton icon="pi pi-plus-circle" class="p-button-rounded p-button-text p-button-success"
-                *ngIf="!m.fechaRealizado && m.equipo?.id_sysequipo"
+                *ngIf="!m.fechaRealizado && m.equipo?.id_sysequipo && !isSystemUser"
                 (click)="editarMantenimiento(m.equipo!.id_sysequipo, m.id, m.tipoMantenimiento)"
                 pTooltip="Reportar Mantenimiento">
               </button>
@@ -291,7 +283,8 @@
           <div class="p-text-sm grid">
             <div class="col-12 md:col-4">
               <p><strong>Mes Programado:</strong> {{ getMesProgramado(r.mesProgramado) }}</p>
-              <p><strong>Fecha Realizado:</strong> {{ r.fechaRealizado ? (r.fechaRealizado | date:'dd/MM/yyyy') : '—' }}</p>
+              <p><strong>Fecha Realizado:</strong> {{ r.fechaRealizado ? (r.fechaRealizado | date:'dd/MM/yyyy') : '—' }}
+              </p>
               <p><strong>Hora Inicio:</strong> {{ r.horaInicio || '—' }}</p>
               <p><strong>Fecha Fin:</strong> {{ r.fechaFin || '—' }}</p>
               <p><strong>Trabajo Realizado:</strong>{{ r.trabajoRealizado || '—' }}</p>
@@ -313,7 +306,7 @@
         </p-card>
       </div>
     </div>
-     <!-- EQUIPO DE BACKUP -->
+    <!-- EQUIPO DE BACKUP -->
     <div class="grid mt-2" *ngIf="r.equipoBackup">
       <div class="col-12">
         <p-card>
@@ -440,7 +433,8 @@
                   <i class="pi pi-file-pdf mr-2"></i>Ver Reporte PDF
                 </button>
 
-                <button type="button" class="btn btn-warning" *ngIf="!r.rutaPdf" (click)="editarReporte()">
+                <button type="button" class="btn btn-warning" *ngIf="!r.rutaPdf && !isSystemUser"
+                  (click)="editarReporte()">
                   <i class="pi pi-pencil mr-2"></i>Editar Reporte
                 </button>
 
@@ -465,11 +459,8 @@
   </div>
 </p-dialog>
 
-<app-sys-historial-equipo
-  [isOpen]="isHistorialOpen"
-  [equipo]="equipoParaHistorial"
-  (closed)="closeHistorial()"
-></app-sys-historial-equipo>
+<app-sys-historial-equipo [isOpen]="isHistorialOpen" [equipo]="equipoParaHistorial"
+  (closed)="closeHistorial()"></app-sys-historial-equipo>
 <!-- ===== MODAL EDICIÓN ADMINISTRATIVA ===== -->
 <p-dialog header="Edición Administrativa" [(visible)]="showAdminModal" [modal]="true" [style]="{width: '400px'}"
   styleClass="p-fluid">

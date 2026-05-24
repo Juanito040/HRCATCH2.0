@@ -68,6 +68,7 @@ export class SisMantenimientosComponent implements OnInit {
   activeTab: 'todos' | 'Preventivo' | 'Correctivo' | 'Predictivo' = 'todos';
 
   isAdmin = false;
+  isSystemUser = false;
   showAdminModal = false;
   adminForm!: FormGroup;
   users: any[] = [];
@@ -351,11 +352,17 @@ export class SisMantenimientosComponent implements OnInit {
     return map[status] ?? 'secondary';
   }
   checkRole() {
-    const token = getDecodedAccessToken();
-    if (token && (token.rol === 'SUPERADMIN' || token.rol === 'SISTEMASADMIN')) {
+  const token = getDecodedAccessToken();
+  if (token) {
+    const rol = token.rol;
+    if (rol === 'SUPERADMIN' || rol === 'SYSTEMADMIN') {
       this.isAdmin = true;
     }
+    if (rol === 'SYSTEMUSER') {
+      this.isSystemUser = true;
+    }
   }
+}
 
   async loadUsers() {
     try {

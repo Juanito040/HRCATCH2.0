@@ -9,8 +9,8 @@
     <app-biomedicatecniconavbar *ngIf="userRole === 'BIOMEDICATECNICO'"></app-biomedicatecniconavbar>
     <app-biomedicausernavbar *ngIf="userRole === 'BIOMEDICAUSER' || userRole === 'INVITADO'"></app-biomedicausernavbar>
     <app-sistemasadminnavbar
-        *ngIf="userRole === 'SYSTEMADMIN' || userRole === 'SYSTEMUSER' || userRole === 'ADM' || userRole === 'AG' || userRole === 'ADMINISTRADOR'"></app-sistemasadminnavbar>
-    <app-sistemastecniconavbar *ngIf="userRole === 'SYSTEMASTECNICO'"></app-sistemastecniconavbar>
+        *ngIf="userRole === 'SYSTEMADMIN'  || userRole === 'ADM' || userRole === 'AG' || userRole === 'ADMINISTRADOR'"></app-sistemasadminnavbar>
+    <app-sistemastecniconavbar *ngIf="userRole === 'SYSTEMASTECNICO'|| userRole === 'SYSTEMUSER'"></app-sistemastecniconavbar>
     <app-mesaadminnavbar *ngIf="userRole === 'MESAADMIN'"></app-mesaadminnavbar>
     <app-mesausernavbar
         *ngIf="userRole === 'MESAUSER' || userRole === 'SOL' || userRole === 'OBS'"></app-mesausernavbar>

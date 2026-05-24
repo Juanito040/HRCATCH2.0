@@ -180,10 +180,10 @@
                         <td>{{ report.mesProgramado }}/{{ report['añoProgramado'] }}</td>
                         <td class="text-center">
                             <button *ngIf="report.rutaPdf || report.urlReporte" pButton label="Completado"
-                                class="p-button-success p-button-sm mr-2" (click)="viewModalReport(report)"></button>
+                                class="p-button-success p-button-sm mr-2" (click)="viewModalReport(report.id)"></button>
 
                             <button *ngIf="!(report.rutaPdf || report.urlReporte)" pButton label="Realizado"
-                                class="p-button-secondary p-button-sm mr-2" (click)="viewModalReport(report)"></button>
+                                class="p-button-secondary p-button-sm mr-2" (click)="viewModalReport(report.id)"></button>
 
                             <!-- <button *ngIf="report.rutaPdf || report.urlReporte" pButton icon="pi pi-file-pdf"
                                 class="p-button-danger p-button-rounded p-button-text p-button-sm" pTooltip="Ver PDF"
@@ -271,10 +271,10 @@
                         <td>{{ report.fechaRealizado }}</td>
                         <td class="text-center">
                             <button *ngIf="report.rutaPdf || report.urlReporte" pButton label="Completado"
-                                class="p-button-success p-button-sm mr-2" (click)="viewModalReport(report)"></button>
+                                class="p-button-success p-button-sm mr-2" (click)="viewModalReport(report.id)"></button>
 
                             <button *ngIf="!(report.rutaPdf || report.urlReporte)" pButton label="Realizado"
-                                class="p-button-secondary p-button-sm mr-2" (click)="viewModalReport(report)"></button>
+                                class="p-button-secondary p-button-sm mr-2" (click)="viewModalReport(report.id)"></button>
                             <!-- 
                             <button *ngIf="report.rutaPdf || report.urlReporte" pButton icon="pi pi-file-pdf"
                                 class="p-button-danger p-button-rounded p-button-text p-button-sm" pTooltip="Ver PDF"
