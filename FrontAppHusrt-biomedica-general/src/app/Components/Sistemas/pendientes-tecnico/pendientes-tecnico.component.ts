@@ -124,9 +124,9 @@ export class SisPendientesTecnicoComponent implements OnInit {
     }
 
     realizarReporte(idEquipo: number, idReporte: number) {
-        sessionStorage.setItem('TipoMantenimiento', 'P');
-        sessionStorage.setItem('idReporte', idReporte.toString());
-        this.router.navigate(['biomedica/nuevoreporte/', idEquipo]);
+        localStorage.setItem('TipoMantenimiento', 'P');              
+        localStorage.setItem('idMantenimiento', idReporte.toString());
+        this.router.navigate(['adminsistemas/reporteMantenimiento', idEquipo]);
     }
 
     // Reuse modal logic

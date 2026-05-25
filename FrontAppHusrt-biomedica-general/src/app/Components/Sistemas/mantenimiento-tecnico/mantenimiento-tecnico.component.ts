@@ -24,6 +24,7 @@ import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
 import { DatePickerModule } from 'primeng/datepicker';
 import { FormsModule } from '@angular/forms';
+import { extractError } from '../../../utils/error-utils';
 
 @Component({
     selector: 'app-mantenimiento-tecnico',
@@ -67,6 +68,7 @@ export class SisMantenimientoTecnicoComponent implements OnInit {
     rutina!: any[];
     modalReport: boolean = false;
     selectedFile: File | null = null;
+    isModalLoading = false;  
 
     // Dates for each panel
     datePreventivo: Date | undefined;
@@ -181,7 +183,7 @@ export class SisMantenimientoTecnicoComponent implements OnInit {
     }
 
     // Same logic as ManteniminetoComponent for viewing details
-    async viewModalReport(reporte: any) {
+    /* sync viewModalReport(reporte: any) {
         this.modalReport = true;
         try {
             this.reportSelected = await this.reportesService.getById(reporte.id); // Assuming passing object or ID
@@ -192,6 +194,21 @@ export class SisMantenimientoTecnicoComponent implements OnInit {
             this.rutina = await this.protocolosServices.getCumplimientoProtocoloMantenimiento(this.reportSelected.id);
         } catch (e) {
             console.error(e);
+        }
+    } */
+    async viewModalReport(id: number) {
+        if (!id) return;
+        this.isModalLoading = true;
+        this.reportSelected = undefined;
+        try {
+            const res: any = await this.mantenimientoServices.getById(id);
+            // El backend retorna { success: true, data: {...} } — desempacamos .data
+            this.reportSelected = res?.data ?? res;
+            this.modalReport = true;
+        } catch (err) {
+            Swal.fire('Error', extractError(err, 'cargar la información del mantenimiento'), 'error');
+        } finally {
+            this.isModalLoading = false;
         }
     }
 
@@ -218,8 +235,8 @@ export class SisMantenimientoTecnicoComponent implements OnInit {
     }
 
     realizarReporte(idEquipo: number, idReporte: number) {
-        sessionStorage.setItem('TipoMantenimiento', 'P');
-        sessionStorage.setItem('idReporte', idReporte.toString());
+        localStorage.setItem('TipoMantenimiento', 'P');
+        localStorage.setItem('idMantenimiento', idReporte.toString());
         this.router.navigate(['adminsistemas/reporteMantenimiento', idEquipo]);
     }
 

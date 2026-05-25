@@ -3,6 +3,7 @@ const SysMantenimiento = require('../../models/Sistemas/SysMantenimiento');
 const SysEquipo = require('../../models/Sistemas/SysEquipo');
 const SysHojaVida = require('../../models/Sistemas/SysHojaVida');
 const Servicio = require('../../models/generales/Servicio');
+const Sede = require('../../models/generales/Sede');
 const TipoEquipo = require('../../models/generales/TipoEquipo');
 const Usuario = require('../../models/generales/Usuario');
 const { getAllTiposMantenimiento, getAllTiposFalla } = require('../../utilities/sysConstants');
@@ -13,7 +14,10 @@ const INCLUDES_FULL = [
         as: 'equipo',
         include: [
             { model: TipoEquipo, as: 'tipoEquipo', attributes: ['id', 'nombres'] },
-            { model: Servicio, as: 'servicio', attributes: ['id', 'nombres', 'ubicacion'] },
+            {
+                model: Servicio, as: 'servicio', attributes: ['id', 'nombres', 'ubicacion'],
+                include: [{ model: Sede, as: 'sede', attributes: ['id', 'nombres'] }]
+            },
             { model: SysHojaVida, as: 'hojaVida' }
         ]
     },

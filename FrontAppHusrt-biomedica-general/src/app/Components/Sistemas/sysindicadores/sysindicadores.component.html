@@ -26,22 +26,17 @@
         <div class="flex align-items-center gap-2 flex-wrap">
           <span class="text-xs text-500 font-semibold">Período rápido:</span>
           <button pButton label="Este mes" icon="pi pi-calendar"
-            class="p-button-outlined p-button-sm p-button-secondary"
-            (click)="filtrarEsteMes()"></button>
-          <button pButton label="Trimestre" icon="pi pi-calendar"
-            class="p-button-outlined p-button-sm p-button-info"
+            class="p-button-outlined p-button-sm p-button-secondary" (click)="filtrarEsteMes()"></button>
+          <button pButton label="Trimestre" icon="pi pi-calendar" class="p-button-outlined p-button-sm p-button-info"
             (click)="filtrarEsteTrimsestre()"></button>
-          <button pButton label="Semestre" icon="pi pi-calendar"
-            class="p-button-outlined p-button-sm p-button-warning"
+          <button pButton label="Semestre" icon="pi pi-calendar" class="p-button-outlined p-button-sm p-button-warning"
             (click)="filtrarEsteSemestre()"></button>
-          <button pButton label="Este año" icon="pi pi-calendar"
-            class="p-button-outlined p-button-sm p-button-success"
+          <button pButton label="Este año" icon="pi pi-calendar" class="p-button-outlined p-button-sm p-button-success"
             (click)="filtrarEsteAnio()"></button>
         </div>
 
         <button pButton icon="pi pi-sync" (click)="refrescar()"
-          class="p-button-rounded p-button-text p-button-secondary"
-          [loading]="loading()"></button>
+          class="p-button-rounded p-button-text p-button-secondary" [loading]="loading()"></button>
       </div>
 
       <!-- Fila inferior: filtros manuales -->
@@ -116,8 +111,7 @@
       </div>
 
       <div class="col-6 md:col-3">
-        <div class="card border-0 border-round-xl p-3 h-full"
-          [style]="cumplimientoGlobal() >= 80
+        <div class="card border-0 border-round-xl p-3 h-full" [style]="cumplimientoGlobal() >= 80
             ? 'background: linear-gradient(135deg,#8b5cf6 0%,#5b21b6 100%)'
             : 'background: linear-gradient(135deg,#ef4444 0%,#991b1b 100%)'">
           <div class="flex align-items-center justify-content-between mb-2">
@@ -192,15 +186,18 @@
       </div>
 
       <div class="col-12 lg:col-4">
-        <div class="card border-0 shadow-sm border-round-xl surface-card p-3 h-full flex flex-column justify-content-center">
+        <div
+          class="card border-0 shadow-sm border-round-xl surface-card p-3 h-full flex flex-column justify-content-center">
           <span class="text-lg font-bold text-700 mb-2 block">Duración Promedio</span>
           <div class="flex gap-3 h-full">
-            <div class="flex-1 bg-white border-1 border-green-100 border-round-xl p-3 flex flex-column align-items-center justify-content-center">
+            <div
+              class="flex-1 bg-white border-1 border-green-100 border-round-xl p-3 flex flex-column align-items-center justify-content-center">
               <span class="text-sm text-green-700 font-medium mb-1">Preventivo</span>
               <span class="text-2xl font-black text-green-700">{{ duracionStats().preventivo }}</span>
               <span class="text-xs text-green-600 mt-1">hh:mm:ss</span>
             </div>
-            <div class="flex-1 bg-white border-1 border-blue-100 border-round-xl p-3 flex flex-column align-items-center justify-content-center">
+            <div
+              class="flex-1 bg-white border-1 border-blue-100 border-round-xl p-3 flex flex-column align-items-center justify-content-center">
               <span class="text-sm text-blue-700 font-medium mb-1">Correctivo</span>
               <span class="text-2xl font-black text-blue-700">{{ duracionStats().correctivo }}</span>
               <span class="text-xs text-blue-600 mt-1">hh:mm:ss</span>
@@ -254,7 +251,16 @@
         </div>
       </div>
 
-      <!-- ══ Fila 4: Servicios + Fallas ════════════════════════════ -->
+      <!-- ══ Fila 5: Sedes + Top 5 Servicios ═══════════════════════ -->
+      <div class="col-12 md:col-6">
+        <div class="card border-0 shadow-sm border-round-xl surface-card p-3 h-full">
+          <h5 class="text-lg font-bold text-800 mb-3">Mantenimientos por Sede</h5>
+          <div style="height: 300px;">
+            <p-chart type="bar" [data]="porSedeChartData()" [options]="barOptions()"></p-chart>
+          </div>
+        </div>
+      </div>
+
       <div class="col-12 md:col-6">
         <div class="card border-0 shadow-sm border-round-xl surface-card p-3 h-full">
           <h5 class="text-lg font-bold text-800 mb-3">Top 5 Servicios con más Mantenimientos</h5>

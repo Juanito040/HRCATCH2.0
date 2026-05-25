@@ -632,6 +632,51 @@ export class SysindicadoresComponent {
     };
   });
 
+  porSedeChartData = computed(() => {
+    const rs = this.reportes();
+    const stats = new Map<string, { preventivo: number, correctivo: number }>();
+
+    rs.forEach(r => {
+      const sedeName = r.equipo?.servicio?.sede?.nombres || 'Sin sede';
+      const current = stats.get(sedeName) || { preventivo: 0, correctivo: 0 };
+      const tipo = this.getTipoMantenimientoLabel(r.tipoMantenimiento as any);
+      if (tipo === 'Preventivo') current.preventivo++;
+      else if (tipo === 'Correctivo') current.correctivo++;
+      stats.set(sedeName, current);
+    });
+
+    const labels = Array.from(stats.keys())
+      .sort((a, b) => {
+        const tA = (stats.get(a)?.preventivo ?? 0) + (stats.get(a)?.correctivo ?? 0);
+        const tB = (stats.get(b)?.preventivo ?? 0) + (stats.get(b)?.correctivo ?? 0);
+        return tB - tA;
+      });
+
+    return {
+      labels,
+      datasets: [
+        {
+          label: 'Preventivo',
+          data: labels.map(l => stats.get(l)?.preventivo ?? 0),
+          backgroundColor: '#3b82f6',
+          borderColor: '#2563eb',
+          borderWidth: 1,
+          borderRadius: 4,
+          barPercentage: 0.7
+        },
+        {
+          label: 'Correctivo',
+          data: labels.map(l => stats.get(l)?.correctivo ?? 0),
+          backgroundColor: '#f97316',
+          borderColor: '#ea580c',
+          borderWidth: 1,
+          borderRadius: 4,
+          barPercentage: 0.7
+        }
+      ]
+    };
+  });
+
   porFallaChartData = computed(() => {
     const rs = this.reportes();
     const orden: TipoFalla[] = [

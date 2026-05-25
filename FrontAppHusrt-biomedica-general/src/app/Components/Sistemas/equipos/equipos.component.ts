@@ -115,7 +115,7 @@ export class SisEquiposComponent implements OnInit {
 
   readonly anioOptions = Array.from({ length: 11 }, (_, i) => new Date().getFullYear() + i);
 
-  private readonly MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  private readonly MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
   private router = inject(Router);
   private route = inject(ActivatedRoute);
@@ -124,7 +124,7 @@ export class SisEquiposComponent implements OnInit {
   private pdfService = inject(SysReportePdfService);
   private platformId = inject(PLATFORM_ID);
 
-  constructor(private sysequiposService: SysequiposService) {}
+  constructor(private sysequiposService: SysequiposService) { }
 
   private loadBodegaData() {
     this.isLoading = true;
@@ -252,7 +252,7 @@ export class SisEquiposComponent implements OnInit {
 
   get isAdmin(): boolean {
     const decoded = getDecodedAccessToken();
-    return decoded?.rol === 'ADMINISTRADOR' || decoded?.rol === 'SUPERADMIN';
+    return decoded?.rol === 'ADMINISTRADOR' || decoded?.rol === 'SUPERADMIN' || decoded?.rol === 'SYSTEMADMIN' || decoded?.rol === 'SISTEMASTECNICO';
   }
 
   get isReadOnly(): boolean {
@@ -479,10 +479,10 @@ export class SisEquiposComponent implements OnInit {
   }
 
   private buildOpciones(equipo: SysEquipo): MenuItem[] {
-    const opcionHistorial   = { label: 'Ver Historial',        icon: 'fas fa-history',       command: () => this.openHistorialModal(equipo) };
-    const opcionTraslados   = { label: 'Registro de Traslados',icon: 'fas fa-exchange-alt',  command: () => this.openTrasladosModal(equipo) };
-    const opcionReporte     = { label: 'Reporte de Entrega',   icon: 'fas fa-file-export',   command: () => this.openReporteForm(equipo) };
-    const opcionVerReportes = { label: 'Ver Reportes',         icon: 'fas fa-clipboard-list',command: () => this.openReportesList(equipo) };
+    const opcionHistorial   = { label: 'Ver Historial',         icon: 'fas fa-history',        command: () => this.openHistorialModal(equipo) };
+    const opcionTraslados   = { label: 'Registro de Traslados', icon: 'fas fa-exchange-alt',   command: () => this.openTrasladosModal(equipo) };
+    const opcionReporte     = { label: 'Reporte de Entrega',    icon: 'fas fa-file-export',    command: () => this.openReporteForm(equipo) };
+    const opcionVerReportes = { label: 'Ver Reportes',          icon: 'fas fa-clipboard-list', command: () => this.openReportesList(equipo) };
 
     if (this.isReadOnly) {
       const opcionesLectura = [
@@ -499,24 +499,24 @@ export class SisEquiposComponent implements OnInit {
 
     if (this.selectedView === 'all') {
       return [
-        { label: 'Ver Detalles',             icon: 'pi pi-eye',      command: () => this.openDetailModal(equipo) },
-        { label: 'Editar',                   icon: 'pi pi-pencil',   command: () => this.openEditModal(equipo) },
-        { label: 'Plan de Mantenimiento',    icon: 'pi pi-calendar', command: () => this.openPlanDialog(equipo) },
+        { label: 'Ver Detalles', icon: 'pi pi-eye', command: () => this.openDetailModal(equipo) },
+        { label: 'Editar', icon: 'pi pi-pencil', command: () => this.openEditModal(equipo) },
+        { label: 'Plan de Mantenimiento', icon: 'pi pi-calendar', command: () => this.openPlanDialog(equipo) },
         opcionReporte,
         opcionVerReportes,
         opcionHistorial,
         opcionTraslados,
-        { label: 'Enviar a Bodega / Baja',   icon: 'pi pi-trash',    command: () => this.confirmDelete(equipo) }
+        { label: 'Enviar a Bodega / Baja', icon: 'pi pi-trash', command: () => this.confirmDelete(equipo) }
       ];
     } else if (this.selectedView === 'bodega') {
       return [
-        { label: 'Ver Detalles', icon: 'pi pi-eye',       command: () => this.openDetailModal(equipo) },
-        { label: 'Reactivar',    icon: 'pi pi-power-off', command: () => this.reactivarEquipo(equipo) },
+        { label: 'Ver Detalles', icon: 'pi pi-eye', command: () => this.openDetailModal(equipo) },
+        { label: 'Reactivar', icon: 'pi pi-power-off', command: () => this.reactivarEquipo(equipo) },
         opcionReporte,
         opcionVerReportes,
         opcionHistorial,
         opcionTraslados,
-        { label: 'Dar de Baja',  icon: 'pi pi-trash',     command: () => this.confirmDelete(equipo) }
+        { label: 'Dar de Baja', icon: 'pi pi-trash', command: () => this.confirmDelete(equipo) }
       ];
     } else {
       return [
@@ -725,7 +725,7 @@ export class SisEquiposComponent implements OnInit {
 
   calcularFechas() {
     const intv = Number(this.intervencionesAnuales);
-    const mes  = Number(this.mesInicio);
+    const mes = Number(this.mesInicio);
     const anio = Number(this.anioInicio);
     if (!intv || intv <= 0 || !mes || !anio) return;
     const interval = 12 / intv;

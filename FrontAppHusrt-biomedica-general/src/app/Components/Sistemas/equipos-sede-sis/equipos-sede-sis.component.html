@@ -126,6 +126,7 @@
 
 <app-sys-equipo-detail-modal
   [isOpen]="isDetailModalOpen" [equipo]="equipoToView"
+  [isAdmin]="isAdmin"
   (closed)="closeDetailModal()" (editRequested)="onEditFromDetail($event)"
 ></app-sys-equipo-detail-modal>
 

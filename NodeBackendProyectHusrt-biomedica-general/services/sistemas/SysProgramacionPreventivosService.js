@@ -7,10 +7,7 @@ const Usuario = require('../../models/generales/Usuario');
 class SysProgramacionPreventivoService {
   /**
    * Verifica si ya existe una programación para el mes y año dados.
-   * @param {number} mes
-   * @param {number} anio
-   * @returns {Promise<boolean>}
-   */
+  **/
   async existeProgramacion(mes, anio) {
     const registro = await SysProgramacionPreventivoMes.findOne({
       where: { mes, anio },
@@ -21,10 +18,7 @@ class SysProgramacionPreventivoService {
   /**
    * Busca los planes de mantenimiento activos para el mes y año,
    * crea los reportes preventivos y asigna técnicos de forma balanceada.
-   * @param {number} mes
-   * @param {number} anio
-   * @returns {Promise<{ reportes: object[], mensaje: string }>}
-   */
+   **/
   async programarPreventivos(mes, anio) {
     // 1. Obtener planes con equipos activos y con preventivo habilitado
     const planes = await SysPlanMantenimiento.findAll({
@@ -78,7 +72,6 @@ class SysProgramacionPreventivoService {
   /**
    * Obtiene todos los registros de meses/años programados,
    * ordenados de más reciente a más antiguo.
-   * @returns {Promise<object[]>}
    */
   async getProgramaciones() {
     return SysProgramacionPreventivoMes.findAll({
@@ -91,18 +84,14 @@ class SysProgramacionPreventivoService {
 
   /**
    * Obtiene todos los meses programados sin orden específico.
-   * @returns {Promise<object[]>}
    */
   async getProgramacionMeses() {
     return SysProgramacionPreventivoMes.findAll();
   }
 
-  // ─── Método privado ────────────────────────────────────────────────────────
-
   /**
    * Distribuye los reportes recién creados entre los técnicos disponibles
    * asignando siempre al técnico con menos tareas pendientes.
-   * @param {object[]} reportes - Instancias de SysReporte recién creadas
    */
   async _asignarTecnicos(reportes) {
     const tecnicos = await Usuario.findAll({

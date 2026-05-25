@@ -3,8 +3,8 @@ const router = express.Router();
 const { SistemaInformacion, Responsable, Usuario, BackupSistema } = require('../../models/Biomedica');
 const { checkToken } = require('../../utilities/middleware');
 
-const ROLES_ADMIN = ['SUPERADMIN', 'SYSTEMADMIN', 'SISTEMASADMIN'];
-const ROLES_MODULO_SISTEMAS = ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER', 'SISTEMASADMIN', 'SISTEMASUSER', 'SISTEMASTECNICO'];
+const ROLES_ADMIN = ['SUPERADMIN', 'SYSTEMADMIN'];
+const ROLES_MODULO_SISTEMAS = ['SUPERADMIN', 'SYSTEMADMIN', 'SYSTEMUSER', 'SISTEMASTECNICO'];
 
 function requireAdminRole(req, res, next) {
     if (!ROLES_ADMIN.includes(req.user?.rol)) {

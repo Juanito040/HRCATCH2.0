@@ -44,9 +44,9 @@ export class LoginComponent implements OnInit {
         if (this.getDecodedAccessToken(sessionStorage.getItem('utoken')!).rol === 'SYSTEMADMIN') {
           this.router.navigate(['/adminsistemas']);
         } else if (this.getDecodedAccessToken(sessionStorage.getItem('utoken')!).rol === 'SYSTEMASTECNICO') {
-          this.router.navigate(['/adminsistemas/gestion']);
+          this.router.navigate(['usersistemas']);
         } else if (this.getDecodedAccessToken(sessionStorage.getItem('utoken')!).rol === 'SYSTEMUSER') {
-          this.router.navigate(['/adminsistemas']);
+          this.router.navigate(['/usersistemas']);
         } else if (this.getDecodedAccessToken(sessionStorage.getItem('utoken')!).rol === 'SUPERADMIN') {
           this.router.navigate(['/superadmin']);
         } else if (this.getDecodedAccessToken(sessionStorage.getItem('utoken')!).rol === 'MANTENIMIENTOADMIN') {
@@ -60,10 +60,6 @@ export class LoginComponent implements OnInit {
         } else if (this.getDecodedAccessToken(sessionStorage.getItem('utoken')!).rol === 'MESAUSER') {
           this.router.navigate(['/mesauser/home']);
         } else if (this.getDecodedAccessToken(sessionStorage.getItem('utoken')!).rol === 'SISTEMASTECNICO') {
-          this.router.navigate(['/adminsistemas']);
-        } else if (this.getDecodedAccessToken(sessionStorage.getItem('utoken')!).rol === 'SISTEMASADMIN') {
-          this.router.navigate(['/adminsistemas']);
-        } else if (this.getDecodedAccessToken(sessionStorage.getItem('utoken')!).rol === 'SISTEMASUSER') {
           this.router.navigate(['/adminsistemas']);
         }
       }

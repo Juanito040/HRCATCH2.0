@@ -124,7 +124,26 @@
           <label>Cédula Recibió</label>
           <input pInputText formControlName="cedulaRecibio" appUppercase />
         </div>
+        <div class="form-item" style="display: flex; align-items: center; gap: 10px; padding-top: 1.5rem;">
+          <p-checkbox formControlName="equipoBackup" [binary]="true" inputId="equipoBackup"></p-checkbox>
+          <label for="equipoBackup" style="cursor: pointer; font-weight: 600; margin: 0;">
+            ¿Se dejó equipo de backup?
+          </label>
+        </div>
 
+        <ng-container *ngIf="tieneBackup">
+          <div class="form-item">
+            <label for="horaEntregaBackup">Hora entrega del backup</label>
+            <input pInputText id="horaEntregaBackup" type="time" formControlName="horaEntregaBackup" />
+            <small class="text-muted">Hora en que se entregó el equipo de reemplazo</small>
+          </div>
+
+          <div class="form-item">
+            <label for="horaRecoleccionBackup">Hora recolección del backup</label>
+            <input pInputText id="horaRecoleccionBackup" type="time" formControlName="horaRecoleccionBackup" />
+            <small class="text-muted">Hora en que se recogió el equipo de reemplazo</small>
+          </div>
+        </ng-container>
       </div>
 
       <div style="margin-top: 3%;"></div>

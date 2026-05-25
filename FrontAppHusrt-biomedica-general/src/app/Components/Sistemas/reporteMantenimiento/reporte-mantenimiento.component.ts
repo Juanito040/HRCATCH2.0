@@ -110,7 +110,10 @@ export class CrearMantenimientoComponent implements OnInit {
       cumplimientoProtocolo: this.fb.array([]),
       valoresMediciones: this.fb.array([]),
       repuestos: this.fb.array([]),
-      condicionesIniciales: this.fb.array([])
+      condicionesIniciales: this.fb.array([]),
+      equipoBackup: [false],
+      horaEntregaBackup: [null],
+      horaRecoleccionBackup: [null]
     });
 
     // Escucha cambios en tipoMantenimiento para ajustar campos
@@ -142,7 +145,7 @@ export class CrearMantenimientoComponent implements OnInit {
 
     // Solo admins pueden cambiar el tipo
     const token = getDecodedAccessToken();
-    if (token && (token.rol === 'SUPERADMIN' || token.rol === 'BIOMEDICAADMIN' || token.rol === 'BIOMEDICAUSER' || token.rol === 'SISTEMASADMIN' || token.rol === 'SISTEMASUSER')) {
+    if (token && (token.rol === 'SUPERADMIN' || token.rol === 'BIOMEDICAADMIN' || token.rol === 'BIOMEDICAUSER' || token.rol === 'SYSTEMADMIN' || token.rol === 'SYSTEMUSER')) {
       this.mantenimientoForm.get('tipoMantenimiento')?.enable();
     }
   }
@@ -215,8 +218,13 @@ export class CrearMantenimientoComponent implements OnInit {
       this.nombreUsuario = { nombreCompleto: 'Técnico', numeroId: '' };
     }
     // Si es edición, mostrar el usuario original del reporte
+    // Si es edición, mostrar el usuario asignado al reporte
     if (this.mantenimiento.id && this.mantenimiento.usuario) {
-      this.nombreUsuario = this.mantenimiento.usuario;
+      const u = this.mantenimiento.usuario;
+      this.nombreUsuario = {
+        nombreCompleto: `${u.nombres ?? ''} ${u.apellidos ?? ''}`.trim(),
+        numeroId: u.numeroId ?? u.cedula ?? u.numeroDocumento ?? ''
+      };
     }
 
     // 2. Cargar equipo, protocolos y mediciones
@@ -286,14 +294,16 @@ export class CrearMantenimientoComponent implements OnInit {
         cedulaRecibio: this.mantenimiento.cedulaRecibio,
         observaciones: this.mantenimiento.observaciones,
         estadoOperativo: this.mantenimiento.estadoOperativo,
-        equipoPatronIdFk: this.mantenimiento.equipoPatronIdFk
+        equipoBackup: this.mantenimiento.equipoBackup ?? false,
+        horaEntregaBackup: this.mantenimiento.horaEntregaBackup ?? null,
+        horaRecoleccionBackup: this.mantenimiento.horaRecoleccionBackup ?? null,
       });
     }
 
     const token = getDecodedAccessToken();
     const puedeEditarTipo = token && (
       token.rol === 'SUPERADMIN' || token.rol === 'BIOMEDICAADMIN' ||
-      token.rol === 'BIOMEDICAUSER' || token.rol === 'SISTEMASADMIN' || token.rol === 'SISTEMASUSER'
+      token.rol === 'BIOMEDICAUSER' || token.rol === 'SYSTEMADMIN' || token.rol === 'SYSTEMUSER'
     );
     if (puedeEditarTipo) {
       this.mantenimientoForm.get('tipoMantenimiento')?.enable({ emitEvent: false });
@@ -388,7 +398,12 @@ export class CrearMantenimientoComponent implements OnInit {
           .map(r => r.id),
         equipoPatronIdFk: this.mantenimientoForm.value.equipoPatronIdFk,
         cumplimientoProtocolo: selectedTipo === 'Preventivo'
-          ? this.mantenimientoForm.value.cumplimientoProtocolo : []
+          ? this.mantenimientoForm.value.cumplimientoProtocolo : [],
+        equipoBackup: this.mantenimientoForm.value.equipoBackup ?? false,
+        horaEntregaBackup: this.tieneBackup
+          ? this.mantenimientoForm.value.horaEntregaBackup : null,
+        horaRecoleccionBackup: this.tieneBackup
+          ? this.mantenimientoForm.value.horaRecoleccionBackup : null,
       };
 
       if (this.mantenimiento.id) {
@@ -407,7 +422,7 @@ export class CrearMantenimientoComponent implements OnInit {
           });
           localStorage.removeItem('idMantenimiento');
           localStorage.removeItem('TipoMantenimiento');
-          this.router.navigate(['/adminsistemas/mantenimientos']);
+          this.navegarPostGuardado();
         } catch (error) {
           console.error('Error al actualizar el mantenimiento:', error);
           Swal.fire({ icon: 'error', title: 'Error al actualizar', text: extractError(error, 'actualizar el mantenimiento') });
@@ -427,7 +442,7 @@ export class CrearMantenimientoComponent implements OnInit {
             });
             localStorage.removeItem('idMantenimiento');
             localStorage.removeItem('TipoMantenimiento');
-            this.router.navigate(['/adminsistemas/mantenimientos']);
+            this.navegarPostGuardado();
           } else {
             throw new Error('No se recibió el ID del mantenimiento creado');
           }
@@ -580,6 +595,9 @@ export class CrearMantenimientoComponent implements OnInit {
   }
   getRepuestosParaFila(rowIndex: number): { label: string; value: number }[] {
     return this.repuestosPorTipo.get(rowIndex) ?? [];
+  }
+  get tieneBackup(): boolean {
+    return !!this.mantenimientoForm.get('equipoBackup')?.value;
   }
   get repuestosFormArray(): FormArray {
     return this.mantenimientoForm.get('repuestos') as FormArray;
@@ -807,5 +825,13 @@ export class CrearMantenimientoComponent implements OnInit {
         this.location.back();
       }
     });
+  }
+  private navegarPostGuardado(): void {
+    const token = getDecodedAccessToken();
+    if (token?.rol === 'SYSTEMASTECNICO') {
+      this.router.navigate(['/adminsistemas/tecnico/pendientes']);
+    } else {
+      this.router.navigate(['/adminsistemas/mantenimientos']);
+    }
   }
 }

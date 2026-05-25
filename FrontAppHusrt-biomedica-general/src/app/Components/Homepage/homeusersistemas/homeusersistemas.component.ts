@@ -40,7 +40,7 @@ export class HomeusersistemasComponent {
     if (rol === 'SISTEMASTECNICO') {
       this.router.navigate(['adminsistemas/tecnico/mantenimiento']);
     } else {
-      this.router.navigate(['/adminsistemas/mantenimiento']);
+      this.router.navigate(['/adminsistemas/mantenimientos']);
     }
   }
   irAServiciosSis()          { this.router.navigate(['/adminsistemas/servicios']); }
