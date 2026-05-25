@@ -252,7 +252,7 @@ export class SisEquiposComponent implements OnInit {
 
   get isAdmin(): boolean {
     const decoded = getDecodedAccessToken();
-    return decoded?.rol === 'ADMINISTRADOR' || decoded?.rol === 'SUPERADMIN';
+    return decoded?.rol === 'ADMINISTRADOR' || decoded?.rol === 'SUPERADMIN' || decoded?.rol === 'SYSTEMADMIN' || decoded?.rol === 'SISTEMASTECNICO';
   }
 
   get isReadOnly(): boolean {

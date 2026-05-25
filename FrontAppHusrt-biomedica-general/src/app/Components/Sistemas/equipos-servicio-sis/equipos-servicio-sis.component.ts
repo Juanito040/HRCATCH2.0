@@ -113,7 +113,7 @@ export class EquiposServicioSisComponent implements OnInit, OnDestroy {
 
   get isAdmin(): boolean {
     const decoded = getDecodedAccessToken();
-    return decoded?.rol === 'ADMINISTRADOR' || decoded?.rol === 'SUPERADMIN' || decoded?.rol === 'SYSTEMADMIN';
+    return decoded?.rol === 'ADMINISTRADOR' || decoded?.rol === 'SUPERADMIN' || decoded?.rol === 'SYSTEMADMIN' || decoded?.rol === 'SISTEMASTECNICO';
   }
 
   get isReadOnly(): boolean {

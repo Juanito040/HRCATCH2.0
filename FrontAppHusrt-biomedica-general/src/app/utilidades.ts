@@ -51,6 +51,6 @@ export function getDecodedAccessToken(): any {
 
 export function isSistemasSoloLectura(): boolean {
   const decoded = getDecodedAccessToken();
-  return decoded?.rol === 'SYSTEMUSER' || decoded?.rol === 'SISTEMASTECNICO';
+  return decoded?.rol === 'SYSTEMUSER';
 }
 
