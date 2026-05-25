@@ -263,6 +263,15 @@ sequelize.query('SET FOREIGN_KEY_CHECKS = 0')
   .then(() => sequelize.query(`
     ALTER TABLE \`SysCumplimientoProtocoloPreventivo\` ADD COLUMN IF NOT EXISTS \`sysReporteIdFk\` INTEGER NULL
   `).catch(() => {}))
+  .then(() => sequelize.query(`
+    ALTER TABLE \`SysReporte\` ADD COLUMN IF NOT EXISTS \`equipoBackup\` TINYINT(1) NOT NULL DEFAULT 0
+  `).catch(() => {}))
+  .then(() => sequelize.query(`
+    ALTER TABLE \`SysReporte\` ADD COLUMN IF NOT EXISTS \`horaEntregaBackup\` TIME NULL
+  `).catch(() => {}))
+  .then(() => sequelize.query(`
+    ALTER TABLE \`SysReporte\` ADD COLUMN IF NOT EXISTS \`horaRecoleccionBackup\` TIME NULL
+  `).catch(() => {}))
   .then(() => sequelize.query('SET FOREIGN_KEY_CHECKS = 1'))
   .then(() => sequelize.sync({ alter: false }))
   .then(() => {

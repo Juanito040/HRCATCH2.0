@@ -107,7 +107,7 @@ export class EquiposTipoSisComponent implements OnInit {
 
   get isAdmin(): boolean {
     const decoded = getDecodedAccessToken();
-    return decoded?.rol === 'ADMINISTRADOR' || decoded?.rol === 'SUPERADMIN' || decoded?.rol === 'SYSTEMADMIN' || decoded?.rol === 'SISTEMASTECNICO';
+    return decoded?.rol === 'ADMINISTRADOR' || decoded?.rol === 'SUPERADMIN' || decoded?.rol === 'SYSTEMADMIN';
   }
 
   get isReadOnly(): boolean {
@@ -190,7 +190,7 @@ export class EquiposTipoSisComponent implements OnInit {
   }
 
   private buildOpciones(equipo: SysEquipo): MenuItem[] {
-    if (this.isReadOnly) {
+    /* if (this.isReadOnly) {
       return [
         { label: 'Ver Detalles',          icon: 'pi pi-eye',             command: () => this.openDetailModal(equipo) },
         { label: 'Ver Reportes Entrega',  icon: 'fas fa-clipboard-list', command: () => this.openReportesList(equipo) },
@@ -198,7 +198,7 @@ export class EquiposTipoSisComponent implements OnInit {
         { label: 'Ver Historial',         icon: 'fas fa-history',        command: () => this.openHistorialModal(equipo) },
         { label: 'Registro de Traslados', icon: 'fas fa-exchange-alt',   command: () => this.openTrasladosModal(equipo) },
       ];
-    }
+    } */
     const items: MenuItem[] = [
       { label: 'Ver Detalles',          icon: 'pi pi-eye',             command: () => this.openDetailModal(equipo) },
       { label: 'Editar',                icon: 'pi pi-pencil',          command: () => this.openEditModal(equipo) },
