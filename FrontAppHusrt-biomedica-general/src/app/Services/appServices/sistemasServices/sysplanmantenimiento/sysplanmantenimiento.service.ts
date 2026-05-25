@@ -53,7 +53,7 @@ export class SysplanmantenimientoService {
   }
   getScheduledMonths() {
     return firstValueFrom(
-      this.http.get<any>(`${this.apiUrl}/programacionPreventivaMeses`)
+      this.http.get<any>(`${API_URL}/sysprogramacion/programacionPreventivaMeses`)
     )
   }
     getPlanMantenimientoTipoEquipo(idTipoEquipo: any) {

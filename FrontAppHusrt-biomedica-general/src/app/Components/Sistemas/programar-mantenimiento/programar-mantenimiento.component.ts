@@ -228,14 +228,21 @@ export class ProgramarMantenimientoComponent implements OnInit {
       if (result.isConfirmed) {
         try {
           const programados = await this.sysPlanMantenimientoServices.programacionMantenimiento(this.fechaSeleccionada());
-          Swal.fire({
-            title: "¡Mantenimientos programados!",
-            text: "Mantenimientos del mes de " + this.getNombreMes(this.mesPlan) + " del año " + this.anioPlan + " Programados",
-            icon: "success"
-          });
-
+          if (!programados.data || programados.data.length === 0) {
+            Swal.fire({
+              title: "Sin equipos para programar",
+              text: programados.message || "No hay equipos con mantenimiento preventivo activo para el mes de " + this.getNombreMes(this.mesPlan) + " del año " + this.anioPlan + ". Verifique que los equipos tengan habilitado el Mantenimiento Preventivo.",
+              icon: "info"
+            });
+          } else {
+            Swal.fire({
+              title: "¡Mantenimientos programados!",
+              text: programados.message || "Mantenimientos del mes de " + this.getNombreMes(this.mesPlan) + " del año " + this.anioPlan + " programados exitosamente.",
+              icon: "success"
+            });
+          }
         } catch (error: any) {
-          const errorMessage = error?.error?.error || " los mantenimientos del mes de " + this.getNombreMes(this.mesPlan) + " del año " + this.anioPlan + " se programaron anteriormente.";
+          const errorMessage = error?.error?.error || "Los mantenimientos del mes de " + this.getNombreMes(this.mesPlan) + " del año " + this.anioPlan + " ya fueron programados anteriormente.";
           Swal.fire({
             title: "¡No se programaron los mantenimientos!",
             text: errorMessage,

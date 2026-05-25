@@ -201,6 +201,7 @@ export class SysEquipoModalComponent implements OnInit, OnChanges, OnDestroy {
       direccionamiento_Vlan: ['', [Validators.maxLength(255)]],
       numero_puertos: ['', [Validators.min(0)]],
       mtto: [1],
+      preventivo_s: [false],
       id_sede_fk: [''],
       id_servicio_fk: [''],
       id_tipo_equipo_fk: [''],

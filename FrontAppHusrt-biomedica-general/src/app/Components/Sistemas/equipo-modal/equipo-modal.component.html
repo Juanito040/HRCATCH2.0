@@ -132,6 +132,16 @@
                 }
               </div>
               <div class="form-group">
+                <label for="preventivo_s">Mantenimiento Preventivo</label>
+                <select id="preventivo_s" formControlName="preventivo_s" [class.error]="hasError('preventivo_s')">
+                  <option [value]="true">Sí</option>
+                  <option [value]="false">No</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
                 <label for="periodicidad">Tipo de Mantenimiento</label>
                 <select id="periodicidad" formControlName="periodicidad" [class.error]="hasError('periodicidad')">
                   <option value="">Seleccionar...</option>
