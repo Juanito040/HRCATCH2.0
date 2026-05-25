@@ -292,6 +292,197 @@
     </div>
   </div>
 
+  <!-- ══ SECCIÓN: Historial de Repuestos Usados ══════════════════════════ -->
+  <div class="mt-3">
+
+    <!-- Encabezado de sección -->
+    <div class="flex align-items-center justify-content-between mb-3 px-1">
+      <div class="flex align-items-center gap-2">
+        <i class="pi pi-box text-indigo-500 text-2xl"></i>
+        <span class="text-xl font-bold text-800">Historial de Repuestos Usados</span>
+        <span class="text-xs text-500 bg-indigo-50 text-indigo-600 px-2 py-1 border-round font-semibold">
+          Egresos por período
+        </span>
+      </div>
+      <span *ngIf="loadingRepuestos()" class="text-primary text-sm font-medium flex align-items-center gap-2">
+        <i class="pi pi-spin pi-spinner"></i> Cargando repuestos...
+      </span>
+    </div>
+
+    <!-- KPIs de repuestos -->
+    <div *ngIf="historialRepuestos() as hist" class="grid mb-2">
+
+      <div class="col-6 md:col-3">
+        <div class="card border-0 border-round-xl p-3 h-full"
+          style="background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);">
+          <div class="flex align-items-center justify-content-between mb-2">
+            <span class="text-white text-sm font-semibold opacity-80">Unidades Usadas</span>
+            <i class="pi pi-box text-white opacity-70 text-xl"></i>
+          </div>
+          <div class="text-4xl font-black text-white">{{ hist.totalUnidades }}</div>
+          <div class="text-white opacity-70 text-xs mt-1">en el período seleccionado</div>
+        </div>
+      </div>
+
+      <div class="col-6 md:col-3">
+        <div class="card border-0 border-round-xl p-3 h-full"
+          style="background: linear-gradient(135deg, #10b981 0%, #047857 100%);">
+          <div class="flex align-items-center justify-content-between mb-2">
+            <span class="text-white text-sm font-semibold opacity-80">Movimientos</span>
+            <i class="pi pi-list text-white opacity-70 text-xl"></i>
+          </div>
+          <div class="text-4xl font-black text-white">{{ hist.totalMovimientos }}</div>
+          <div class="text-white opacity-70 text-xs mt-1">registros de egreso</div>
+        </div>
+      </div>
+
+      <div class="col-6 md:col-3">
+        <div class="card border-0 border-round-xl p-3 h-full"
+          style="background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);">
+          <div class="flex align-items-center justify-content-between mb-2">
+            <span class="text-white text-sm font-semibold opacity-80">Tipos de Repuesto</span>
+            <i class="pi pi-tag text-white opacity-70 text-xl"></i>
+          </div>
+          <div class="text-4xl font-black text-white">{{ hist.porTipo.length }}</div>
+          <div class="text-white opacity-70 text-xs mt-1">categorías con egresos</div>
+        </div>
+      </div>
+
+      <div class="col-6 md:col-3">
+        <div class="card border-0 border-round-xl p-3 h-full"
+          style="background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%);">
+          <div class="flex align-items-center justify-content-between mb-2">
+            <span class="text-white text-sm font-semibold opacity-80">Repuesto Más Usado</span>
+            <i class="pi pi-star text-white opacity-70 text-xl"></i>
+          </div>
+          <div class="text-lg font-black text-white" style="word-break: break-word;">
+            {{ hist.topRepuestos[0]?.nombre || '—' }}
+          </div>
+          <div class="text-white opacity-70 text-xs mt-1">
+            {{ hist.topRepuestos[0]?.total_unidades || 0 }} unidades usadas
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gráficas de repuestos -->
+    <div *ngIf="historialRepuestos() && !loadingRepuestos()" class="grid">
+
+      <!-- Doughnut: uso por tipo -->
+      <div class="col-12 md:col-4">
+        <div class="card border-0 shadow-sm border-round-xl surface-card p-3 h-full">
+          <h5 class="text-lg font-bold text-800 mb-3 flex align-items-center gap-2">
+            <i class="pi pi-chart-pie text-indigo-500"></i> Egresos por Tipo de Repuesto
+          </h5>
+          <div *ngIf="repuestosPorTipoChartData(); else sinDatos" class="flex justify-content-center align-items-center" style="height: 280px;">
+            <p-chart type="doughnut" [data]="repuestosPorTipoChartData()" [options]="chartOptions()"></p-chart>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barras horizontales: top 10 repuestos -->
+      <div class="col-12 md:col-8">
+        <div class="card border-0 shadow-sm border-round-xl surface-card p-3 h-full">
+          <h5 class="text-lg font-bold text-800 mb-3 flex align-items-center gap-2">
+            <i class="pi pi-sort-amount-down text-indigo-500"></i> Top 10 Repuestos más Usados
+          </h5>
+          <div *ngIf="topRepuestosChartData(); else sinDatos" style="height: 280px;">
+            <p-chart type="bar" [data]="topRepuestosChartData()" [options]="topRepuestosBarOptions()"></p-chart>
+          </div>
+        </div>
+      </div>
+
+      <!-- Línea: tendencia mensual de egresos -->
+      <div class="col-12">
+        <div class="card border-0 shadow-sm border-round-xl surface-card p-3">
+          <h5 class="text-lg font-bold text-800 mb-3 flex align-items-center gap-2">
+            <i class="pi pi-chart-line text-green-500"></i> Tendencia Mensual de Repuestos Usados
+          </h5>
+          <div *ngIf="tendenciaRepuestosChartData(); else sinDatos" style="height: 260px;">
+            <p-chart type="line" [data]="tendenciaRepuestosChartData()" [options]="lineOptions()"></p-chart>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla de detalle (colapsable) -->
+      <div class="col-12">
+        <div class="card border-0 shadow-sm border-round-xl surface-card p-3">
+          <div class="flex align-items-center justify-content-between mb-2">
+            <h5 class="text-lg font-bold text-800 flex align-items-center gap-2 m-0">
+              <i class="pi pi-table text-blue-500"></i> Detalle de Egresos
+              <span class="text-xs bg-blue-50 text-blue-600 px-2 py-1 border-round font-semibold">
+                {{ historialRepuestos()?.detalle?.length || 0 }} registros
+              </span>
+            </h5>
+            <button pButton
+              [label]="tablaRepuestosVisible() ? 'Ocultar tabla' : 'Ver tabla completa'"
+              [icon]="tablaRepuestosVisible() ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+              class="p-button-outlined p-button-sm p-button-secondary"
+              (click)="toggleTablaRepuestos()">
+            </button>
+          </div>
+
+          <div *ngIf="tablaRepuestosVisible()" class="mt-2" style="overflow-x: auto; max-height: 420px; overflow-y: auto;">
+            <table class="w-full text-sm border-collapse">
+              <thead>
+                <tr style="background: #f8fafc; position: sticky; top: 0; z-index: 1;">
+                  <th class="text-left py-2 px-3 font-semibold text-600 border-bottom-1 border-100">Fecha</th>
+                  <th class="text-left py-2 px-3 font-semibold text-600 border-bottom-1 border-100">Repuesto</th>
+                  <th class="text-left py-2 px-3 font-semibold text-600 border-bottom-1 border-100">Tipo</th>
+                  <th class="text-right py-2 px-3 font-semibold text-600 border-bottom-1 border-100">Cant.</th>
+                  <th class="text-left py-2 px-3 font-semibold text-600 border-bottom-1 border-100">Motivo</th>
+                  <th class="text-left py-2 px-3 font-semibold text-600 border-bottom-1 border-100">Usuario</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of historialRepuestos()?.detalle"
+                  class="border-bottom-1 border-50"
+                  style="transition: background 0.15s;"
+                  onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background=''">
+                  <td class="py-2 px-3 text-500 text-xs">
+                    {{ row.fecha | date:'dd/MM/yyyy HH:mm' }}
+                  </td>
+                  <td class="py-2 px-3 font-medium text-800">{{ row.repuesto }}</td>
+                  <td class="py-2 px-3">
+                    <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 border-round font-semibold">
+                      {{ row.tipo_repuesto }}
+                    </span>
+                  </td>
+                  <td class="py-2 px-3 text-right font-bold text-red-600">{{ row.cantidad }}</td>
+                  <td class="py-2 px-3 text-500 text-xs" style="max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    {{ row.motivo }}
+                  </td>
+                  <td class="py-2 px-3 text-500 text-xs">{{ row.usuario || '—' }}</td>
+                </tr>
+                <tr *ngIf="!historialRepuestos()?.detalle?.length">
+                  <td colspan="6" class="py-4 text-center text-500">Sin registros en el período</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Sin datos -->
+    <ng-template #sinDatos>
+      <div class="flex justify-content-center align-items-center flex-column py-5 text-500">
+        <i class="pi pi-inbox text-4xl mb-2 opacity-40"></i>
+        <span class="text-sm">Sin datos para el período seleccionado</span>
+      </div>
+    </ng-template>
+
+    <!-- Estado vacío general -->
+    <div *ngIf="!historialRepuestos() && !loadingRepuestos()"
+      class="card border-0 shadow-sm border-round-xl surface-card p-5 text-center text-500">
+      <i class="pi pi-inbox text-4xl mb-2 opacity-40 block"></i>
+      <span>No hay datos de repuestos usados para el período seleccionado.</span>
+    </div>
+
+  </div>
+
   <!-- Loading skeleton -->
   <div *ngIf="loading()" class="flex justify-content-center align-items-center" style="min-height: 400px;">
     <div class="text-center">

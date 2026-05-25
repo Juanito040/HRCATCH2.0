@@ -12,6 +12,7 @@ import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
 import { MeterGroupModule } from 'primeng/metergroup';
 import { SysmantenimientoService, SysMantenimiento, SysMantenimientoResponse } from '../../../Services/appServices/sistemasServices/sysmantenimiento/sysmantenimiento.service';
+import { SysMovimientosStockService, HistorialPorTipoResponse, HistorialPorTipoItem, TopRepuestoItem, TendenciaMensualItem, DetalleEgresoItem } from '../../../Services/appServices/sistemasServices/sysmovimientosstock/sysmovimientosstock.service';
 import { firstValueFrom } from 'rxjs';
 
 type TipoMantenimiento = 'Correctivo' | 'Preventivo' | 'Predictivo' | 'Otro';
@@ -70,8 +71,14 @@ export class SysindicadoresComponent {
   ];
 
   private srv = inject(SysmantenimientoService);
+  private srvStock = inject(SysMovimientosStockService);
 
   loading = signal(false);
+  loadingRepuestos = signal(false);
+
+  // Datos de repuestos usados
+  historialRepuestos = signal<HistorialPorTipoResponse | null>(null);
+  tablaRepuestosVisible = signal(false);
 
   allPreventivos = signal<SysMantenimiento[]>([]);
   allCorrectivos = signal<SysMantenimiento[]>([]);
@@ -90,7 +97,9 @@ export class SysindicadoresComponent {
     { label: 'Octubre', value: 10 }, { label: 'Noviembre', value: 11 }, { label: 'Diciembre', value: 12 }
   ];
 
+
   totalReportesLabel = computed(() => `Total: ${this.reportes().length}`);
+
 
   // KPIs globales computados
   totalPendientes = computed(() =>
@@ -223,6 +232,26 @@ export class SysindicadoresComponent {
       this.allCorrectivos.set([]);
     } finally {
       this.loading.set(false);
+    }
+
+    // Cargar historial de repuestos con el mismo período
+    await this.cargarRepuestos();
+  }
+
+  async cargarRepuestos() {
+    if (!this.anio || !this.mesInicio || !this.mesFin) return;
+    this.loadingRepuestos.set(true);
+    try {
+      const fechaDesde = `${this.anio}-${String(this.mesInicio).padStart(2, '0')}-01`;
+      const lastDay = new Date(this.anio, this.mesFin, 0).getDate();
+      const fechaHasta = `${this.anio}-${String(this.mesFin).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+      const res: any = await firstValueFrom(this.srvStock.getHistorialPorTipo(fechaDesde, fechaHasta));
+      this.historialRepuestos.set(res?.data ?? null);
+    } catch (e) {
+      console.error('Error cargando historial repuestos:', e);
+      this.historialRepuestos.set(null);
+    } finally {
+      this.loadingRepuestos.set(false);
     }
   }
 
@@ -792,4 +821,82 @@ export class SysindicadoresComponent {
       ]
     };
   });
-}
+
+  // ── HISTORIAL REPUESTOS: Computed charts ───────────────────────────────────
+
+  repuestosPorTipoChartData = computed(() => {
+    const hist = this.historialRepuestos();
+    if (!hist || !hist.porTipo?.length) return null;
+    const colores = [
+      '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
+      '#ec4899', '#6366f1', '#14b8a6', '#f97316', '#06b6d4'
+    ];
+    return {
+      labels: hist.porTipo.map(t => t.nombre),
+      datasets: [{
+        data: hist.porTipo.map(t => t.total_unidades),
+        backgroundColor: hist.porTipo.map((_, i) => colores[i % colores.length]),
+        hoverOffset: 6,
+        borderColor: '#ffffff',
+        borderWidth: 2
+      }]
+    };
+  });
+
+  topRepuestosChartData = computed(() => {
+    const hist = this.historialRepuestos();
+    if (!hist || !hist.topRepuestos?.length) return null;
+    const items = [...hist.topRepuestos].sort((a, b) => a.total_unidades - b.total_unidades);
+    return {
+      labels: items.map(r => r.nombre.length > 30 ? r.nombre.slice(0, 28) + '…' : r.nombre),
+      datasets: [{
+        label: 'Unidades usadas',
+        data: items.map(r => r.total_unidades),
+        backgroundColor: 'rgba(99, 102, 241, 0.75)',
+        borderColor: '#4f46e5',
+        borderWidth: 1,
+        borderRadius: 6,
+        barPercentage: 0.65
+      }]
+    };
+  });
+
+  tendenciaRepuestosChartData = computed(() => {
+    const hist = this.historialRepuestos();
+    if (!hist || !hist.tendenciaMensual?.length) return null;
+    return {
+      labels: hist.tendenciaMensual.map(t => t.mes),
+      datasets: [{
+        label: 'Unidades egresadas',
+        data: hist.tendenciaMensual.map(t => t.total_unidades),
+        fill: true,
+        backgroundColor: 'rgba(16, 185, 129, 0.15)',
+        borderColor: '#10b981',
+        pointBackgroundColor: '#ffffff',
+        pointBorderColor: '#10b981',
+        pointBorderWidth: 2,
+        tension: 0.4
+      }]
+    };
+  });
+
+  topRepuestosBarOptions() {
+    return {
+      indexAxis: 'y' as const,
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { mode: 'index', intersect: false }
+      },
+      scales: {
+        x: { beginAtZero: true, ticks: { precision: 0, font: { size: 12 } }, grid: { color: '#f3f4f6' } },
+        y: { ticks: { font: { size: 12 } }, grid: { display: false } }
+      }
+    } as any;
+  }
+
+  toggleTablaRepuestos() {
+    this.tablaRepuestosVisible.update(v => !v);
+  }
+}

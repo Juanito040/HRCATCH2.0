@@ -30,6 +30,7 @@ router.use(checkToken);
 router.get('/', ctrl.getAll);
 router.get('/alertas', ctrl.getAlertas);
 router.get('/exportar', ctrl.exportarCSV);
+router.get('/historial-por-tipo', ctrl.getHistorialPorTipo);
 
 // Registrar movimiento (solo roles con permiso)
 router.get('/descargar-factura/:id', ctrl.descargarFactura);
