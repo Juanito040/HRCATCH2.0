@@ -137,8 +137,8 @@ Disponible en `http://localhost:4200`.
 ### Módulo Sistemas
 | Rol | Acceso |
 |-----|--------|
-| `SYSTEMADMIN` / `SISTEMASADMIN` | Gestión completa |
-| `SYSTEMUSER` / `SISTEMASUSER` | Consulta y registro |
+| `SYSTEMADMIN` | Gestión completa |
+| `SYSTEMUSER` | Consulta y registro |
 | `SISTEMASTECNICO` | Equipos, mantenimientos y repuestos |
 
 ### Mesa de Servicios
