@@ -93,7 +93,7 @@ export class EquiposTipoSisComponent implements OnInit {
 
   readonly anioOptions = Array.from({ length: 11 }, (_, i) => new Date().getFullYear() + i);
 
-  private readonly MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  private readonly MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
   private router = inject(Router);
   private route = inject(ActivatedRoute);
@@ -199,19 +199,24 @@ export class EquiposTipoSisComponent implements OnInit {
         { label: 'Registro de Traslados', icon: 'fas fa-exchange-alt',   command: () => this.openTrasladosModal(equipo) },
       ];
     }
-    return [
-      { label: 'Ver Detalles',          icon: 'pi pi-eye',          command: () => this.openDetailModal(equipo) },
-      { label: 'Editar',                icon: 'pi pi-pencil',       command: () => this.openEditModal(equipo) },
-      { label: 'Plan de Mantenimiento', icon: 'pi pi-calendar',     command: () => this.openPlanDialog(equipo) },
-      { label: 'Reporte de Entrega',      icon: 'fas fa-file-export',    command: () => this.openReporteForm(equipo) },
-      { label: 'Ver Reportes Entrega',   icon: 'fas fa-clipboard-list', command: () => this.openReportesList(equipo) },
-      { label: 'Nuevo Reporte de Casos', icon: 'pi pi-plus',            command: () => this.router.navigate(['/adminsistemas/nuevoreporte', equipo.id_sysequipo]) },
-      { label: 'Ver Reportes de Casos',  icon: 'pi pi-list',            command: () => this.router.navigate(['/adminsistemas/reportesequipo', equipo.id_sysequipo]) },
-      { label: 'Ver Historial',           icon: 'fas fa-history',       command: () => this.openHistorialModal(equipo) },
-      { label: 'Registro de Traslados',  icon: 'fas fa-exchange-alt',  command: () => this.openTrasladosModal(equipo) },
-      { label: 'Enviar a Bodega',       icon: 'fas fa-warehouse',   command: () => this.confirmBodega(equipo) },
-      { label: 'Dar de Baja',           icon: 'pi pi-ban',          command: () => this.confirmBaja(equipo) },
+    const items: MenuItem[] = [
+      { label: 'Ver Detalles',          icon: 'pi pi-eye',             command: () => this.openDetailModal(equipo) },
+      { label: 'Editar',                icon: 'pi pi-pencil',          command: () => this.openEditModal(equipo) },
+      { label: 'Reporte de Entrega',    icon: 'fas fa-file-export',    command: () => this.openReporteForm(equipo) },
+      { label: 'Ver Reportes Entrega',  icon: 'fas fa-clipboard-list', command: () => this.openReportesList(equipo) },
+      { label: 'Ver Reportes de Casos', icon: 'pi pi-list',            command: () => this.router.navigate(['/adminsistemas/reportesequipo', equipo.id_sysequipo]) },
+      { label: 'Ver Historial',         icon: 'fas fa-history',        command: () => this.openHistorialModal(equipo) },
+      { label: 'Registro de Traslados', icon: 'fas fa-exchange-alt',   command: () => this.openTrasladosModal(equipo) },
     ];
+    if (this.isAdmin) {
+      items.push(
+        { label: 'Plan de Mantenimiento',  icon: 'pi pi-calendar',   command: () => this.openPlanDialog(equipo) },
+        { label: 'Nuevo Reporte de Casos', icon: 'pi pi-plus',       command: () => this.router.navigate(['/adminsistemas/nuevoreporte', equipo.id_sysequipo]) },
+        { label: 'Enviar a Bodega',        icon: 'fas fa-warehouse',  command: () => this.confirmBodega(equipo) },
+        { label: 'Dar de Baja',            icon: 'pi pi-ban',         command: () => this.confirmBaja(equipo) },
+      );
+    }
+    return items;
   }
 
   confirmBodega(equipo: SysEquipo) {

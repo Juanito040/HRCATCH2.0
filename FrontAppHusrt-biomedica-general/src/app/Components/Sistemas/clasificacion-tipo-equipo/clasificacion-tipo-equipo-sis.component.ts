@@ -8,6 +8,7 @@ import { SysEquipoModalComponent } from '../equipo-modal/equipo-modal.component'
 import { SysequiposService } from '../../../Services/appServices/sistemasServices/sysequipos/sysequipos.service';
 import { isSistemasSoloLectura } from '../../../utilidades';
 import Swal from 'sweetalert2';
+import { getDecodedAccessToken } from '../../../utilidades';
 
 @Component({
   selector: 'app-clasificacion-tipo-equipo-sis',
@@ -35,8 +36,11 @@ export class ClasificacionTipoEquipoSisComponent implements OnInit {
 
   private tipoEquipoService = inject(TipoEquipoService);
   private sysequiposService = inject(SysequiposService);
-  constructor(private router: Router) {}
-
+  constructor(private router: Router) { }
+  get isAdmin(): boolean {
+    const decoded = getDecodedAccessToken();
+    return decoded?.rol === 'ADMINISTRADOR' || decoded?.rol === 'SUPERADMIN' || decoded?.rol === 'SYSTEMADMIN' || decoded?.rol === 'SISTEMASTECNICO';
+  }
   async ngOnInit() {
     if (!isPlatformBrowser(this.platformId)) return;
     

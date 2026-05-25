@@ -38,6 +38,10 @@ export interface SysMantenimiento {
     servicio?: {
       id: number;
       nombres: string;
+      sede?: {
+        id: number;
+        nombres: string;
+      };
     };
     placa_inventario: string;
     ubicacion?: string;
@@ -51,6 +55,10 @@ export interface SysMantenimiento {
 
   valoresMediciones?: any[];
   repuestos?: any[];
+  equipoBackup?: boolean;
+  horaEntregaBackup?: string | null;
+  horaRecoleccionBackup?: string | null;
+
 
   tecnico?: string;
   adjunto_url?: string;

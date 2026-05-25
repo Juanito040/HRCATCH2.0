@@ -5,6 +5,8 @@
       <h1>Tipos de equipos de sistemas</h1>
       <p class="subtitle">Selecciona un tipo para ver sus equipos registrados</p>
     </div>
+    @if (isAdmin) {
+    
     <div class="header-actions">
       <div class="export-dropdown-wrap">
         <button class="btn btn-success" (click)="toggleExportMenu($event)" [disabled]="isExporting">
@@ -35,6 +37,7 @@
         </button>
       }
     </div>
+    }
   </div>
 
   <div class="search-container">
