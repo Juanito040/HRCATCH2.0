@@ -231,3 +231,111 @@ exports.descargarFactura = async (req, res) => {
     res.status(500).json({ error: 'Error al descargar la factura' });
   }
 };
+
+// ─── GET /sysmovimientosstock/historial-por-tipo ─────────────────────────────
+// Query params: fechaDesde (YYYY-MM-DD), fechaHasta (YYYY-MM-DD)
+// Retorna resumen de egresos agrupado por tipo de repuesto + top repuestos + tendencia mensual
+exports.getHistorialPorTipo = async (req, res) => {
+  try {
+    const { fechaDesde, fechaHasta } = req.query;
+
+    // Construir filtro de fechas solo para egresos
+    const where = { tipo: 'egreso' };
+    if (fechaDesde || fechaHasta) {
+      where.fecha_movimiento = {};
+      if (fechaDesde) where.fecha_movimiento[Op.gte] = new Date(fechaDesde + 'T00:00:00');
+      if (fechaHasta) {
+        const hasta = new Date(fechaHasta);
+        hasta.setHours(23, 59, 59, 999);
+        where.fecha_movimiento[Op.lte] = hasta;
+      }
+    }
+
+    // Obtener todos los egresos con información de repuesto y tipo
+    const egresos = await SysMovimientosStockRepuestos.findAll({
+      where,
+      include: [
+        {
+          model: SysRepuesto,
+          as: 'repuesto',
+          attributes: ['id_sysrepuesto', 'nombre', 'numero_parte'],
+          include: [{ model: SysTipoRepuesto, as: 'tipoRepuesto', attributes: ['id_sys_tipo_repuesto', 'nombre'] }]
+        }
+      ],
+      order: [['fecha_movimiento', 'DESC']]
+    });
+
+    // ── Agrupación por tipo de repuesto ──────────────────────────────────────
+    const porTipoMap = new Map();
+    for (const e of egresos) {
+      const tipoNombre = e.repuesto?.tipoRepuesto?.nombre || 'Sin Tipo';
+      const tipoId = e.repuesto?.tipoRepuesto?.id_sys_tipo_repuesto || 0;
+      const key = tipoNombre;
+      if (!porTipoMap.has(key)) {
+        porTipoMap.set(key, { id_tipo: tipoId, nombre: tipoNombre, total_unidades: 0, total_movimientos: 0 });
+      }
+      const entry = porTipoMap.get(key);
+      entry.total_unidades += e.cantidad;
+      entry.total_movimientos += 1;
+    }
+    const porTipo = Array.from(porTipoMap.values())
+      .sort((a, b) => b.total_unidades - a.total_unidades);
+
+    // ── Top repuestos más usados ──────────────────────────────────────────────
+    const porRepuestoMap = new Map();
+    for (const e of egresos) {
+      const repNombre = e.repuesto?.nombre || `Repuesto #${e.id_repuesto_fk}`;
+      const tipoNombre = e.repuesto?.tipoRepuesto?.nombre || 'Sin Tipo';
+      const key = e.id_repuesto_fk;
+      if (!porRepuestoMap.has(key)) {
+        porRepuestoMap.set(key, { id: key, nombre: repNombre, tipo: tipoNombre, total_unidades: 0, total_movimientos: 0 });
+      }
+      const entry = porRepuestoMap.get(key);
+      entry.total_unidades += e.cantidad;
+      entry.total_movimientos += 1;
+    }
+    const topRepuestos = Array.from(porRepuestoMap.values())
+      .sort((a, b) => b.total_unidades - a.total_unidades)
+      .slice(0, 10);
+
+    // ── Tendencia mensual ─────────────────────────────────────────────────────
+    const tendenciaMap = new Map();
+    for (const e of egresos) {
+      if (!e.fecha_movimiento) continue;
+      const ym = new Date(e.fecha_movimiento).toISOString().slice(0, 7); // YYYY-MM
+      if (!tendenciaMap.has(ym)) tendenciaMap.set(ym, 0);
+      tendenciaMap.set(ym, tendenciaMap.get(ym) + e.cantidad);
+    }
+    const tendenciaMensual = Array.from(tendenciaMap.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([mes, total]) => ({ mes, total_unidades: total }));
+
+    // ── Totales globales ──────────────────────────────────────────────────────
+    const totalUnidades = egresos.reduce((sum, e) => sum + e.cantidad, 0);
+    const totalMovimientos = egresos.length;
+
+    res.json({
+      success: true,
+      data: {
+        totalUnidades,
+        totalMovimientos,
+        porTipo,
+        topRepuestos,
+        tendenciaMensual,
+        detalle: egresos.map(e => ({
+          id: e.id,
+          fecha: e.fecha_movimiento,
+          repuesto: e.repuesto?.nombre || `#${e.id_repuesto_fk}`,
+          tipo_repuesto: e.repuesto?.tipoRepuesto?.nombre || 'Sin Tipo',
+          cantidad: e.cantidad,
+          motivo: e.motivo,
+          referencia: e.referencia,
+          usuario: e.usuario
+        }))
+      }
+    });
+  } catch (error) {
+    console.error('Error getHistorialPorTipo:', error);
+    res.status(500).json({ success: false, message: 'Error al obtener historial de repuestos usados', error: error.message });
+  }
+};
