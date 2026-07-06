@@ -75,11 +75,9 @@ export class SysindicadoresComponent {
   private backupSrv = inject(BackupSistemaService);
 
   loading = signal(false);
+  loadingRepuestos = signal(false);
   vistaActual = signal<'mantenimiento' | 'backups'>('mantenimiento');
   private srvStock = inject(SysMovimientosStockService);
-
-  loading = signal(false);
-  loadingRepuestos = signal(false);
 
   // Datos de repuestos usados
   historialRepuestos = signal<HistorialPorTipoResponse | null>(null);
@@ -245,9 +243,8 @@ export class SysindicadoresComponent {
     }
 
     if (this.vistaActual() === 'backups') await this.cargarBackups();
-  }
     await this.cargarRepuestos();
-
+  }
 
   async cargarBackups() {
     if (!this.anio || !this.mesInicio || !this.mesFin) return;
