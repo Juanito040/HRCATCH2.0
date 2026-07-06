@@ -237,7 +237,7 @@
 
             <div class="form-row">
               <div class="form-group">
-                <label for="id_sede_fk">Sede <span class="required">*</span></label>
+                <label for="id_sede_fk">Sede</label>
                 <select id="id_sede_fk" formControlName="id_sede_fk" [class.error]="hasError('id_sede_fk')"
                   (change)="onSedeChange($any($event.target).value)">
                   <option value="">Todas las sedes...</option>

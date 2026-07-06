@@ -97,8 +97,26 @@ export class SysEquipoModalComponent implements OnInit, OnChanges, OnDestroy {
     if (changes['isOpen'] && this.isOpen && this.equipoForm) {
       if (this.equipo) {
         this.equipoForm.patchValue({ ...this.equipo });
+
+        // Pre-poblar sede y cargar servicios filtrados sin resetear el servicio actual
+        const sedeId = this.equipo.servicio?.sede?.id || (this.equipo.servicio as any)?.sedeIdFk;
+        const servicioId = this.equipo.id_servicio_fk;
+        if (sedeId) {
+          this.equipoForm.patchValue({ id_sede_fk: sedeId });
+          this.servicioService.getServiciosBySede(sedeId).then((data: any[]) => {
+            this.servicios = (Array.isArray(data) ? data : []).map((s: any) => ({
+              id: s.id_servicio || s.id,
+              nombre: s.nombre || s.nombres || 'Sin nombre'
+            }));
+            // Restaurar el servicio que ya tenía el equipo
+            if (servicioId) this.equipoForm.patchValue({ id_servicio_fk: servicioId });
+          }).catch(() => {
+            this.servicios = [...this.todosLosServicios];
+          });
+        }
       } else {
         this.equipoForm.reset();
+        this.servicios = [...this.todosLosServicios];
         this.equipoForm.patchValue({ activo: 1, mtto: 1, administrable: 0 });
         this.hojaVidaExpanded = true;
       }
@@ -244,7 +262,7 @@ export class SysEquipoModalComponent implements OnInit, OnChanges, OnDestroy {
       numero_puertos:       ['', [Validators.min(0)]],
       mtto: [1],
       preventivo_s: [false],
-      id_sede_fk:           ['', [Validators.required]],
+      id_sede_fk:           [''],
       id_servicio_fk:       ['', [Validators.required]],
       id_tipo_equipo_fk:    ['', [Validators.required]],
       id_usuario_fk:        ['', [Validators.required]],
@@ -412,7 +430,7 @@ export class SysEquipoModalComponent implements OnInit, OnChanges, OnDestroy {
         ubicacion_especifica: 'Ubicación Específica',
         periodicidad:         'Tipo de Mantenimiento',
         dias_mantenimiento:   'Días de Mantenimiento',
-        id_sede_fk:           'Sede',
+
         id_servicio_fk:       'Servicio',
         id_tipo_equipo_fk:    'Tipo de Equipo',
         id_usuario_fk:        'Usuario Responsable',
