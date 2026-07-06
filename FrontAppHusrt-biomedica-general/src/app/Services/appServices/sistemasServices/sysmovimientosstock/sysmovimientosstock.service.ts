@@ -34,6 +34,46 @@ export interface MovimientoFiltros {
   fechaHasta?: string;
 }
 
+export interface HistorialPorTipoItem {
+  id_tipo: number;
+  nombre: string;
+  total_unidades: number;
+  total_movimientos: number;
+}
+
+export interface TopRepuestoItem {
+  id: number;
+  nombre: string;
+  tipo: string;
+  total_unidades: number;
+  total_movimientos: number;
+}
+
+export interface TendenciaMensualItem {
+  mes: string;
+  total_unidades: number;
+}
+
+export interface DetalleEgresoItem {
+  id: number;
+  fecha: string;
+  repuesto: string;
+  tipo_repuesto: string;
+  cantidad: number;
+  motivo: string;
+  referencia?: string;
+  usuario?: string;
+}
+
+export interface HistorialPorTipoResponse {
+  totalUnidades: number;
+  totalMovimientos: number;
+  porTipo: HistorialPorTipoItem[];
+  topRepuestos: TopRepuestoItem[];
+  tendenciaMensual: TendenciaMensualItem[];
+  detalle: DetalleEgresoItem[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class SysMovimientosStockService {
   private http = inject(HttpClient);
@@ -71,5 +111,12 @@ export class SysMovimientosStockService {
       if (filtros.fechaHasta) params = params.set('fechaHasta', filtros.fechaHasta);
     }
     return this.http.get(`${this.apiUrl}/exportar`, { params, responseType: 'blob' });
+  }
+
+  getHistorialPorTipo(fechaDesde?: string, fechaHasta?: string): Observable<{ success: boolean; data: HistorialPorTipoResponse }> {
+    let params = new HttpParams();
+    if (fechaDesde) params = params.set('fechaDesde', fechaDesde);
+    if (fechaHasta) params = params.set('fechaHasta', fechaHasta);
+    return this.http.get<{ success: boolean; data: HistorialPorTipoResponse }>(`${this.apiUrl}/historial-por-tipo`, { params });
   }
 }
