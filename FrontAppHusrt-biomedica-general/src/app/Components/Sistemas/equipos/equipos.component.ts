@@ -498,16 +498,20 @@ export class SisEquiposComponent implements OnInit {
     }
 
     if (this.selectedView === 'all') {
-      return [
+      const allItems: MenuItem[] = [
         { label: 'Ver Detalles', icon: 'pi pi-eye', command: () => this.openDetailModal(equipo) },
-        { label: 'Editar', icon: 'pi pi-pencil', command: () => this.openEditModal(equipo) },
-        { label: 'Plan de Mantenimiento', icon: 'pi pi-calendar', command: () => this.openPlanDialog(equipo) },
-        opcionReporte,
-        opcionVerReportes,
-        opcionHistorial,
-        opcionTraslados,
-        { label: 'Enviar a Bodega / Baja', icon: 'pi pi-trash', command: () => this.confirmDelete(equipo) }
       ];
+      if (this.isAdmin) {
+        allItems.push(
+          { label: 'Editar', icon: 'pi pi-pencil', command: () => this.openEditModal(equipo) },
+          { label: 'Plan de Mantenimiento', icon: 'pi pi-calendar', command: () => this.openPlanDialog(equipo) },
+        );
+      }
+      allItems.push(opcionReporte, opcionVerReportes, opcionHistorial, opcionTraslados);
+      if (this.isAdmin) {
+        allItems.push({ label: 'Enviar a Bodega / Baja', icon: 'pi pi-trash', command: () => this.confirmDelete(equipo) });
+      }
+      return allItems;
     } else if (this.selectedView === 'bodega') {
       return [
         { label: 'Ver Detalles', icon: 'pi pi-eye', command: () => this.openDetailModal(equipo) },

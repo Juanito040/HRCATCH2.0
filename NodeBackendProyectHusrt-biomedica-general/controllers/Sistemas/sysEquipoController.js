@@ -124,6 +124,16 @@ exports.createSysEquipo = async (req, res) => {
     const t = await sequelize.transaction();
     try {
         const { hojaVida, ...equipoData } = req.body;
+
+        // Verificar nombre único (incluyendo equipos en baja/bodega)
+        if (equipoData.nombre_equipo) {
+            const existente = await SysEquipo.findOne({ where: { nombre_equipo: equipoData.nombre_equipo } });
+            if (existente) {
+                await t.rollback();
+                return res.status(400).json({ success: false, message: `Ya existe un equipo con el nombre "${equipoData.nombre_equipo}"` });
+            }
+        }
+
         const equipo = await SysEquipo.create(equipoData, { transaction: t });
 
         if (hojaVida && Object.keys(hojaVida).length > 0) {
@@ -161,6 +171,15 @@ exports.updateSysEquipo = async (req, res) => {
         if (!equipoAnterior) {
             await t.rollback();
             return res.status(404).json({ success: false, message: 'Equipo no encontrado' });
+        }
+
+        // Verificar nombre único al editar (excluyendo el equipo actual)
+        if (equipoData.nombre_equipo && equipoData.nombre_equipo !== equipoAnterior.nombre_equipo) {
+            const duplicado = await SysEquipo.findOne({ where: { nombre_equipo: equipoData.nombre_equipo, id_sysequipo: { [Op.ne]: id } } });
+            if (duplicado) {
+                await t.rollback();
+                return res.status(400).json({ success: false, message: `Ya existe un equipo con el nombre "${equipoData.nombre_equipo}"` });
+            }
         }
 
         // Convertir booleanos

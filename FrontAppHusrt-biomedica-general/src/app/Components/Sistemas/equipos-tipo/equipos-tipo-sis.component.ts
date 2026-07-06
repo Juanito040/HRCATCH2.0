@@ -107,7 +107,7 @@ export class EquiposTipoSisComponent implements OnInit {
 
   get isAdmin(): boolean {
     const decoded = getDecodedAccessToken();
-    return decoded?.rol === 'ADMINISTRADOR' || decoded?.rol === 'SUPERADMIN' || decoded?.rol === 'SYSTEMADMIN';
+    return decoded?.rol === 'ADMINISTRADOR' || decoded?.rol === 'SUPERADMIN' || decoded?.rol === 'SYSTEMADMIN' || decoded?.rol === 'SISTEMASTECNICO';
   }
 
   get isReadOnly(): boolean {
@@ -190,7 +190,7 @@ export class EquiposTipoSisComponent implements OnInit {
   }
 
   private buildOpciones(equipo: SysEquipo): MenuItem[] {
-    /* if (this.isReadOnly) {
+    if (this.isReadOnly) {
       return [
         { label: 'Ver Detalles',          icon: 'pi pi-eye',             command: () => this.openDetailModal(equipo) },
         { label: 'Ver Reportes Entrega',  icon: 'fas fa-clipboard-list', command: () => this.openReportesList(equipo) },
@@ -198,10 +198,9 @@ export class EquiposTipoSisComponent implements OnInit {
         { label: 'Ver Historial',         icon: 'fas fa-history',        command: () => this.openHistorialModal(equipo) },
         { label: 'Registro de Traslados', icon: 'fas fa-exchange-alt',   command: () => this.openTrasladosModal(equipo) },
       ];
-    } */
+    }
     const items: MenuItem[] = [
       { label: 'Ver Detalles',          icon: 'pi pi-eye',             command: () => this.openDetailModal(equipo) },
-      { label: 'Editar',                icon: 'pi pi-pencil',          command: () => this.openEditModal(equipo) },
       { label: 'Reporte de Entrega',    icon: 'fas fa-file-export',    command: () => this.openReporteForm(equipo) },
       { label: 'Ver Reportes Entrega',  icon: 'fas fa-clipboard-list', command: () => this.openReportesList(equipo) },
       { label: 'Ver Reportes de Casos', icon: 'pi pi-list',            command: () => this.router.navigate(['/adminsistemas/reportesequipo', equipo.id_sysequipo]) },
@@ -209,6 +208,7 @@ export class EquiposTipoSisComponent implements OnInit {
       { label: 'Registro de Traslados', icon: 'fas fa-exchange-alt',   command: () => this.openTrasladosModal(equipo) },
     ];
     if (this.isAdmin) {
+      items.splice(1, 0, { label: 'Editar', icon: 'pi pi-pencil', command: () => this.openEditModal(equipo) });
       items.push(
         { label: 'Plan de Mantenimiento',  icon: 'pi pi-calendar',   command: () => this.openPlanDialog(equipo) },
         { label: 'Nuevo Reporte de Casos', icon: 'pi pi-plus',       command: () => this.router.navigate(['/adminsistemas/nuevoreporte', equipo.id_sysequipo]) },

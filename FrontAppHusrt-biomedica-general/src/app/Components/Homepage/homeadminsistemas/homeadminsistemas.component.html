@@ -56,15 +56,23 @@
         <h3>Mantenimiento</h3>
         <p>Gestión de mantenimientos de equipos de sistemas.</p>
         <div class="sub-actions">
-
-          <button class="sub-action-btn" (click)="irACalendarioEquipo()">
-            <i class="pi pi-th-large"></i>
-            <span>Programar Mantenimiento</span>
-            <i class="pi pi-arrow-right sub-arrow"></i>
-          </button>
+          @if (!isTecnico && !isSystemUser) {
+            <button class="sub-action-btn" (click)="irACalendarioEquipo()">
+              <i class="pi pi-calendar"></i>
+              <span>Programar Mantenimiento</span>
+              <i class="pi pi-arrow-right sub-arrow"></i>
+            </button>
+          }
+          @if (isTecnico) {
+            <button class="sub-action-btn" (click)="irAPendientesTecnico()">
+              <i class="pi pi-clock"></i>
+              <span>Mis Pendientes</span>
+              <i class="pi pi-arrow-right sub-arrow"></i>
+            </button>
+          }
           <button class="sub-action-btn" (click)="irAMantenimientosEquipos()">
-            <i class="fas fa-warehouse"></i>
-            <span>Realizar Mantenimiento</span>
+            <i class="pi pi-wrench"></i>
+            <span>{{ isTecnico ? 'Realizar Mantenimiento' : 'Ver Mantenimientos' }}</span>
             <i class="pi pi-arrow-right sub-arrow"></i>
           </button>
         </div>

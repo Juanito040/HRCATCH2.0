@@ -12,8 +12,10 @@
 
         <ng-template #end>
             <div class="flex align-items-center gap-3">
-                <button pButton label="Pendientes" icon="pi pi-bell" class="p-button-text"
-                    routerLink="usersistemas/tecnico/pendientes"></button>
+                @if (!isSystemUser) {
+                  <button pButton label="Pendientes" icon="pi pi-bell" class="p-button-text"
+                      routerLink="/adminsistemas/tecnico/pendientes"></button>
+                }
                 <div class="flex align-items-center gap-2">
                     <p-avatar icon="pi pi-user" styleClass="mr-2 cursor-pointer" shape="circle"
                         [style]="{'background-color': '#eef2ff', 'color': '#0056b3'}" (click)="viewUser()"

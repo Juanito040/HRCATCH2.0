@@ -28,6 +28,9 @@
                 <label for="nombre_equipo">Nombre del Equipo <span class="required">*</span></label>
                 <input type="text" id="nombre_equipo" formControlName="nombre_equipo"
                   [class.error]="hasError('nombre_equipo')" placeholder="Ej: PC-ADMIN-01" />
+                @if (equipoForm.get('nombre_equipo')?.pending) {
+                  <span class="checking-message"><i class="pi pi-spin pi-spinner"></i> Verificando disponibilidad...</span>
+                }
                 @if (hasError('nombre_equipo')) {
                   <span class="error-message">{{ getErrorMessage('nombre_equipo') }}</span>
                 }
@@ -36,7 +39,7 @@
 
             <div class="form-row">
               <div class="form-group">
-                <label for="marca">Marca</label>
+                <label for="marca">Marca <span class="required">*</span></label>
                 <input type="text" id="marca" formControlName="marca"
                   [class.error]="hasError('marca')" placeholder="Ej: Dell, HP, Lenovo" />
                 @if (hasError('marca')) {
@@ -44,7 +47,7 @@
                 }
               </div>
               <div class="form-group">
-                <label for="modelo">Modelo</label>
+                <label for="modelo">Modelo <span class="required">*</span></label>
                 <input type="text" id="modelo" formControlName="modelo"
                   [class.error]="hasError('modelo')" placeholder="Ej: OptiPlex 9020" />
                 @if (hasError('modelo')) {
@@ -55,17 +58,17 @@
 
             <div class="form-row">
               <div class="form-group">
-                <label for="serie">Número de Serie</label>
+                <label for="serie">Número de Serie <span class="required">*</span></label>
                 <input type="text" id="serie" formControlName="serie"
-                  [class.error]="hasError('serie')" placeholder="Ej: SN-123456789" />
+                  [class.error]="hasError('serie')" placeholder="Ej: SN-123456789 (sin espacios)" />
                 @if (hasError('serie')) {
                   <span class="error-message">{{ getErrorMessage('serie') }}</span>
                 }
               </div>
               <div class="form-group">
-                <label for="placa_inventario">Placa de Inventario</label>
+                <label for="placa_inventario">Placa de Inventario <span class="required">*</span></label>
                 <input type="text" id="placa_inventario" formControlName="placa_inventario"
-                  [class.error]="hasError('placa_inventario')" placeholder="Ej: INV-2025-001" />
+                  [class.error]="hasError('placa_inventario')" placeholder="Ej: INV-2025-001 (sin espacios)" />
                 @if (hasError('placa_inventario')) {
                   <span class="error-message">{{ getErrorMessage('placa_inventario') }}</span>
                 }
@@ -74,17 +77,21 @@
 
             <div class="form-row">
               <div class="form-group">
-                <label for="codigo">Código</label>
+                <label for="codigo">Código <span class="required">*</span></label>
                 <input type="text" id="codigo" formControlName="codigo"
-                  [class.error]="hasError('codigo')" placeholder="Ej: EQ-001" />
+                  [class.error]="hasError('codigo')" placeholder="Ej: EQ-001 (sin espacios)" />
                 @if (hasError('codigo')) {
                   <span class="error-message">{{ getErrorMessage('codigo') }}</span>
                 }
               </div>
               <div class="form-group">
-                <label for="ano_ingreso">Año de Ingreso</label>
-                <input type="number" id="ano_ingreso" formControlName="ano_ingreso"
-                  [class.error]="hasError('ano_ingreso')" placeholder="Ej: 2025" min="1900" max="2100" />
+                <label for="ano_ingreso">Año de Ingreso <span class="required">*</span></label>
+                <select id="ano_ingreso" formControlName="ano_ingreso" [class.error]="hasError('ano_ingreso')">
+                  <option value="">Seleccionar año...</option>
+                  @for (year of years; track year) {
+                    <option [value]="year">{{ year }}</option>
+                  }
+                </select>
                 @if (hasError('ano_ingreso')) {
                   <span class="error-message">{{ getErrorMessage('ano_ingreso') }}</span>
                 }
@@ -98,7 +105,7 @@
 
             <div class="form-row">
               <div class="form-group">
-                <label for="ubicacion">Ubicación</label>
+                <label for="ubicacion">Ubicación <span class="required">*</span></label>
                 <input type="text" id="ubicacion" formControlName="ubicacion"
                   [class.error]="hasError('ubicacion')" placeholder="Ej: Piso 2, Ala Norte" />
                 @if (hasError('ubicacion')) {
@@ -106,7 +113,7 @@
                 }
               </div>
               <div class="form-group">
-                <label for="ubicacion_especifica">Ubicación Específica</label>
+                <label for="ubicacion_especifica">Ubicación Específica <span class="required">*</span></label>
                 <input type="text" id="ubicacion_especifica" formControlName="ubicacion_especifica"
                   [class.error]="hasError('ubicacion_especifica')" placeholder="Ej: Sala 201, Escritorio 5" />
                 @if (hasError('ubicacion_especifica')) {
@@ -142,7 +149,7 @@
 
             <div class="form-row">
               <div class="form-group">
-                <label for="periodicidad">Tipo de Mantenimiento</label>
+                <label for="periodicidad">Tipo de Mantenimiento <span class="required">*</span></label>
                 <select id="periodicidad" formControlName="periodicidad" [class.error]="hasError('periodicidad')">
                   <option value="">Seleccionar...</option>
                   <option [value]="30">MENSUAL (30 días)</option>
@@ -177,7 +184,7 @@
 
             <div class="form-row">
               <div class="form-group">
-                <label for="dias_mantenimiento">Días de Mantenimiento</label>
+                <label for="dias_mantenimiento">Días de Mantenimiento <span class="required">*</span></label>
                 <input type="number" id="dias_mantenimiento" formControlName="dias_mantenimiento"
                   [class.error]="hasError('dias_mantenimiento')" placeholder="Ej: 30" min="0" />
                 @if (hasError('dias_mantenimiento')) {
@@ -230,7 +237,7 @@
 
             <div class="form-row">
               <div class="form-group">
-                <label for="id_sede_fk">Sede</label>
+                <label for="id_sede_fk">Sede <span class="required">*</span></label>
                 <select id="id_sede_fk" formControlName="id_sede_fk" [class.error]="hasError('id_sede_fk')"
                   (change)="onSedeChange($any($event.target).value)">
                   <option value="">Todas las sedes...</option>
@@ -244,7 +251,7 @@
               </div>
               <div></div>
               <div class="form-group">
-                <label for="id_servicio_fk">Servicio</label>
+                <label for="id_servicio_fk">Servicio <span class="required">*</span></label>
                 <select id="id_servicio_fk" formControlName="id_servicio_fk" [class.error]="hasError('id_servicio_fk')">
                   <option value="">Seleccionar...</option>
                   @for (servicio of servicios; track servicio.id) {
@@ -257,7 +264,7 @@
               </div>
               <div></div>
               <div class="form-group">
-                <label for="id_tipo_equipo_fk">Tipo de Equipo</label>
+                <label for="id_tipo_equipo_fk">Tipo de Equipo <span class="required">*</span></label>
                 <select id="id_tipo_equipo_fk" formControlName="id_tipo_equipo_fk" [class.error]="hasError('id_tipo_equipo_fk')">
                   <option value="">Seleccionar...</option>
                   @for (tipoEquipo of tiposEquipo; track tipoEquipo.id) {
@@ -272,7 +279,7 @@
 <div></div>
             <div class="form-row">
               <div class="form-group">
-                <label for="id_usuario_fk">Usuario Responsable</label>
+                <label for="id_usuario_fk">Usuario Responsable <span class="required">*</span></label>
                 <select id="id_usuario_fk" formControlName="id_usuario_fk" [class.error]="hasError('id_usuario_fk')">
                   <option value="">Seleccionar...</option>
                   @for (usuario of usuarios; track usuario.id) {

@@ -111,7 +111,7 @@
         <button class="btn btn-info" (click)="verHojaVida()" type="button">
           <i class="fas fa-file-alt"></i> Hoja de Vida
         </button>
-        @if (isAdmin) {
+        @if (isAdmin && !equipo.estado_baja) {
           <button class="btn btn-primary" (click)="requestEdit()" type="button">Editar Equipo</button>
         }
       </div>

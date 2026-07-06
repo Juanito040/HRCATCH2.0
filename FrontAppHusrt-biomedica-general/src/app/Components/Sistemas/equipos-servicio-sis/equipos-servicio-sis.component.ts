@@ -209,13 +209,13 @@ export class EquiposServicioSisComponent implements OnInit, OnDestroy {
     }
     const items: MenuItem[] = [
       { label: 'Ver Detalles',          icon: 'pi pi-eye',             command: () => this.openDetailModal(equipo) },
-      { label: 'Editar',                icon: 'pi pi-pencil',          command: () => this.openEditModal(equipo) },
       { label: 'Reporte de Entrega',    icon: 'fas fa-file-export',    command: () => this.openReporteForm(equipo) },
       { label: 'Ver Reportes',          icon: 'fas fa-clipboard-list', command: () => this.openReportesList(equipo) },
       { label: 'Ver Historial',         icon: 'fas fa-history',        command: () => this.openHistorialModal(equipo) },
       { label: 'Registro de Traslados', icon: 'fas fa-exchange-alt',   command: () => this.openTrasladosModal(equipo) },
     ];
     if (this.isAdmin) {
+      items.splice(1, 0, { label: 'Editar', icon: 'pi pi-pencil', command: () => this.openEditModal(equipo) });
       items.push(
         { label: 'Enviar a Bodega',       icon: 'fas fa-warehouse',   command: () => this.confirmBodega(equipo) },
         { label: 'Dar de Baja',           icon: 'pi pi-ban',          command: () => this.confirmBaja(equipo) },

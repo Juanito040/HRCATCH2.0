@@ -32,13 +32,26 @@ export class HomeadminsistemasComponent implements OnInit {
   irAEquiposBodega() { this.router.navigate(['/adminsistemas/equipos'], { queryParams: { vista: 'bodega' } }); }
   irAEquiposBaja() { this.router.navigate(['/adminsistemas/equipos'], { queryParams: { vista: 'baja' } }); }
   irATiposEquipos() { this.router.navigate(['/adminsistemas/tiposequipo']); }
-  irAMantenimientosEquipos() { this.router.navigate(['/adminsistemas/mantenimientos']); }
+  irAMantenimientosEquipos() {
+    if (this.isTecnico) {
+      this.router.navigate(['/adminsistemas/tecnico/mantenimiento']);
+    } else {
+      this.router.navigate(['/adminsistemas/mantenimientos']);
+    }
+  }
+  irAPendientesTecnico() { this.router.navigate(['/adminsistemas/tecnico/pendientes']); }
   irAProtocolos() { this.router.navigate(['/adminsistemas/protocolos']); }
   irAParametrizacion() { this.router.navigate(['/adminsistemas/parametrizacion']); }
   irAMesa() { this.router.navigate(['/adminmesaservicios/casos']); }
   irAUsuarios() { this.router.navigate(['/admusuarios']); }
   irACalendarioEquipo() { this.router.navigate(['/adminsistemas/planMantenimiento']); }
-  irARepuestos() { this.router.navigate(['/adminsistemas/repuestos']); }
+  irARepuestos() {
+    if (this.isTecnico) {
+      this.router.navigate(['/adminsistemas/tecnico/repuestos']);
+    } else {
+      this.router.navigate(['/adminsistemas/repuestos']);
+    }
+  }
   irAServiciosSis() { this.router.navigate(['/adminsistemas/servicios']); }
   irASedesSis() { this.router.navigate(['/adminsistemas/sedes']); }
   irAIndicadores() { this.router.navigate(['/adminsistemas/indicadores']); }

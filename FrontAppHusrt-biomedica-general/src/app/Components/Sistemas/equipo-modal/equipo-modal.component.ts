@@ -1,6 +1,8 @@
 import { Component, DestroyRef, EventEmitter, inject, Input, OnInit, OnDestroy, Output, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, AsyncValidatorFn, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { Observable, of, timer } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
 import { SysequiposService, SysEquipo } from '../../../Services/appServices/sistemasServices/sysequipos/sysequipos.service';
 import { ServicioService } from '../../../Services/appServices/general/servicio/servicio.service';
 import { TipoEquipoService } from '../../../Services/appServices/general/tipoEquipo/tipo-equipo.service';
@@ -54,6 +56,11 @@ export class SysEquipoModalComponent implements OnInit, OnChanges, OnDestroy {
 
   fechasMantenimiento: number[] = [];
   hojaVidaExpanded: boolean = true;
+  readonly currentYear = new Date().getFullYear();
+  readonly years: number[] = Array.from(
+    { length: new Date().getFullYear() - 1950 + 1 },
+    (_, i) => new Date().getFullYear() - i
+  );
   camposHV: CamposHV = {
     ip: true, mac: true, procesador: true, ram: true, disco: true,
     tonner: true, so: true, office: true, nombre_usuario: true,
@@ -98,6 +105,40 @@ export class SysEquipoModalComponent implements OnInit, OnChanges, OnDestroy {
       this.errorMessage = null;
     }
   }
+
+  // ── Validadores personalizados ─────────────────────────────────────────────
+
+  private static sinEspacios(control: AbstractControl): ValidationErrors | null {
+    if (!control.value) return null;
+    return /\s/.test(control.value) ? { sinEspacios: true } : null;
+  }
+
+  private static formatoCodigo(control: AbstractControl): ValidationErrors | null {
+    if (!control.value) return null;
+    return /^[A-Za-z0-9\-_]+$/.test(control.value) ? null : { formatoCodigo: true };
+  }
+
+  private nombreUnicoValidator(): AsyncValidatorFn {
+    return (control: AbstractControl): Observable<ValidationErrors | null> => {
+      const nombre = (control.value || '').trim();
+      if (!nombre) return of(null);
+      return timer(500).pipe(
+        switchMap(() => this.sysequiposService.getEquipos({ search: nombre, includeAll: true })),
+        map(response => {
+          if (!response.success) return null;
+          const lista = Array.isArray(response.data) ? response.data : [response.data];
+          const duplicado = lista.find(e =>
+            e.nombre_equipo?.toLowerCase() === nombre.toLowerCase() &&
+            e.id_sysequipo !== this.equipo?.id_sysequipo
+          );
+          return duplicado ? { nombreDuplicado: true } : null;
+        }),
+        catchError(() => of(null))
+      );
+    };
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
 
   async loadLookupData() {
     try {
@@ -185,27 +226,28 @@ export class SysEquipoModalComponent implements OnInit, OnChanges, OnDestroy {
 
   initForm() {
     this.equipoForm = this.fb.group({
-      nombre_equipo: ['', [Validators.required, Validators.maxLength(255)]],
-      marca: ['', [Validators.maxLength(255)]],
-      modelo: ['', [Validators.maxLength(255)]],
-      serie: ['', [Validators.maxLength(255)]],
-      placa_inventario: ['', [Validators.maxLength(255)]],
-      codigo: ['', [Validators.maxLength(255)]],
-      ubicacion: ['', [Validators.maxLength(255)]],
-      ubicacion_especifica: ['', [Validators.maxLength(255)]],
+      nombre_equipo:        ['', [Validators.required, Validators.maxLength(255)], [this.nombreUnicoValidator()]],
+      marca:                ['', [Validators.required, Validators.maxLength(255)]],
+      modelo:               ['', [Validators.required, Validators.maxLength(255)]],
+      serie:                ['', [Validators.required, Validators.maxLength(80), SysEquipoModalComponent.sinEspacios, SysEquipoModalComponent.formatoCodigo]],
+      placa_inventario:     ['', [Validators.required, Validators.maxLength(255), SysEquipoModalComponent.sinEspacios, SysEquipoModalComponent.formatoCodigo]],
+      codigo:               ['', [Validators.required, Validators.maxLength(255), SysEquipoModalComponent.sinEspacios, SysEquipoModalComponent.formatoCodigo]],
+      ubicacion:            ['', [Validators.required, Validators.maxLength(255)]],
+      ubicacion_especifica: ['', [Validators.required, Validators.maxLength(255)]],
       activo: [1],
-      ano_ingreso: ['', [Validators.min(1900), Validators.max(2100)]],
-      dias_mantenimiento: ['', [Validators.min(0)]],
-      periodicidad: ['', [Validators.min(0)]],
-      administrable: [0],
-      direccionamiento_Vlan: ['', [Validators.maxLength(255)]],
-      numero_puertos: ['', [Validators.min(0)]],
+      ano_ingreso:          ['', [Validators.required]],
+      dias_mantenimiento:   ['', [Validators.required, Validators.min(0)]],
+      periodicidad:         ['', [Validators.required]],
+      // Configuración de Red — no obligatoria
+      administrable:        [0],
+      direccionamiento_Vlan:['', [Validators.maxLength(255)]],
+      numero_puertos:       ['', [Validators.min(0)]],
       mtto: [1],
       preventivo_s: [false],
-      id_sede_fk: [''],
-      id_servicio_fk: [''],
-      id_tipo_equipo_fk: [''],
-      id_usuario_fk: [''],
+      id_sede_fk:           ['', [Validators.required]],
+      id_servicio_fk:       ['', [Validators.required]],
+      id_tipo_equipo_fk:    ['', [Validators.required]],
+      id_usuario_fk:        ['', [Validators.required]],
       // Hoja de vida (solo se usa al crear)
       ip: [''],
       mac: [''],
@@ -254,6 +296,9 @@ export class SysEquipoModalComponent implements OnInit, OnChanges, OnDestroy {
     if (field.hasError('maxlength')) return `Máximo ${field.errors?.['maxlength'].requiredLength} caracteres`;
     if (field.hasError('min')) return `Valor mínimo: ${field.errors?.['min'].min}`;
     if (field.hasError('max')) return `Valor máximo: ${field.errors?.['max'].max}`;
+    if (field.hasError('nombreDuplicado')) return 'Ya existe un equipo con este nombre';
+    if (field.hasError('sinEspacios')) return 'No se permiten espacios';
+    if (field.hasError('formatoCodigo')) return 'Solo letras, números y guiones (Ej: SN-123456, INV-2025-001)';
     return '';
   }
 
@@ -338,12 +383,78 @@ export class SysEquipoModalComponent implements OnInit, OnChanges, OnDestroy {
     this.closed.emit();
   }
 
-  save() {
+  private hojaVidaEstaVacia(): boolean {
+    const campos = ['ip', 'mac', 'procesador', 'ram', 'disco_duro', 'sistema_operativo',
+      'office', 'tonner', 'nombre_usuario', 'vendedor', 'tipo_uso',
+      'fecha_compra', 'fecha_instalacion', 'costo_compra', 'contrato'];
+    return campos.every(f => !this.equipoForm.get(f)?.value);
+  }
+
+  async save() {
+    if (this.equipoForm.pending) {
+      Swal.fire({ icon: 'info', title: 'Verificando', text: 'Espere mientras se validan los datos...', timer: 1500, showConfirmButton: false });
+      return;
+    }
     if (this.equipoForm.invalid) {
       Object.keys(this.equipoForm.controls).forEach(key => {
         this.equipoForm.get(key)?.markAsTouched();
       });
+
+      const LABELS: Record<string, string> = {
+        nombre_equipo:        'Nombre del Equipo',
+        marca:                'Marca',
+        modelo:               'Modelo',
+        serie:                'Número de Serie',
+        placa_inventario:     'Placa de Inventario',
+        codigo:               'Código',
+        ano_ingreso:          'Año de Ingreso',
+        ubicacion:            'Ubicación',
+        ubicacion_especifica: 'Ubicación Específica',
+        periodicidad:         'Tipo de Mantenimiento',
+        dias_mantenimiento:   'Días de Mantenimiento',
+        id_sede_fk:           'Sede',
+        id_servicio_fk:       'Servicio',
+        id_tipo_equipo_fk:    'Tipo de Equipo',
+        id_usuario_fk:        'Usuario Responsable',
+      };
+
+      const errores: string[] = [];
+      for (const [key, label] of Object.entries(LABELS)) {
+        const ctrl = this.equipoForm.get(key);
+        if (!ctrl || !ctrl.errors) continue;
+        if (ctrl.hasError('required'))      errores.push(`• <b>${label}</b>: campo obligatorio`);
+        if (ctrl.hasError('nombreDuplicado')) errores.push(`• <b>${label}</b>: ya existe un equipo con ese nombre`);
+        if (ctrl.hasError('sinEspacios'))   errores.push(`• <b>${label}</b>: no se permiten espacios`);
+        if (ctrl.hasError('formatoCodigo')) errores.push(`• <b>${label}</b>: formato inválido (use letras, números y guiones)`);
+        if (ctrl.hasError('maxlength'))     errores.push(`• <b>${label}</b>: texto demasiado largo`);
+      }
+
+      if (errores.length > 0) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Completa los campos requeridos',
+          html: errores.join('<br>'),
+          confirmButtonText: 'Entendido',
+          confirmButtonColor: '#1a5f7a'
+        });
+      }
       return;
+    }
+
+    // Advertencia si la hoja de vida está vacía (solo al crear)
+    if (this.isCreatingEquipo && this.hojaVidaEstaVacia()) {
+      const resultado = await Swal.fire({
+        icon: 'warning',
+        title: 'Hoja de vida no completada',
+        text: 'No has completado la hoja de vida del equipo. Se recomienda registrarla para tener el historial técnico completo.',
+        showCancelButton: true,
+        confirmButtonText: 'Continuar sin hoja de vida',
+        cancelButtonText: 'Volver a completarla',
+        confirmButtonColor: '#f59e0b',
+        cancelButtonColor: '#1a5f7a',
+        reverseButtons: true
+      });
+      if (!resultado.isConfirmed) return;
     }
 
     this.isSubmitting = true;

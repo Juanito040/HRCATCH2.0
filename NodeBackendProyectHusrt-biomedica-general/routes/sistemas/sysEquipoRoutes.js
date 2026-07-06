@@ -182,7 +182,9 @@ router.get('/exportar', async (req, res) => {
 
     ws.mergeCells('A2:C2');
     const cVersion = ws.getCell('A2');
-    cVersion.value = 'VERSIÓN: 01    FECHA: 05/08/2021';
+    const diaHoy = hoy.getDate().toString().padStart(2, '0');
+    const mesHoy = (hoy.getMonth() + 1).toString().padStart(2, '0');
+    cVersion.value = `VERSIÓN: 01    FECHA: ${diaHoy}/${mesHoy}/${hoy.getFullYear()}`;
     estiloCabecera(cVersion);
 
     ws.mergeCells('D2:G2');
@@ -196,6 +198,17 @@ router.get('/exportar', async (req, res) => {
       const imageId = workbook.addImage({ buffer: logoBuffer, extension: 'png' });
       ws.addImage(imageId, { tl: { col: 7.1, row: 0.05 }, br: { col: 8.9, row: 1.95 }, editAs: 'oneCell' });
     }
+
+    // Fecha de emisión del reporte
+    const mesesES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    const fechaEmisionStr = `${hoy.getDate()} de ${mesesES[hoy.getMonth()]} de ${hoy.getFullYear()}`;
+    ws.mergeCells('J1:L2');
+    const cEmision = ws.getCell('J1');
+    cEmision.value = `FECHA DE EMISIÓN:\n${fechaEmisionStr.toUpperCase()}`;
+    cEmision.font      = { bold: true, size: 8, color: { argb: 'FF1E3A5F' } };
+    cEmision.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE8F0FE' } };
+    cEmision.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+    cEmision.border    = borderNegro;
 
     if (incluirObsolescencia) {
       // ============================================================
@@ -593,6 +606,83 @@ router.get('/exportar', async (req, res) => {
       });
     }
 
+    // ============================================================
+    // HOJA DE LEYENDA DE COLORES
+    // ============================================================
+    const wsL = workbook.addWorksheet('Leyenda de Colores');
+    wsL.columns = [
+      { key: 'color',  width: 4  },
+      { key: 'etiq',   width: 22 },
+      { key: 'desc',   width: 52 },
+    ];
+
+    const lB = borderNegro;
+    const bloque = (bg, fg, etiqueta, descripcion) => {
+      const r = wsL.addRow(['', etiqueta, descripcion]);
+      r.height = 26;
+      r.getCell(1).fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: bg } };
+      r.getCell(1).border    = lB;
+      r.getCell(2).value     = etiqueta;
+      r.getCell(2).font      = { bold: true, color: { argb: fg }, size: 11 };
+      r.getCell(2).fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: bg } };
+      r.getCell(2).alignment = { horizontal: 'center', vertical: 'middle' };
+      r.getCell(2).border    = lB;
+      r.getCell(3).font      = { size: 11 };
+      r.getCell(3).alignment = { vertical: 'middle', wrapText: true };
+      r.getCell(3).border    = lB;
+    };
+    const seccion = (titulo) => {
+      wsL.addRow([]);
+      const n = wsL.lastRow.number;
+      wsL.mergeCells(`A${n}:C${n}`);
+      const c = wsL.getCell(`A${n}`);
+      c.value     = titulo;
+      c.font      = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+      c.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E3A5F' } };
+      c.alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
+      c.border    = lB;
+      wsL.getRow(n).height = 24;
+    };
+
+    // ── Encabezado ──────────────────────────────────────────────
+    wsL.mergeCells('A1:C1');
+    const lTit = wsL.getCell('A1');
+    lTit.value     = 'LEYENDA DE COLORES — INVENTARIO SISTEMAS';
+    lTit.font      = { bold: true, color: { argb: 'FFFFFFFF' }, size: 14 };
+    lTit.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E3A5F' } };
+    lTit.alignment = { horizontal: 'center', vertical: 'middle' };
+    lTit.border    = lB;
+    wsL.getRow(1).height = 34;
+
+    // ── Sección 1: Estado del equipo ────────────────────────────
+    seccion('ESTADO DEL EQUIPO');
+    bloque('FFC6EFCE', 'FF166534', '🟢  ACTIVO',       'El equipo está en uso y operativo.');
+    bloque('FFFFEB9C', 'FF92400E', '🟡  EN BODEGA',    'El equipo está guardado temporalmente, fuera de servicio.');
+    bloque('FFFFC7CE', 'FF9B1C1C', '🔴  DADO DE BAJA', 'El equipo fue retirado definitivamente del inventario.');
+
+    if (incluirObsolescencia) {
+      // ── Sección 2: Riesgo de obsolescencia ──────────────────
+      seccion('RIESGO DE OBSOLESCENCIA');
+      bloque('FFC6EFCE', 'FF166534', '🟢  RIESGO BAJO',   'El equipo está en buen estado. No requiere reemplazo.');
+      bloque('FFFFEB9C', 'FF92400E', '🟡  RIESGO MEDIO',  'El equipo presenta desgaste. Hacer seguimiento.');
+      bloque('FFFFC7CE', 'FF9B1C1C', '🔴  RIESGO ALTO',   'El equipo está obsoleto. Se recomienda reemplazo urgente.');
+
+      // ── Sección 3: Puntaje por ítem ─────────────────────────
+      seccion('PUNTAJE POR CRITERIO (columnas de Puntaje)');
+      bloque('FFC6EFCE', 'FF166534', '🟢  1.0 — Óptimo',  'Cumple el criterio satisfactoriamente.');
+      bloque('FFFFEB9C', 'FF92400E', '🟡  0.5 — Regular',  'Cumple parcialmente. Requiere atención.');
+      bloque('FFFFC7CE', 'FF9B1C1C', '🔴  0.0 — Crítico',  'No cumple el criterio o no hay datos registrados.');
+    }
+
+    // ── Nota ────────────────────────────────────────────────────
+    wsL.addRow([]);
+    wsL.mergeCells(`A${wsL.lastRow.number}:C${wsL.lastRow.number}`);
+    const lNota = wsL.getCell(`A${wsL.lastRow.number}`);
+    lNota.value     = 'Reporte generado por HRCATCH 2.0 — ESE Hospital Universitario San Rafael de Tunja';
+    lNota.font      = { italic: true, color: { argb: 'FF9CA3AF' }, size: 9 };
+    lNota.alignment = { horizontal: 'center', vertical: 'middle' };
+
+    // ============================================================
     const buffer = await workbook.xlsx.writeBuffer();
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename="${nombreArchivo}.xlsx"`);
