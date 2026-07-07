@@ -11,12 +11,56 @@ const Servicio = require('../../models/generales/Servicio');
 const Sede = require('../../models/generales/Sede');
 const TipoEquipo = require('../../models/generales/TipoEquipo');
 const Usuario = require('../../models/generales/Usuario');
+const { toDateOnlyOrNull, yearToDateOnly } = require('../../utilities/sanitizeDates');
+
+const CAMPOS_FECHA_HV = ['fecha_compra', 'fecha_instalacion', 'fecha_inicio_soporte'];
+
+// Sanea ano_ingreso (año → 'YYYY-01-01') en los datos del equipo.
+function sanearEquipoData(data) {
+    if (data && 'ano_ingreso' in data) data.ano_ingreso = yearToDateOnly(data.ano_ingreso);
+    return data;
+}
+
+// Sanea las columnas de fecha de la hoja de vida.
+function sanearHojaVida(hv) {
+    if (!hv) return hv;
+    for (const campo of CAMPOS_FECHA_HV) {
+        if (campo in hv) hv[campo] = toDateOnlyOrNull(hv[campo]);
+    }
+    return hv;
+}
 
 const CAMPOS_AUDITADOS = [
     'nombre_equipo', 'marca', 'modelo', 'serie', 'placa_inventario',
-    'codigo', 'ubicacion', 'ubicacion_especifica', 'activo',
+    'codigo', 'ubicacion', 'ubicacion_especifica', 'ano_ingreso', 'activo',
+    'mtto', 'preventivo_s', 'periodicidad', 'dias_mantenimiento',
+    'administrable', 'numero_puertos', 'direccionamiento_Vlan',
     'id_servicio_fk', 'id_tipo_equipo_fk', 'id_usuario_fk'
 ];
+
+// Llaves foráneas cuyo ID se traduce a nombre legible en el historial.
+const FK_CAMPOS = new Set(['id_servicio_fk', 'id_tipo_equipo_fk', 'id_usuario_fk']);
+
+async function resolverNombreFk(campo, valor) {
+    if (valor === null || valor === undefined || valor === '') return null;
+    try {
+        if (campo === 'id_servicio_fk') {
+            const s = await Servicio.findByPk(valor);
+            return s?.nombres ?? valor;
+        }
+        if (campo === 'id_tipo_equipo_fk') {
+            const te = await TipoEquipo.findByPk(valor);
+            return te?.nombres ?? valor;
+        }
+        if (campo === 'id_usuario_fk') {
+            const u = await Usuario.findByPk(valor);
+            return u ? `${u.nombres || ''} ${u.apellidos || ''}`.trim() || valor : valor;
+        }
+    } catch (e) {
+        console.error('Error resolviendo FK para historial:', e.message);
+    }
+    return valor;
+}
 
 async function registrarTrazabilidad({ accion, detalles, equipoId, usuarioId, transaction }) {
     try {
@@ -94,9 +138,16 @@ exports.getAllSysEquipos = async (req, res) => {
             ];
         }
 
+        // En modo "todos" se incluyen los datos de baja y bodega para poder
+        // mostrar sus motivos en el detalle sin importar el estado del equipo.
+        const incluirTodo = includeAll === 'true' || includeAll === true;
+        const includes = incluirTodo
+            ? [...INCLUDES_BASE, { model: SysBaja, as: 'baja', required: false }, { model: SysBodega, as: 'bodega', required: false }]
+            : INCLUDES_BASE;
+
         const equipos = await SysEquipo.findAll({
             where,
-            include: INCLUDES_BASE,
+            include: includes,
             order: [['createdAt', 'DESC']]
         });
 
@@ -125,6 +176,8 @@ exports.createSysEquipo = async (req, res) => {
     try {
         const { hojaVida, ...equipoData } = req.body;
 
+        sanearEquipoData(equipoData);
+
         // Verificar nombre único (incluyendo equipos en baja/bodega)
         if (equipoData.nombre_equipo) {
             const existente = await SysEquipo.findOne({ where: { nombre_equipo: equipoData.nombre_equipo } });
@@ -137,7 +190,7 @@ exports.createSysEquipo = async (req, res) => {
         const equipo = await SysEquipo.create(equipoData, { transaction: t });
 
         if (hojaVida && Object.keys(hojaVida).length > 0) {
-            await SysHojaVida.create({ ...hojaVida, id_sysequipo_fk: equipo.id_sysequipo }, { transaction: t });
+            await SysHojaVida.create({ ...sanearHojaVida(hojaVida), id_sysequipo_fk: equipo.id_sysequipo }, { transaction: t });
         }
 
         await t.commit();
@@ -165,6 +218,8 @@ exports.updateSysEquipo = async (req, res) => {
     try {
         const { id } = req.params;
         const { hojaVida, ...equipoData } = req.body;
+
+        sanearEquipoData(equipoData);
 
         // Capturar valores anteriores para auditoría
         const equipoAnterior = await SysEquipo.findByPk(id);
@@ -194,6 +249,7 @@ exports.updateSysEquipo = async (req, res) => {
         }
 
         if (hojaVida && Object.keys(hojaVida).length > 0) {
+            sanearHojaVida(hojaVida);
             const existente = await SysHojaVida.findOne({ where: { id_sysequipo_fk: id } });
             if (existente) {
                 await SysHojaVida.update(hojaVida, { where: { id_sysequipo_fk: id }, transaction: t });
@@ -205,7 +261,7 @@ exports.updateSysEquipo = async (req, res) => {
         await t.commit();
 
         // Detectar y registrar campos cambiados
-        const CAMPOS_BOOL = new Set(['activo', 'estado_baja', 'administrable', 'preventivo_s']);
+        const CAMPOS_BOOL = new Set(['activo', 'estado_baja', 'administrable', 'preventivo_s', 'mtto']);
         const normAudit = (campo, val) => CAMPOS_BOOL.has(campo) ? (val ? 1 : 0) : (val ?? '');
         const cambios = CAMPOS_AUDITADOS
             .filter(campo => equipoData[campo] !== undefined &&
@@ -215,6 +271,14 @@ exports.updateSysEquipo = async (req, res) => {
                 anterior: equipoAnterior.dataValues[campo],
                 nuevo: equipoData[campo]
             }));
+
+        // Traducir IDs de llaves foráneas a nombres legibles (fuera de la transacción)
+        for (const c of cambios) {
+            if (FK_CAMPOS.has(c.campo)) {
+                c.anterior = await resolverNombreFk(c.campo, c.anterior);
+                c.nuevo = await resolverNombreFk(c.campo, c.nuevo);
+            }
+        }
 
         if (cambios.length > 0) {
             await registrarTrazabilidad({

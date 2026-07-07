@@ -149,7 +149,15 @@ export class SysHistorialEquipoComponent implements OnChanges, OnDestroy {
       codigo: 'Código',
       ubicacion: 'Ubicación',
       ubicacion_especifica: 'Ubicación específica',
+      ano_ingreso: 'Año de ingreso',
       activo: 'Estado activo',
+      mtto: 'Requiere mantenimiento',
+      preventivo_s: 'Mantenimiento preventivo',
+      periodicidad: 'Periodicidad de mantenimiento',
+      dias_mantenimiento: 'Días de mantenimiento',
+      administrable: 'Administrable',
+      numero_puertos: 'Número de puertos',
+      direccionamiento_Vlan: 'Direccionamiento VLAN',
       id_servicio_fk: 'Servicio',
       id_tipo_equipo_fk: 'Tipo de equipo',
       id_usuario_fk: 'Usuario responsable',
@@ -172,9 +180,27 @@ export class SysHistorialEquipoComponent implements OnChanges, OnDestroy {
       compraddirecta: 'Compra directa',
       convenio: 'Convenio',
       donado: 'Donado',
-      comodato: 'Comodato'
+      comodato: 'Comodato',
+      fecha_inicio_soporte: 'Inicio de soporte',
+      anos_soporte_fabricante: 'Años de soporte'
     };
     return mapa[campo] || campo;
+  }
+
+  private readonly CAMPOS_BOOLEANOS = new Set([
+    'activo', 'mtto', 'preventivo_s', 'administrable',
+    'compraddirecta', 'convenio', 'donado', 'comodato'
+  ]);
+
+  formatValor(campo: string, valor: any): string {
+    if (valor === null || valor === undefined || valor === '') return '—';
+    if (this.CAMPOS_BOOLEANOS.has(campo)) {
+      return (valor === true || valor === 1 || valor === '1' || valor === 'true') ? 'Sí' : 'No';
+    }
+    if (campo === 'ano_ingreso') {
+      return String(valor).slice(0, 4);
+    }
+    return String(valor);
   }
 
   formatearFecha(fecha: string): string {

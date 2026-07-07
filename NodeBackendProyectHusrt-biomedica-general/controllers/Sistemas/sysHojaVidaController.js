@@ -4,12 +4,25 @@ const SysEquipo = require('../../models/Sistemas/SysEquipo');
 const SysTrazabilidad = require('../../models/Sistemas/SysTrazabilidad');
 const Servicio = require('../../models/generales/Servicio');
 const TipoEquipo = require('../../models/generales/TipoEquipo');
+const { toDateOnlyOrNull } = require('../../utilities/sanitizeDates');
+
+// Columnas DATEONLY de la hoja de vida: se sanean para evitar 'Invalid date'.
+const CAMPOS_FECHA_HV = ['fecha_compra', 'fecha_instalacion', 'fecha_inicio_soporte'];
+
+function sanearFechasHV(body) {
+    if (!body) return body;
+    for (const campo of CAMPOS_FECHA_HV) {
+        if (campo in body) body[campo] = toDateOnlyOrNull(body[campo]);
+    }
+    return body;
+}
 
 const CAMPOS_AUDITADOS_HV = [
     'ip', 'mac', 'procesador', 'ram', 'disco_duro', 'sistema_operativo',
     'office', 'tonner', 'nombre_usuario', 'vendedor', 'tipo_uso',
     'fecha_compra', 'fecha_instalacion', 'costo_compra', 'contrato',
-    'observaciones', 'compraddirecta', 'convenio', 'donado', 'comodato'
+    'observaciones', 'compraddirecta', 'convenio', 'donado', 'comodato',
+    'fecha_inicio_soporte', 'anos_soporte_fabricante'
 ];
 
 async function registrarTrazabilidad({ accion, detalles, equipoId, usuarioId }) {
@@ -131,7 +144,7 @@ exports.createSysHojaVida = async (req, res) => {
             return res.status(409).json({ success: false, message: 'Este equipo ya tiene una hoja de vida registrada' });
         }
 
-        const hojaVida = await SysHojaVida.create(req.body);
+        const hojaVida = await SysHojaVida.create(sanearFechasHV(req.body));
         const result = await SysHojaVida.findByPk(hojaVida.id_syshoja_vida, { include: [EQUIPO_INCLUDE] });
 
         res.status(201).json({ success: true, message: 'Hoja de vida creada exitosamente', data: result });
@@ -151,7 +164,7 @@ exports.updateSysHojaVida = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Hoja de vida no encontrada' });
         }
 
-        await hojaVida.update(req.body);
+        await hojaVida.update(sanearFechasHV(req.body));
         const result = await SysHojaVida.findByPk(id, { include: [EQUIPO_INCLUDE] });
 
         res.json({ success: true, message: 'Hoja de vida actualizada exitosamente', data: result });
@@ -165,6 +178,8 @@ exports.updateSysHojaVida = async (req, res) => {
 exports.upsertByEquipo = async (req, res) => {
     try {
         const { equipoId } = req.params;
+
+        sanearFechasHV(req.body);
 
         const equipo = await SysEquipo.findByPk(equipoId);
         if (!equipo) {

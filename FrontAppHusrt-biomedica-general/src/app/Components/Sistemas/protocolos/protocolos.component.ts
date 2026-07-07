@@ -24,6 +24,8 @@ export class SysProtocolosComponent implements OnInit {
   protocolos: SysProtocoloPreventivo[] = [];
   isLoading = false;
   isLoadingProtocolos = false;
+  errorTipos: string | null = null;
+  errorProtocolos: string | null = null;
 
   // Dialog
   isDialogOpen = false;
@@ -40,27 +42,36 @@ export class SysProtocolosComponent implements OnInit {
 
   async cargarTiposEquipo() {
     this.isLoading = true;
+    this.errorTipos = null;
     try {
       const data = await this.tipoEquipoService.getTiposEquiposSistemas();
       this.tiposEquipo = Array.isArray(data) ? data : [];
+      if (this.tiposEquipo.length === 0) {
+        this.errorTipos = 'No hay tipos de equipo de sistemas registrados. Crea uno antes de definir protocolos.';
+      }
     } catch (e) {
       console.error('Error al cargar tipos de equipo', e);
+      this.tiposEquipo = [];
+      this.errorTipos = extractError(e, 'cargar los tipos de equipo');
     } finally {
       this.isLoading = false;
     }
   }
 
   async onTipoEquipoChange() {
+    this.errorProtocolos = null;
     if (!this.selectedTipoEquipoId) {
       this.protocolos = [];
       return;
     }
     this.isLoadingProtocolos = true;
     try {
-      this.protocolos = await this.protocoloService.getByTipoEquipo(this.selectedTipoEquipoId);
+      const data = await this.protocoloService.getByTipoEquipo(this.selectedTipoEquipoId);
+      this.protocolos = Array.isArray(data) ? data : [];
     } catch (e) {
       console.error('Error al cargar protocolos', e);
       this.protocolos = [];
+      this.errorProtocolos = extractError(e, 'cargar los pasos del protocolo');
     } finally {
       this.isLoadingProtocolos = false;
     }
@@ -107,7 +118,7 @@ export class SysProtocolosComponent implements OnInit {
       await this.onTipoEquipoChange();
       Swal.fire({ icon: 'success', title: this.isEditing ? 'Paso actualizado' : 'Paso agregado', timer: 1500, showConfirmButton: false });
     } catch (e) {
-      this.dialogError = 'Error al guardar el protocolo. Intente nuevamente.';
+      this.dialogError = extractError(e, 'guardar el protocolo');
     } finally {
       this.isSaving = false;
     }

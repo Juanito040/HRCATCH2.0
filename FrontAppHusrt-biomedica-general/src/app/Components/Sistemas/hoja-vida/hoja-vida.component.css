@@ -59,6 +59,7 @@
 .btn-sm:hover:not(:disabled) { background: var(--gray-50, #f9fafb); opacity: 1; }
 .btn-danger { background: #fef2f2; color: #dc2626; border: 1.5px solid #fecaca; }
 .btn-danger:hover:not(:disabled) { background: #fee2e2; opacity: 1; }
+.field-error { font-size: 0.78rem; color: #dc2626; margin-top: 0.2rem; display: block; }
 
 /* ══════════════════════════════════════════════════
    State boxes (loading / error)
@@ -710,3 +711,4 @@
   .modal-box { margin: 1rem; }
   .col-actions { width: 80px; }
 }
+

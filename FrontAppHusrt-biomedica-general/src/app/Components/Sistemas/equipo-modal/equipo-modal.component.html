@@ -86,12 +86,21 @@
               </div>
               <div class="form-group">
                 <label for="ano_ingreso">Año de Ingreso <span class="required">*</span></label>
-                <select id="ano_ingreso" formControlName="ano_ingreso" [class.error]="hasError('ano_ingreso')">
-                  <option value="">Seleccionar año...</option>
-                  @for (year of years; track year) {
-                    <option [value]="year">{{ year }}</option>
-                  }
-                </select>
+                <p-datepicker
+                  [(ngModel)]="selectedAnoIngreso"
+                  [ngModelOptions]="{standalone: true}"
+                  view="year"
+                  dateFormat="yy"
+                  [minDate]="minAnoDate"
+                  [maxDate]="maxAnoDate"
+                  [readonlyInput]="true"
+                  [showIcon]="true"
+                  placeholder="Seleccionar año..."
+                  (onSelect)="onAnoIngresoChange($event)"
+                  styleClass="w-full"
+                  inputStyleClass="w-full"
+                  [class.p-invalid]="hasError('ano_ingreso')">
+                </p-datepicker>
                 @if (hasError('ano_ingreso')) {
                   <span class="error-message">{{ getErrorMessage('ano_ingreso') }}</span>
                 }
@@ -130,68 +139,67 @@
             <div class="form-row">
               <div class="form-group">
                 <label for="mtto">Requiere Mantenimiento</label>
-                <select id="mtto" formControlName="mtto" [class.error]="hasError('mtto')">
+                <select id="mtto" formControlName="mtto">
                   <option [value]="1">Sí</option>
                   <option [value]="0">No</option>
                 </select>
-                @if (hasError('mtto')) {
-                  <span class="error-message">{{ getErrorMessage('mtto') }}</span>
-                }
-              </div>
-              <div class="form-group">
-                <label for="preventivo_s">Mantenimiento Preventivo</label>
-                <select id="preventivo_s" formControlName="preventivo_s" [class.error]="hasError('preventivo_s')">
-                  <option [value]="true">Sí</option>
-                  <option [value]="false">No</option>
-                </select>
               </div>
             </div>
 
-            <div class="form-row">
-              <div class="form-group">
-                <label for="periodicidad">Tipo de Mantenimiento <span class="required">*</span></label>
-                <select id="periodicidad" formControlName="periodicidad" [class.error]="hasError('periodicidad')">
-                  <option value="">Seleccionar...</option>
-                  <option [value]="30">MENSUAL (30 días)</option>
-                  <option [value]="90">TRIMESTRAL (90 días)</option>
-                  <option [value]="120">CUATRIMESTRAL (120 días)</option>
-                  <option [value]="180">SEMESTRAL (180 días)</option>
-                  <option [value]="365">ANUAL (365 días)</option>
-                </select>
-                @if (hasError('periodicidad')) {
-                  <span class="error-message">{{ getErrorMessage('periodicidad') }}</span>
-                }
-              </div>
-            </div>
-
-            @if (fechasMantenimiento.length > 0) {
+            @if (requiereMantenimiento) {
               <div class="form-row">
-                @for (fecha of fechasMantenimiento; track fecha) {
-                  <div class="form-group">
-                    <label [for]="'fecha_mantenimiento_' + (fecha + 1)">
-                      {{ getFechaLabel(fecha) }} <span class="required">*</span>
-                    </label>
-                    <input type="date" [id]="'fecha_mantenimiento_' + (fecha + 1)"
-                      [formControlName]="'fecha_mantenimiento_' + (fecha + 1)"
-                      [class.error]="hasError('fecha_mantenimiento_' + (fecha + 1))" />
-                    @if (hasError('fecha_mantenimiento_' + (fecha + 1))) {
-                      <span class="error-message">{{ getErrorMessage('fecha_mantenimiento_' + (fecha + 1)) }}</span>
-                    }
-                  </div>
-                }
+                <div class="form-group">
+                  <label for="preventivo_s">Mantenimiento Preventivo <span class="required">*</span></label>
+                  <select id="preventivo_s" formControlName="preventivo_s">
+                    <option [value]="true">Sí</option>
+                    <option [value]="false">No</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="periodicidad">Tipo de Mantenimiento <span class="required">*</span></label>
+                  <select id="periodicidad" formControlName="periodicidad" [class.error]="hasError('periodicidad')">
+                    <option value="">Seleccionar...</option>
+                    <option [value]="30">MENSUAL (30 días)</option>
+                    <option [value]="90">TRIMESTRAL (90 días)</option>
+                    <option [value]="120">CUATRIMESTRAL (120 días)</option>
+                    <option [value]="180">SEMESTRAL (180 días)</option>
+                    <option [value]="365">ANUAL (365 días)</option>
+                  </select>
+                  @if (hasError('periodicidad')) {
+                    <span class="error-message">{{ getErrorMessage('periodicidad') }}</span>
+                  }
+                </div>
+              </div>
+
+              @if (fechasMantenimiento.length > 0) {
+                <div class="form-row">
+                  @for (fecha of fechasMantenimiento; track fecha) {
+                    <div class="form-group">
+                      <label [for]="'fecha_mantenimiento_' + (fecha + 1)">
+                        {{ getFechaLabel(fecha) }} <span class="required">*</span>
+                      </label>
+                      <input type="date" [id]="'fecha_mantenimiento_' + (fecha + 1)"
+                        [formControlName]="'fecha_mantenimiento_' + (fecha + 1)"
+                        [class.error]="hasError('fecha_mantenimiento_' + (fecha + 1))" />
+                      @if (hasError('fecha_mantenimiento_' + (fecha + 1))) {
+                        <span class="error-message">{{ getErrorMessage('fecha_mantenimiento_' + (fecha + 1)) }}</span>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="dias_mantenimiento">Días de Mantenimiento <span class="required">*</span></label>
+                  <input type="number" id="dias_mantenimiento" formControlName="dias_mantenimiento"
+                    [class.error]="hasError('dias_mantenimiento')" placeholder="Ej: 30" min="0" />
+                  @if (hasError('dias_mantenimiento')) {
+                    <span class="error-message">{{ getErrorMessage('dias_mantenimiento') }}</span>
+                  }
+                </div>
               </div>
             }
-
-            <div class="form-row">
-              <div class="form-group">
-                <label for="dias_mantenimiento">Días de Mantenimiento <span class="required">*</span></label>
-                <input type="number" id="dias_mantenimiento" formControlName="dias_mantenimiento"
-                  [class.error]="hasError('dias_mantenimiento')" placeholder="Ej: 30" min="0" />
-                @if (hasError('dias_mantenimiento')) {
-                  <span class="error-message">{{ getErrorMessage('dias_mantenimiento') }}</span>
-                }
-              </div>
-            </div>
           </div>
 
           <!-- Configuración de Red -->
@@ -237,7 +245,7 @@
 
             <div class="form-row">
               <div class="form-group">
-                <label for="id_sede_fk">Sede</label>
+                <label for="id_sede_fk">Sede <span class="required">*</span></label>
                 <select id="id_sede_fk" formControlName="id_sede_fk" [class.error]="hasError('id_sede_fk')"
                   (change)="onSedeChange($any($event.target).value)">
                   <option value="">Todas las sedes...</option>
@@ -390,13 +398,21 @@
                       </div>
                       <div class="form-group">
                         <label for="fecha_compra">Fecha de Compra</label>
-                        <input type="date" id="fecha_compra" formControlName="fecha_compra" />
+                        <input type="date" id="fecha_compra" formControlName="fecha_compra"
+                          [attr.max]="hoyStr" />
+                        @if (hasError('fecha_compra')) {
+                          <span class="error-message">{{ getErrorMessage('fecha_compra') }}</span>
+                        }
                       </div>
                     </div>
                     <div class="form-row">
                       <div class="form-group">
                         <label for="fecha_instalacion">Fecha de Instalación</label>
-                        <input type="date" id="fecha_instalacion" formControlName="fecha_instalacion" />
+                        <input type="date" id="fecha_instalacion" formControlName="fecha_instalacion"
+                          [attr.max]="hoyStr" />
+                        @if (hasError('fecha_instalacion')) {
+                          <span class="error-message">{{ getErrorMessage('fecha_instalacion') }}</span>
+                        }
                       </div>
                       <div class="form-group">
                         <label for="costo_compra">Costo de Compra</label>
@@ -449,7 +465,8 @@
                   <div class="form-row">
                     <div class="form-group">
                       <label for="fecha_inicio_soporte">Fecha de Inicio de Soporte</label>
-                      <input type="date" id="fecha_inicio_soporte" formControlName="fecha_inicio_soporte" />
+                      <input type="date" id="fecha_inicio_soporte" formControlName="fecha_inicio_soporte"
+                        [attr.max]="hoyStr" />
                     </div>
                     <div class="form-group">
                       <label for="anos_soporte_fabricante">Años de Soporte del Fabricante</label>

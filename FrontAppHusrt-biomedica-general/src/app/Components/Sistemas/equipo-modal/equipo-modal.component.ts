@@ -1,6 +1,8 @@
 import { Component, DestroyRef, EventEmitter, inject, Input, OnInit, OnDestroy, Output, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { AbstractControl, AsyncValidatorFn, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { DatePickerModule } from 'primeng/datepicker';
 import { Observable, of, timer } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
 import { SysequiposService, SysEquipo } from '../../../Services/appServices/sistemasServices/sysequipos/sysequipos.service';
@@ -34,7 +36,7 @@ interface CamposHV {
 @Component({
   selector: 'app-sys-equipo-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, DatePickerModule],
   templateUrl: './equipo-modal.component.html',
   styleUrls: ['./equipo-modal.component.css']
 })
@@ -57,10 +59,10 @@ export class SysEquipoModalComponent implements OnInit, OnChanges, OnDestroy {
   fechasMantenimiento: number[] = [];
   hojaVidaExpanded: boolean = true;
   readonly currentYear = new Date().getFullYear();
-  readonly years: number[] = Array.from(
-    { length: new Date().getFullYear() - 1950 + 1 },
-    (_, i) => new Date().getFullYear() - i
-  );
+  readonly hoyStr = new Date().toISOString().split('T')[0];
+  readonly minAnoDate = new Date(1950, 0, 1);
+  readonly maxAnoDate = new Date();
+  selectedAnoIngreso: Date | null = null;
   camposHV: CamposHV = {
     ip: true, mac: true, procesador: true, ram: true, disco: true,
     tonner: true, so: true, office: true, nombre_usuario: true,
@@ -84,6 +86,8 @@ export class SysEquipoModalComponent implements OnInit, OnChanges, OnDestroy {
     this.loadLookupData();
     this.setupPeriodicidadListener();
     this.setupTipoEquipoListener();
+    this.setupMttoListener();
+    this.actualizarValidadoresMantenimiento(1); // mtto=1 por defecto al crear
   }
 
   ngOnDestroy() {
@@ -97,6 +101,8 @@ export class SysEquipoModalComponent implements OnInit, OnChanges, OnDestroy {
     if (changes['isOpen'] && this.isOpen && this.equipoForm) {
       if (this.equipo) {
         this.equipoForm.patchValue({ ...this.equipo });
+        this.initSelectedAno(this.equipo.ano_ingreso);
+        this.actualizarValidadoresMantenimiento(Number(this.equipo.mtto ?? 1));
 
         // Pre-poblar sede y cargar servicios filtrados sin resetear el servicio actual
         const sedeId = this.equipo.servicio?.sede?.id || (this.equipo.servicio as any)?.sedeIdFk;
@@ -117,11 +123,24 @@ export class SysEquipoModalComponent implements OnInit, OnChanges, OnDestroy {
       } else {
         this.equipoForm.reset();
         this.servicios = [...this.todosLosServicios];
+        this.selectedAnoIngreso = null;
         this.equipoForm.patchValue({ activo: 1, mtto: 1, administrable: 0 });
         this.hojaVidaExpanded = true;
       }
       this.errorMessage = null;
     }
+  }
+
+  onAnoIngresoChange(date: Date | null) {
+    // La columna ano_ingreso es DATEONLY → se guarda como 'YYYY-01-01'
+    this.equipoForm.patchValue({ ano_ingreso: date ? `${date.getFullYear()}-01-01` : '' });
+  }
+
+  private initSelectedAno(value: any) {
+    if (!value) { this.selectedAnoIngreso = null; return; }
+    // value puede venir como 'YYYY-MM-DD' (BD) o como año suelto
+    const y = parseInt(String(value).slice(0, 4), 10);
+    this.selectedAnoIngreso = (!isNaN(y) && y >= 1950) ? new Date(y, 0, 1) : null;
   }
 
   // ── Validadores personalizados ─────────────────────────────────────────────
@@ -134,6 +153,12 @@ export class SysEquipoModalComponent implements OnInit, OnChanges, OnDestroy {
   private static formatoCodigo(control: AbstractControl): ValidationErrors | null {
     if (!control.value) return null;
     return /^[A-Za-z0-9\-_]+$/.test(control.value) ? null : { formatoCodigo: true };
+  }
+
+  // Permite letras (con acentos y ñ), números, espacios, guiones y puntos.
+  private static sinCaracteresEspeciales(control: AbstractControl): ValidationErrors | null {
+    if (!control.value) return null;
+    return /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü0-9 .\-]+$/.test(control.value) ? null : { caracteresEspeciales: true };
   }
 
   private nombreUnicoValidator(): AsyncValidatorFn {
@@ -244,9 +269,9 @@ export class SysEquipoModalComponent implements OnInit, OnChanges, OnDestroy {
 
   initForm() {
     this.equipoForm = this.fb.group({
-      nombre_equipo:        ['', [Validators.required, Validators.maxLength(255)], [this.nombreUnicoValidator()]],
-      marca:                ['', [Validators.required, Validators.maxLength(255)]],
-      modelo:               ['', [Validators.required, Validators.maxLength(255)]],
+      nombre_equipo:        ['', [Validators.required, Validators.maxLength(255), SysEquipoModalComponent.sinCaracteresEspeciales], [this.nombreUnicoValidator()]],
+      marca:                ['', [Validators.required, Validators.maxLength(255), SysEquipoModalComponent.sinCaracteresEspeciales]],
+      modelo:               ['', [Validators.required, Validators.maxLength(255), SysEquipoModalComponent.sinCaracteresEspeciales]],
       serie:                ['', [Validators.required, Validators.maxLength(80), SysEquipoModalComponent.sinEspacios, SysEquipoModalComponent.formatoCodigo]],
       placa_inventario:     ['', [Validators.required, Validators.maxLength(255), SysEquipoModalComponent.sinEspacios, SysEquipoModalComponent.formatoCodigo]],
       codigo:               ['', [Validators.required, Validators.maxLength(255), SysEquipoModalComponent.sinEspacios, SysEquipoModalComponent.formatoCodigo]],
@@ -254,15 +279,15 @@ export class SysEquipoModalComponent implements OnInit, OnChanges, OnDestroy {
       ubicacion_especifica: ['', [Validators.required, Validators.maxLength(255)]],
       activo: [1],
       ano_ingreso:          ['', [Validators.required]],
-      dias_mantenimiento:   ['', [Validators.required, Validators.min(0)]],
-      periodicidad:         ['', [Validators.required]],
+      dias_mantenimiento:   ['', [Validators.min(0)]],
+      periodicidad:         [''],
       // Configuración de Red — no obligatoria
       administrable:        [0],
       direccionamiento_Vlan:['', [Validators.maxLength(255)]],
       numero_puertos:       ['', [Validators.min(0)]],
       mtto: [1],
       preventivo_s: [false],
-      id_sede_fk:           [''],
+      id_sede_fk:           ['', [Validators.required]],
       id_servicio_fk:       ['', [Validators.required]],
       id_tipo_equipo_fk:    ['', [Validators.required]],
       id_usuario_fk:        ['', [Validators.required]],
@@ -317,7 +342,39 @@ export class SysEquipoModalComponent implements OnInit, OnChanges, OnDestroy {
     if (field.hasError('nombreDuplicado')) return 'Ya existe un equipo con este nombre';
     if (field.hasError('sinEspacios')) return 'No se permiten espacios';
     if (field.hasError('formatoCodigo')) return 'Solo letras, números y guiones (Ej: SN-123456, INV-2025-001)';
+    if (field.hasError('caracteresEspeciales')) return 'No se permiten caracteres especiales';
     return '';
+  }
+
+  get requiereMantenimiento(): boolean {
+    return Number(this.equipoForm?.get('mtto')?.value) === 1;
+  }
+
+  private actualizarValidadoresMantenimiento(mttoValue: number) {
+    const requiere = mttoValue === 1;
+    const periCtrl = this.equipoForm.get('periodicidad');
+    const diasCtrl = this.equipoForm.get('dias_mantenimiento');
+    const prevCtrl = this.equipoForm.get('preventivo_s');
+
+    if (requiere) {
+      periCtrl?.setValidators([Validators.required]);
+      diasCtrl?.setValidators([Validators.required, Validators.min(0)]);
+    } else {
+      periCtrl?.clearValidators();
+      periCtrl?.setValue('');
+      diasCtrl?.clearValidators();
+      diasCtrl?.setValue('');
+      prevCtrl?.setValue(false);
+      this.updateFechasMantenimiento('');
+    }
+    periCtrl?.updateValueAndValidity();
+    diasCtrl?.updateValueAndValidity();
+  }
+
+  setupMttoListener() {
+    this.equipoForm.get('mtto')?.valueChanges.subscribe(value => {
+      this.actualizarValidadoresMantenimiento(Number(value));
+    });
   }
 
   setupPeriodicidadListener() {
@@ -428,8 +485,11 @@ export class SysEquipoModalComponent implements OnInit, OnChanges, OnDestroy {
         ano_ingreso:          'Año de Ingreso',
         ubicacion:            'Ubicación',
         ubicacion_especifica: 'Ubicación Específica',
-        periodicidad:         'Tipo de Mantenimiento',
-        dias_mantenimiento:   'Días de Mantenimiento',
+        id_sede_fk:           'Sede',
+        ...(this.requiereMantenimiento ? {
+          periodicidad:       'Tipo de Mantenimiento',
+          dias_mantenimiento: 'Días de Mantenimiento',
+        } : {}),
 
         id_servicio_fk:       'Servicio',
         id_tipo_equipo_fk:    'Tipo de Equipo',
@@ -444,6 +504,7 @@ export class SysEquipoModalComponent implements OnInit, OnChanges, OnDestroy {
         if (ctrl.hasError('nombreDuplicado')) errores.push(`• <b>${label}</b>: ya existe un equipo con ese nombre`);
         if (ctrl.hasError('sinEspacios'))   errores.push(`• <b>${label}</b>: no se permiten espacios`);
         if (ctrl.hasError('formatoCodigo')) errores.push(`• <b>${label}</b>: formato inválido (use letras, números y guiones)`);
+        if (ctrl.hasError('caracteresEspeciales')) errores.push(`• <b>${label}</b>: no se permiten caracteres especiales`);
         if (ctrl.hasError('maxlength'))     errores.push(`• <b>${label}</b>: texto demasiado largo`);
       }
 

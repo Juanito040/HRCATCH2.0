@@ -8,13 +8,16 @@
       } @else if (selectedView === 'baja') {
         <h1>Equipos dados de baja</h1>
         <p class="subtitle">Equipos de sistemas que han sido dados de baja.</p>
+      } @else if (selectedView === 'todos') {
+        <h1>Listado General de Equipos</h1>
+        <p class="subtitle">Todos los equipos de sistemas: activos, en bodega y dados de baja.</p>
       } @else {
         <h1>Inventario de Equipos</h1>
         <p class="subtitle">Listado general de equipos de sistemas.</p>
       }
     </div>
     <div class="header-actions">
-      @if (selectedView === 'all') {
+      @if (selectedView === 'all' || selectedView === 'todos') {
         <button class="btn btn-success" (click)="descargarInventario()" [disabled]="isDownloading">
           @if (isDownloading) {
             <span class="btn-spinner-sm"></span> Descargando...
@@ -86,6 +89,9 @@
             } @else if (selectedView === 'baja') {
               <th>Ubic. Anterior</th>
               <th>Motivo Baja</th>
+            } @else if (selectedView === 'todos') {
+              <th>Ubicación Específica</th>
+              <th>Estado</th>
             } @else {
               <th>Ubicación Específica</th>
             }
@@ -115,6 +121,9 @@
               } @else if (selectedView === 'baja') {
                 <td>{{ equipo.ubicacion_anterior || 'N/A' }}</td>
                 <td>{{ equipo.baja?.justificacion_baja || 'Sin motivo registrado' }}</td>
+              } @else if (selectedView === 'todos') {
+                <td>{{ equipo.ubicacion_especifica || 'N/A' }}</td>
+                <td><span [class]="getEstadoEquipoClass(equipo)">{{ getEstadoEquipo(equipo) }}</span></td>
               } @else {
                 <td>{{ equipo.ubicacion_especifica || 'N/A' }}</td>
               }

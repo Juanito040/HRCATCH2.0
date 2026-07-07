@@ -46,6 +46,10 @@ export class SysHojaVidaComponent implements OnInit {
   error: string | null = null;
   isNew = false;
 
+  readonly hoyStr = new Date().toISOString().split('T')[0];
+  errorFechaCompra: string | null = null;
+  errorFechaInstalacion: string | null = null;
+
   formData: SysHojaVida = this.emptyForm();
 
   // ── Tipos de uso ─────────────────────────────────────────────────────────
@@ -196,9 +200,43 @@ export class SysHojaVidaComponent implements OnInit {
     }
   }
 
+  private validarFechas(): boolean {
+    this.errorFechaCompra = null;
+    this.errorFechaInstalacion = null;
+    const hoy = new Date(this.hoyStr);
+
+    if (this.formData.fecha_compra) {
+      const fc = new Date(this.formData.fecha_compra);
+      if (isNaN(fc.getTime())) {
+        this.errorFechaCompra = 'La fecha de compra no es válida.';
+      } else if (fc > hoy) {
+        this.errorFechaCompra = 'La fecha de compra no puede ser futura.';
+      }
+    }
+
+    if (this.formData.fecha_instalacion) {
+      const fi = new Date(this.formData.fecha_instalacion);
+      if (isNaN(fi.getTime())) {
+        this.errorFechaInstalacion = 'La fecha de instalación no es válida.';
+      } else if (fi > hoy) {
+        this.errorFechaInstalacion = 'La fecha de instalación no puede ser futura.';
+      }
+    }
+
+    return !this.errorFechaCompra && !this.errorFechaInstalacion;
+  }
+
   save() {
+    if (!this.validarFechas()) return;
+
+    // Fechas vacías → null (evita 'Invalid date' en columnas DATEONLY)
+    const payload: any = { ...this.formData };
+    ['fecha_compra', 'fecha_instalacion', 'fecha_inicio_soporte'].forEach(f => {
+      if (!payload[f]) payload[f] = null;
+    });
+
     this.isSaving = true;
-    this.svc.upsertByEquipo(this.equipoId, this.formData).subscribe({
+    this.svc.upsertByEquipo(this.equipoId, payload).subscribe({
       next: (res) => {
         this.hojaVida  = res.data;
         this.equipo    = res.data?.equipo ?? this.equipo;

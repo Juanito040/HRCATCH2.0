@@ -11,7 +11,7 @@ router.get('/', async (req, res) => {
   try {
     const protocolos = await SysProtocoloPreventivo.findAll({
       include: [{ model: TipoEquipo, as: 'tipoEquipo' }],
-      order: [['id', 'ASC']]
+      order: [['id_sysprotocolo', 'ASC']]
     });
     res.json(protocolos);
   } catch (error) {
@@ -24,7 +24,7 @@ router.get('/tipoequipo/:idtipo', async (req, res) => {
   try {
     const protocolos = await SysProtocoloPreventivo.findAll({
       where: { id_tipo_equipo_fk: req.params.idtipo },
-      order: [['id', 'ASC']]
+      order: [['id_sysprotocolo', 'ASC']]
     });
     res.json(protocolos);
   } catch (error) {
@@ -37,7 +37,7 @@ router.get('/activo/tipoequipo/:idtipo', async (req, res) => {
   try {
     const protocolos = await SysProtocoloPreventivo.findAll({
       where: { id_tipo_equipo_fk: req.params.idtipo, estado: true },
-      order: [['id', 'ASC']]
+      order: [['id_sysprotocolo', 'ASC']]
     });
     res.json(protocolos);
   } catch (error) {

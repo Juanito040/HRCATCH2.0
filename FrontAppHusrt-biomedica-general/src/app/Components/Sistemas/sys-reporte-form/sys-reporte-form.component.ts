@@ -21,6 +21,7 @@ export class SysReporteFormComponent implements OnInit {
 
   equipo: any = null;
   origenRuta: string = '/adminsistemas/equipos';
+  readonly hoyStr = new Date().toISOString().split('T')[0];
 
   isSubmitting = false;
   isDownloadingPdf = false;

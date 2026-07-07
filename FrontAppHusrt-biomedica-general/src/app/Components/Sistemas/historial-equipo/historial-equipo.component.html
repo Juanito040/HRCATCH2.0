@@ -84,8 +84,8 @@
                           @for (cambio of evento.cambios; track cambio.campo) {
                             <tr>
                               <td><strong>{{ formatNombreCampo(cambio.campo) }}</strong></td>
-                              <td class="valor-anterior">{{ cambio.anterior ?? '—' }}</td>
-                              <td class="valor-nuevo">{{ cambio.nuevo ?? '—' }}</td>
+                              <td class="valor-anterior">{{ formatValor(cambio.campo, cambio.anterior) }}</td>
+                              <td class="valor-nuevo">{{ formatValor(cambio.campo, cambio.nuevo) }}</td>
                             </tr>
                           }
                         </tbody>

@@ -23,7 +23,7 @@ export class ParametrizacionSistemasComponent {
   }
 
   irATiposEquipo()   { this.router.navigate(['/adminsistemas/admin/tiposequipo']); }
-  irAEquipos()       { this.router.navigate(['/adminsistemas/equipos']); }
+  irAEquipos()       { this.router.navigate(['/adminsistemas/equipos'], { queryParams: { vista: 'todos' } }); }
   irAServicios()     { this.router.navigate(['/adminsistemas/servicios']); }
   irAProtocolos()    { this.router.navigate(['/adminsistemas/protocolos']); }
   irAUsuarios()      { this.router.navigate(['/admusuarios']); }

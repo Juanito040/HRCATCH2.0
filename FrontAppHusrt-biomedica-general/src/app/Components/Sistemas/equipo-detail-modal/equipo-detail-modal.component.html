@@ -50,7 +50,7 @@
             <div class="detail-item"><span class="detail-label">Código</span><span class="detail-value">{{ formatValue(equipo.codigo) }}</span></div>
             <div class="detail-item"><span class="detail-label">Ubicación</span><span class="detail-value">{{ formatValue(equipo.ubicacion) }}</span></div>
             <div class="detail-item"><span class="detail-label">Ubicación Específica</span><span class="detail-value">{{ formatValue(equipo.ubicacion_especifica) }}</span></div>
-            <div class="detail-item"><span class="detail-label">Año de Ingreso</span><span class="detail-value">{{ equipo.ano_ingreso || 'No especificado' }}</span></div>
+            <div class="detail-item"><span class="detail-label">Año de Ingreso</span><span class="detail-value">{{ equipo.ano_ingreso ? (equipo.ano_ingreso + '').slice(0, 4) : 'No especificado' }}</span></div>
             <div class="detail-item"><span class="detail-label">Servicio</span><span class="detail-value">{{ formatServicio() }}</span></div>
             <div class="detail-item"><span class="detail-label">Responsable</span><span class="detail-value">{{ formatUsuario() }}</span></div>
           </div>

@@ -12,6 +12,7 @@ import { CardModule } from 'primeng/card';
 import { TagModule } from 'primeng/tag';
 import { SysequiposService } from '../../../Services/appServices/sistemasServices/sysequipos/sysequipos.service';
 import { MesaService } from '../../../Services/mesa-servicios/mesa.service';
+import { isSistemasSoloLectura } from '../../../utilidades';
 
 @Component({
   selector: 'app-sys-ver-reporte',
@@ -38,6 +39,8 @@ export class SysVerReporteComponent implements OnInit {
   reportes: any[] = [];
   loading = false;
   modalVisible = false;
+
+  get isReadOnly(): boolean { return isSistemasSoloLectura(); }
   reporteSeleccionado: any = null;
   equipoId!: number;
 

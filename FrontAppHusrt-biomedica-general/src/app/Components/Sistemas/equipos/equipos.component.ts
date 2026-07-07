@@ -48,7 +48,7 @@ export class SisEquiposComponent implements OnInit {
   pagedEquipos: any[] = [];
   searchTerm: string = '';
   selectedActivo: boolean | undefined = undefined;
-  selectedView: 'all' | 'bodega' | 'baja' = 'all';
+  selectedView: 'all' | 'bodega' | 'baja' | 'todos' = 'all';
 
   pageSize = 10;
   readonly pageSizeOptions = [10, 25, 50];
@@ -222,12 +222,41 @@ export class SisEquiposComponent implements OnInit {
     });
   }
 
+  // Carga TODOS los equipos sin importar su estado (activos, bodega y baja)
+  private loadTodosData() {
+    this.isLoading = true;
+    this.error = null;
+    this.pagedEquipos = [];
+    this.sysequiposService.getEquipos({ includeAll: true }).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.error = null;
+          this.equipos = Array.isArray(response.data) ? response.data : [response.data];
+          this.totalEquipos = this.equipos.length;
+          this.applyFilters();
+          this.restorePageFromUrl();
+        } else {
+          this.error = response.message || 'Error al cargar todos los equipos';
+          this.equipos = []; this.filteredEquipos = []; this.pagedEquipos = [];
+        }
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Error al cargar todos los equipos:', err);
+        this.error = extractError(err, 'cargar todos los equipos');
+        this.equipos = []; this.filteredEquipos = []; this.pagedEquipos = [];
+        this.isLoading = false;
+      }
+    });
+  }
+
   ngOnInit() {
     // 1. Cálculo de vista inicial (Ejecutar en Servidor y Cliente para Hidratación correcta)
     const params = this.route.snapshot.queryParams;
-    let initialView: 'all' | 'bodega' | 'baja' = 'all';
+    let initialView: 'all' | 'bodega' | 'baja' | 'todos' = 'all';
     if (params['vista'] === 'bodega') initialView = 'bodega';
     else if (params['vista'] === 'baja') initialView = 'baja';
+    else if (params['vista'] === 'todos') initialView = 'todos';
     const actionCreate = params['action'] === 'crear';
 
     this.selectedView = initialView;
@@ -241,6 +270,8 @@ export class SisEquiposComponent implements OnInit {
       this.loadBodegaData();
     } else if (initialView === 'baja') {
       this.loadBajaData();
+    } else if (initialView === 'todos') {
+      this.loadTodosData();
     } else {
       this.loadAllData();
     }
@@ -330,7 +361,7 @@ export class SisEquiposComponent implements OnInit {
     }
   }
 
-  changeView(view: 'all' | 'bodega' | 'baja') {
+  changeView(view: 'all' | 'bodega' | 'baja' | 'todos') {
     this.selectedView = view;
     this.searchTerm = '';
     this.selectedActivo = undefined;
@@ -342,9 +373,25 @@ export class SisEquiposComponent implements OnInit {
       this.loadBodegaData();
     } else if (view === 'baja') {
       this.loadBajaData();
+    } else if (view === 'todos') {
+      this.loadTodosData();
     } else {
       this.loadEquipos();
     }
+  }
+
+  // Estado consolidado del equipo para la vista "Todos"
+  getEstadoEquipo(equipo: any): string {
+    if (equipo?.estado_baja) return 'Dado de baja';
+    if (equipo?.ubicacion === 'Bodega' || equipo?.activo === false || Number(equipo?.activo) === 0) return 'En bodega';
+    return 'Activo';
+  }
+
+  getEstadoEquipoClass(equipo: any): string {
+    const estado = this.getEstadoEquipo(equipo);
+    if (estado === 'Dado de baja') return 'badge badge-danger';
+    if (estado === 'En bodega') return 'badge badge-warning';
+    return 'badge badge-success';
   }
 
   applyFilters() {
@@ -495,6 +542,20 @@ export class SisEquiposComponent implements OnInit {
         opcionesLectura.push({ label: 'Descargar PDF Baja', icon: 'fas fa-file-contract', command: () => this.descargarPdfBaja(equipo) });
       }
       return opcionesLectura;
+    }
+
+    // Vista consolidada: menú de solo consulta (los equipos pueden estar en cualquier estado)
+    if (this.selectedView === 'todos') {
+      const items: MenuItem[] = [
+        { label: 'Ver Detalles', icon: 'pi pi-eye', command: () => this.openDetailModal(equipo) },
+        opcionVerReportes,
+        opcionHistorial,
+        opcionTraslados,
+      ];
+      if (equipo.estado_baja) {
+        items.push({ label: 'Descargar PDF Baja', icon: 'fas fa-file-contract', command: () => this.descargarPdfBaja(equipo) });
+      }
+      return items;
     }
 
     if (this.selectedView === 'all') {

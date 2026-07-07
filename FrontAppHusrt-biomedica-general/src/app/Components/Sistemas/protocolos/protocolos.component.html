@@ -32,6 +32,17 @@
     </div>
   </div>
 
+  <!-- Error al cargar tipos de equipo -->
+  @if (!isLoading && errorTipos) {
+    <div class="error-state">
+      <div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
+      <p>{{ errorTipos }}</p>
+      <button class="btn btn-primary" (click)="cargarTiposEquipo()">
+        <i class="fas fa-redo"></i> Reintentar
+      </button>
+    </div>
+  }
+
   <!-- Estado de carga inicial -->
   @if (isLoading) {
     <div class="loading-state">
@@ -41,7 +52,7 @@
   }
 
   <!-- Sin tipo seleccionado -->
-  @if (!isLoading && !selectedTipoEquipoId) {
+  @if (!isLoading && !errorTipos && !selectedTipoEquipoId) {
     <div class="empty-banner">
       <p>Selecciona un tipo de equipo para ver y gestionar su checklist de protocolo.</p>
     </div>
@@ -55,8 +66,19 @@
     </div>
   }
 
+  <!-- Error al cargar protocolos -->
+  @if (!isLoadingProtocolos && selectedTipoEquipoId && errorProtocolos) {
+    <div class="error-state">
+      <div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
+      <p>{{ errorProtocolos }}</p>
+      <button class="btn btn-primary" (click)="onTipoEquipoChange()">
+        <i class="fas fa-redo"></i> Reintentar
+      </button>
+    </div>
+  }
+
   <!-- Checklist de protocolos -->
-  @if (!isLoadingProtocolos && selectedTipoEquipoId) {
+  @if (!isLoadingProtocolos && selectedTipoEquipoId && !errorProtocolos) {
     <div class="checklist-section">
 
       <!-- Header del checklist -->

@@ -10,7 +10,9 @@
 
   <div class="flex justify-content-between mb-3">
     <button pButton label="Volver" icon="pi pi-arrow-left" class="p-button-secondary" (click)="volver()"></button>
-    <button pButton label="Nuevo Reporte" icon="pi pi-plus" (click)="nuevoReporte()"></button>
+    @if (!isReadOnly) {
+      <button pButton label="Nuevo Reporte" icon="pi pi-plus" (click)="nuevoReporte()"></button>
+    }
   </div>
 
   <p-table #dt

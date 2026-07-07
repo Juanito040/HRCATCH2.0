@@ -201,11 +201,9 @@
             }
             @if (campos.tipo_uso) {
               <div class="form-group">
-                <label>Tipo de Uso <span class="req-star">*</span></label>
-                <select class="form-control" [(ngModel)]="formData.tipo_uso">
-                  <option value="">Seleccione...</option>
-                  <option *ngFor="let tipo of tiposUso" [value]="tipo">{{ tipo }}</option>
-                </select>
+                <label>Tipo de Uso</label>
+                <input type="text" class="form-control" [(ngModel)]="formData.tipo_uso"
+                  placeholder="Ej: Administrativo, Asistencial, Gerencial..." />
               </div>
             }
           </div>
@@ -222,12 +220,20 @@
               <input type="text" class="form-control" [(ngModel)]="formData.vendedor" />
             </div>
             <div class="form-group">
-              <label>Fecha de Compra <span class="req-star">*</span></label>
-              <input type="date" class="form-control" [(ngModel)]="formData.fecha_compra" />
+              <label>Fecha de Compra</label>
+              <input type="date" class="form-control" [(ngModel)]="formData.fecha_compra"
+                [max]="hoyStr" />
+              @if (errorFechaCompra) {
+                <span class="field-error">{{ errorFechaCompra }}</span>
+              }
             </div>
             <div class="form-group">
               <label>Fecha de Instalación</label>
-              <input type="date" class="form-control" [(ngModel)]="formData.fecha_instalacion" />
+              <input type="date" class="form-control" [(ngModel)]="formData.fecha_instalacion"
+                [max]="hoyStr" />
+              @if (errorFechaInstalacion) {
+                <span class="field-error">{{ errorFechaInstalacion }}</span>
+              }
             </div>
             <div class="form-group">
               <label>Costo de Compra</label>
@@ -255,7 +261,8 @@
         <div class="form-grid">
           <div class="form-group">
             <label>Fecha de Inicio de Soporte</label>
-            <input type="date" class="form-control" [(ngModel)]="formData.fecha_inicio_soporte" />
+            <input type="date" class="form-control" [(ngModel)]="formData.fecha_inicio_soporte"
+              [attr.max]="hoyStr" />
           </div>
           <div class="form-group">
             <label>Años de Soporte del Fabricante</label>
